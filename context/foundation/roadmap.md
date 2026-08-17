@@ -29,7 +29,7 @@ GoodGut pomaga osobie wymagającej specjalnej diety szybciej ocenić w sklepie, 
 
 | ID | Change ID | Outcome (user can …) | Prerequisites | PRD refs | Status |
 |---|---|---|---|---|---|
-| F-01 | minimal-product-data-contract | (foundation) minimalny kontrakt danych produktu i mały zestaw testowych produktów są ustalone | — | FR-004, FR-005, FR-008 | in-progress |
+| F-01 | minimal-product-data-contract | (foundation) minimalny kontrakt danych produktu i mały zestaw testowych produktów są ustalone | — | FR-004, FR-005, FR-008 | done |
 | F-02 | analysis-rule-guardrails | (foundation) reguły analizy i komunikaty bezpieczeństwa są ograniczone do MVP | F-01 | FR-006, FR-007, FR-008, FR-009 | proposed |
 | S-01 | local-health-profile | użytkownik może utworzyć lokalny profil z nazwą i opcjonalnym schorzeniem | — | FR-001, FR-002, FR-003 | ready |
 | S-02 | scan-product-nutri-score | użytkownik bez schorzenia może zeskanować produkt i zobaczyć Nutri-Score albo brak danych | F-01 | FR-004, FR-005, FR-008 | proposed |
@@ -73,7 +73,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
   - Jaki najmniejszy zestaw pól produktu wystarcza dla Nutri-Score, cukrzycy, celiakii i WZJG bez pełnego importu datasetu? — Owner: user. Block: no.
   - Czy MVP używa małego zestawu kontrolowanych produktów zamiast pełnej bazy na serwerze? — Owner: user. Block: no.
 - **Risk:** Pełny dataset może być za drogi; mały kontrakt danych pozwala planować skan bez zakładania kosztownej infrastruktury.
-- **Status:** in-progress
+- **Status:** done
 
 ### F-02: Minimalne reguły analizy i granice bezpieczeństwa
 
@@ -171,3 +171,5 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Automatyzacja wdrożenia Railway jako osobny etap** — Why parked: Railway pozostaje finalną platformą, ale pierwsza roadmapa ogranicza ryzyko danych i przepływu MVP przed inwestycją w deploy.
 
 ## Done
+
+- **F-01: (foundation) minimalny kontrakt danych produktu, mały zestaw testowych produktów i decyzja "bez pełnego importu datasetu w MVP" są gotowe do użycia przez pierwszy skan.** — Archived 2026-08-17 → `context/archive/2026-06-24-minimal-product-data-contract/`. Lesson: —.
