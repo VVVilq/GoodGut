@@ -1,7 +1,7 @@
 ---
 change_id: minimal-product-data-contract
 title: Minimal Product Data Contract
-status: implementing
+status: impl_reviewed
 created: 2026-06-24
 updated: 2026-08-17
 roadmap_id: F-01

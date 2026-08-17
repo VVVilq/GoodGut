@@ -126,7 +126,7 @@ GoodGut maps source data into its own fields. Raw Open Food Facts fields should 
 | `nutritionPer100.fiberG` | Fiber per 100g/100ml | Numeric grams per 100g/100ml, null if unavailable. |
 | `ingredientEvidence.ingredientsText` | Ingredients text | Preserve for explanation and gluten-evidence mapping. |
 | `ingredientEvidence.allergenTags` | Allergen/tag evidence | Normalize to a list of source tags. |
-| `ingredientEvidence.glutenEvidence` | Allergen tags and ingredient text | `present` when source evidence indicates gluten; `absent` only when source evidence is explicit enough; otherwise `unknown`. |
+| `ingredientEvidence.glutenEvidence` | Allergen tags, ingredient text, and explicit gluten-free claims or certifications | `present` when source evidence indicates gluten. Use `absent` only for an explicit, authoritative negative signal, such as a verified gluten-free claim or certification. Missing tags, incomplete ingredient data, silence, or lack of a gluten mention must map to `unknown`. |
 
 ## Nutrition Basis
 
@@ -162,7 +162,7 @@ Future API mapping and contract tests must use a fixed initial inventory of exac
 2. `not-found`: a valid barcode that Open Food Facts reports as not found.
 3. `found-without-nutri-score`: a recognized product whose Nutri-Score is missing.
 4. `diabetes-inputs`: a recognized product with carbohydrates, sugars, and fiber per 100g/100ml so diabetes readiness can be evaluated.
-5. `gluten-evidence`: a recognized product with explicit allergen or ingredient evidence for gluten mapping.
+5. `gluten-evidence`: a recognized product with an explicit, authoritative gluten-free claim or certification; its expected normalized output is `glutenEvidence: "absent"`. Missing tags, incomplete ingredient data, silence, or lack of a gluten mention must instead normalize to `unknown`.
 6. `wzjg-partial-data`: a recognized product with partial or missing WZJG-relevant inputs, producing `insufficient_data` without a suitability judgment.
 
 Each scenario has two recorded JSON files with the same scenario basename:
@@ -172,14 +172,42 @@ Each scenario has two recorded JSON files with the same scenario basename:
 
 Automated tests must read these recorded fixtures and must not call the live Open Food Facts API. Live API checks are manual smoke checks only, because source availability, rate limits, and product records can change independently of GoodGut.
 
+## Future API Integration
+
+GoodGut's Spring API owns the Open Food Facts integration boundary. Mobile clients call GoodGut and must not call Open Food Facts directly. The backend is responsible for the source request, custom client identity, response validation, normalization into this contract, rate-limit and source-error handling, and any later cache or import migration. The response exposed to mobile follows the GoodGut contract regardless of whether a future implementation reads from live lookup, a cache, or imported records.
+
+### Reserved endpoint
+
+A later implementation may add `GET /products/{barcode}`. This change reserves the route and response behavior but does not implement it.
+
+- A successfully normalized product returns the `found` contract, including independent Nutri-Score and analysis-readiness states.
+- A confirmed source miss returns the `not_found` contract rather than an empty or fabricated product.
+- A timeout, rate limit, upstream failure, or unusable source response returns the `source_error` contract with a machine-readable error category.
+- The endpoint must not expose raw Open Food Facts JSON or make missing source data look like a health judgment.
+
+HTTP status selection is deferred to the endpoint implementation plan. Clients must branch on the explicit contract outcome and must not infer `not_found` from `source_error`.
+
+## Implementation Handoff
+
+Before implementing the endpoint or a mobile consumer:
+
+1. Use Java 21 for API development and verification.
+2. Run API verification from the repository root with `cd services\api; .\mvnw.cmd test` on PowerShell. Use `cd services/api && ./mvnw test` on Unix-like shells.
+3. When mobile begins consuming this contract, run `cd apps\mobile; npm.cmd run lint` on PowerShell or `cd apps/mobile && npm run lint` on Unix-like shells.
+4. Keep automated mapping and contract tests deterministic by using the recorded raw and normalized fixtures; reserve live source requests for manual smoke checks.
+5. In a live smoke check, verify the configured custom `User-Agent`, the representative barcode response shape, and the mappings for `found`, `not_found`, and source failures.
+6. Recheck the current Open Food Facts API version, terms, licenses, attribution requirements, and rate limits immediately before production rollout.
+
+Any later cache or import must sit behind the same normalized GoodGut contract. Treat that work as a separate change with explicit freshness, storage, licensing, migration, backup, and rollback decisions; mobile and analysis code must not depend on the storage strategy.
+
 ## Compliance Notes
 
 Before production use, implementation must confirm current Open Food Facts requirements. At minimum:
 
-- Send a custom GoodGut `User-Agent`.
+- Send a custom GoodGut `User-Agent` in the documented `AppName/Version (ContactEmail)` form.
 - Keep lookup read-only for this MVP path.
 - Attribute Open Food Facts according to its current license and terms.
-- Respect rate limits and avoid automated bulk download through the live lookup API.
+- Respect the current product-read rate limit and handle HTTP 503 or other source throttling as `source_error`; avoid automated bulk download through the live lookup API.
 - Treat a future import/cache as a separate change with its own license, storage, backup, and rollback review.
 
 ## References
