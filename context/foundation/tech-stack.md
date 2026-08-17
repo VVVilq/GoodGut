@@ -5,7 +5,7 @@ project_name: goodgut-server
 hints:
   language_family: java
   team_size: solo
-  deployment_target: fly
+  deployment_target: railway
   ci_provider: github-actions
   ci_default_flow: auto-deploy-on-merge
   bootstrapper_confidence: verified
@@ -26,4 +26,4 @@ hints:
 
 ## Why this stack
 
-GoodGut needs a small server for barcode-based product lookup and dietary analysis while the mobile client remains a separate scaffold. Spring Boot matches the chosen Java direction, provides typed and conventional service structure, and has verified bootstrapper support for a solo developer on a five-week after-hours MVP. The initial imported product dataset is required setup, but periodic refresh is excluded from MVP scope, so no background-job feature is recorded. The server is targeted at Fly.io with GitHub Actions and automatic deployment after merge to keep delivery straightforward.
+GoodGut needs a small server for barcode-based product lookup and dietary analysis while the mobile client remains a separate scaffold. The Spring Boot API lives in `services/api`, matches the chosen Java direction, provides typed and conventional service structure, and has verified bootstrapper support for a solo developer on a five-week after-hours MVP. The initial imported product dataset is required setup, but periodic refresh is excluded from MVP scope, so no background-job feature is recorded. The server is targeted at Railway with GitHub Actions and automatic deployment after merge to keep delivery straightforward.

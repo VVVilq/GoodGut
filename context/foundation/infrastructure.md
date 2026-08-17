@@ -88,9 +88,9 @@ Six months later, Railway could look like the wrong call if the team assumed one
 ## Getting Started
 
 1. Install and authenticate Railway CLI using the current Railway CLI docs.
-2. From the repo root, run `./mvnw test` or `.\mvnw.cmd test` to verify the Java 21/Spring Boot 4 scaffold before deploying.
-3. Initialize/link the Railway project with `railway init` or `railway link`, then deploy with `railway up` or `railway deploy`.
-4. Add required environment variables with `railway variable`; keep secrets out of `src/main/resources/application.properties`.
+2. From `services/api`, run `./mvnw test` or `.\mvnw.cmd test` to verify the Java 21/Spring Boot 4 scaffold before deploying.
+3. Initialize/link the Railway project for the API service and configure Railway's service root directory as `services/api` before deploying with `railway up` or `railway deploy`.
+4. Add required environment variables with `railway variable`; keep secrets out of `services/api/src/main/resources/application.properties`.
 5. Add PostgreSQL only when the server actually persists data, then document backup/export and migration steps before importing product data.
 
 ## Out of Scope
