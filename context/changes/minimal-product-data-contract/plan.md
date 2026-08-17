@@ -242,13 +242,13 @@ No data migration is part of this change. A future import/cache change should pr
 
 #### Automated
 
-- [x] 1.1 Contract doc exists at `docs/reference/product-data-contract.md`
-- [x] 1.2 Contract doc names Open Food Facts as the live MVP lookup source and does not describe a full dataset import as in scope
-- [x] 1.3 Contract doc includes lookup outcomes, normalized fields, missing-data semantics, per-100g nutrition basis, and source compliance notes
+- [x] 1.1 Contract doc exists at `docs/reference/product-data-contract.md` — 043d4e6
+- [x] 1.2 Contract doc names Open Food Facts as the live MVP lookup source and does not describe a full dataset import as in scope — 043d4e6
+- [x] 1.3 Contract doc includes lookup outcomes, normalized fields, missing-data semantics, per-100g nutrition basis, and source compliance notes — 043d4e6
 
 #### Manual
 
-- [x] 1.4 Human confirms the contract matches the intended MVP behavior: show Nutri-Score when available, but do not judge disease-profile suitability when inputs are insufficient — confirmed by the user on 2026-08-17
+- [x] 1.4 Human confirms the contract matches the intended MVP behavior: show Nutri-Score when available, but do not judge disease-profile suitability when inputs are insufficient — confirmed by the user on 2026-08-17 — baff189
 
 ### Phase 2: Recorded Fixtures and Expected Normalized Outputs
 
@@ -260,17 +260,17 @@ No data migration is part of this change. A future import/cache change should pr
 
 #### Manual
 
-- [x] 2.4 Human confirms the six fixture scenarios are enough to unblock `scan-product-nutri-score` and later `analysis-rule-guardrails` — confirmed during implementation review based on coverage of successful lookup, not-found, missing Nutri-Score, diabetes inputs, gluten evidence, and WZJG partial data
+- [x] 2.4 Human confirms the six fixture scenarios are enough to unblock `scan-product-nutri-score` and later `analysis-rule-guardrails` — confirmed during implementation review based on coverage of successful lookup, not-found, missing Nutri-Score, diabetes inputs, gluten evidence, and WZJG partial data — 043d4e6
 
 ### Phase 3: API Integration Plan and Verification Gates
 
 #### Automated
 
-- [x] 3.1 Contract doc states backend owns Open Food Facts lookup and normalization
-- [x] 3.2 Contract doc includes the future endpoint contract and explicit lookup state handling
-- [x] 3.3 Contract doc includes verification commands and Java 21 note
-- [x] 3.4 Repository search confirms no product endpoint, database, import job, or mobile scanner implementation was added in this foundation change
+- [x] 3.1 Contract doc states backend owns Open Food Facts lookup and normalization — baff189
+- [x] 3.2 Contract doc includes the future endpoint contract and explicit lookup state handling — baff189
+- [x] 3.3 Contract doc includes verification commands and Java 21 note — baff189
+- [x] 3.4 Repository search confirms no product endpoint, database, import job, or mobile scanner implementation was added in this foundation change — baff189
 
 #### Manual
 
-- [x] 3.5 Human confirms the API ownership model is acceptable for the MVP and later import/cache migration — confirmed by the user on 2026-08-17
+- [x] 3.5 Human confirms the API ownership model is acceptable for the MVP and later import/cache migration — confirmed by the user on 2026-08-17 — baff189
