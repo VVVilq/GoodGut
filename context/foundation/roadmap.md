@@ -30,7 +30,7 @@ GoodGut reduces time spent reading food labels by applying one shopper's persona
 | ID | Change ID | Outcome (user can …) | Prerequisites | PRD refs | Status |
 |---|---|---|---|---|---|
 | F-01 | personal-rules-product-contract | (foundation) the external product-data contract and representative fixtures support personal ingredient and nutrition rules | — | FR-004, FR-005, FR-009, FR-010 | done |
-| S-01 | scan-complete-product-facts | scan a barcode and see complete available product facts or explicit unavailable states without personalization | F-01 | US-01, FR-004, FR-005, FR-009, FR-010 | proposed |
+| S-01 | scan-complete-product-facts | scan a barcode and see complete available product facts or explicit unavailable states without personalization | F-01 | US-01, FR-004, FR-005, FR-009, FR-010 | in-progress |
 | S-02 | avoided-ingredient-profile | configure and edit one on-device profile containing predefined and custom avoided ingredients | — | US-01, FR-001, FR-002 | ready |
 | S-03 | ingredient-warning-scan | scan a product and see avoided ingredients highlighted with the total triggered-rule count | S-01, S-02 | US-01, FR-004, FR-005, FR-006, FR-008, FR-009, FR-010 | proposed |
 | S-04 | nutrition-threshold-profile | configure and edit above-or-below nutrition thresholds with an explicit per-100-g or per-100-ml basis | — | US-01, FR-001, FR-003 | ready |
@@ -87,7 +87,7 @@ Foundations below assume these are present and do not re-scaffold them.
 - **Unknowns:**
   - Which representative Android test device and physical product barcodes will be used for the manual scan check? — Owner: user. Block: no.
 - **Risk:** This slice validates the full scan and lookup boundary before personalization, making external-data failures visible without mixing them with matching defects.
-- **Status:** proposed
+- **Status:** in-progress
 
 ### S-02: Configure avoided ingredients
 
