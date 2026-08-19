@@ -264,24 +264,24 @@ No production compatibility is required. Replace the draft in place and update t
 
 #### Automated
 
-- [x] 2.1 Every manifest entry has exactly one raw and normalized fixture and every fixture is declared once
-- [x] 2.2 Manifest capabilities cover every required source, basis, availability, Nutri-Score, and lookup boundary
-- [x] 2.3 Every normalized fixture validates against the canonical schemas offline
+- [x] 2.1 Every manifest entry has exactly one raw and normalized fixture and every fixture is declared once — 37aab81
+- [x] 2.2 Manifest capabilities cover every required source, basis, availability, Nutri-Score, and lookup boundary — 37aab81
+- [x] 2.3 Every normalized fixture validates against the canonical schemas offline — 37aab81
 
 #### Manual
 
-- [x] 2.4 Human confirms normalized fixtures never promote absent or uncertain source values
-- [x] 2.5 Human confirms fixture provenance and attribution are sufficient
+- [x] 2.4 Human confirms normalized fixtures never promote absent or uncertain source values — 37aab81
+- [x] 2.5 Human confirms fixture provenance and attribution are sufficient — 37aab81
 
 ### Phase 3: Enforce Contract and Evaluator Compatibility
 
 #### Automated
 
-- [ ] 3.1 API contract tests pass offline
-- [ ] 3.2 Mobile lint, type checking, and tests pass
-- [ ] 3.3 Repository scope check finds no endpoint, production source client, scanner, persistence, or disease analysis
+- [x] 3.1 API contract tests pass offline
+- [x] 3.2 Mobile lint, type checking, and tests pass
+- [x] 3.3 Repository scope check finds no endpoint, production source client, scanner, persistence, or disease analysis
 
 #### Manual
 
-- [ ] 3.4 Human traces solid, liquid, and incomplete fixtures through contract and evaluator availability
-- [ ] 3.5 Human confirms downstream slices can proceed without reopening F-01 contract decisions
+- [x] 3.4 Human traces solid, liquid, and incomplete fixtures through contract and evaluator availability
+- [x] 3.5 Human confirms downstream slices can proceed without reopening F-01 contract decisions

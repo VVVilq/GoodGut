@@ -46,6 +46,12 @@
 			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.networknt</groupId>
+			<artifactId>json-schema-validator</artifactId>
+			<version>3.0.6</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -2,8 +2,10 @@ import {
   evaluatePersonalRules,
   NutrientId,
   NutritionFact,
+  NormalizedProductFacts,
   PersonalRule,
   ProductFacts,
+  productFactsFromContract,
 } from '../personal-rules';
 
 const unavailable = (): NutritionFact => ({ status: 'unavailable' });
@@ -171,4 +173,81 @@ describe('evaluatePersonalRules', () => {
       ),
     ).toMatchObject({ triggerCount: 2, triggeredRuleIds: ['avoid-sucralose', 'high-carbs'] });
   });
+
+  it('evaluates schema-shaped facts without changing availability or per-value bases', () => {
+    const normalized: NormalizedProductFacts = {
+      ingredients: { status: 'available', names: ['carbonated water', 'sugar'] },
+      nutrition: {
+        energy_kcal: { status: 'available', value: 42, unit: 'kcal', basis: 'per_100ml' },
+        carbohydrates: { status: 'available', value: 10.6, unit: 'g', basis: 'per_100ml' },
+        sugars: { status: 'available', value: 10.6, unit: 'g', basis: 'per_100ml' },
+        fat: { status: 'available', value: 0, unit: 'g', basis: 'per_100ml' },
+        saturated_fat: { status: 'available', value: 0, unit: 'g', basis: 'per_100ml' },
+        fiber: { status: 'unavailable', reason: 'missing_source' },
+        protein: { status: 'available', value: 0, unit: 'g', basis: 'per_100ml' },
+        salt: { status: 'available', value: 0, unit: 'g', basis: 'per_100ml' },
+      },
+    };
+    const rules: PersonalRule[] = [
+      { id: 'sugar', kind: 'ingredient', name: 'sugar', source: 'custom' },
+      {
+        id: 'sugars-ml',
+        kind: 'nutrition',
+        nutrient: 'sugars',
+        direction: 'above',
+        threshold: 10,
+        basis: 'per_100ml',
+      },
+      {
+        id: 'sugars-g',
+        kind: 'nutrition',
+        nutrient: 'sugars',
+        direction: 'above',
+        threshold: 10,
+        basis: 'per_100g',
+      },
+      {
+        id: 'fiber',
+        kind: 'nutrition',
+        nutrient: 'fiber',
+        direction: 'below',
+        threshold: 1,
+        basis: 'per_100ml',
+      },
+    ];
+
+    expect(evaluatePersonalRules(rules, productFactsFromContract(normalized))).toEqual({
+      triggeredRuleIds: ['sugar', 'sugars-ml'],
+      unavailableRuleIds: ['sugars-g', 'fiber'],
+      triggerCount: 2,
+    });
+  });
+
+  it.each(['missing', 'unparseable'] as const)(
+    'preserves %s ingredients from schema-shaped facts as unavailable',
+    (status) => {
+      const normalized: NormalizedProductFacts = {
+        ingredients: { status },
+        nutrition: Object.fromEntries(
+          [
+            'energy_kcal',
+            'carbohydrates',
+            'sugars',
+            'fat',
+            'saturated_fat',
+            'fiber',
+            'protein',
+            'salt',
+          ].map((nutrient) => [nutrient, { status: 'unavailable', reason: 'missing_source' }]),
+        ) as NormalizedProductFacts['nutrition'],
+      };
+
+      expect(
+        evaluatePersonalRules(
+          [{ id: 'ingredient', kind: 'ingredient', name: 'sugar', source: 'custom' }],
+          productFactsFromContract(normalized),
+        ),
+      ).toMatchObject({ unavailableRuleIds: ['ingredient'], triggerCount: 0 });
+    },
+  );
 });

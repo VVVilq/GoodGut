@@ -42,6 +42,18 @@ export type ProductFacts = {
   nutrition: Readonly<Record<NutrientId, NutritionFact>>;
 };
 
+export type ContractNutritionFact =
+  | { status: 'available'; value: number; unit: 'kcal' | 'g'; basis: NutritionBasis }
+  | {
+      status: 'unavailable';
+      reason: 'missing_source' | 'unknown_basis' | 'invalid_value' | 'unsupported_unit';
+    };
+
+export type NormalizedProductFacts = {
+  ingredients: IngredientFacts;
+  nutrition: Readonly<Record<NutrientId, ContractNutritionFact>>;
+};
+
 export type RuleEvaluation = {
   triggeredRuleIds: string[];
   unavailableRuleIds: string[];
@@ -49,6 +61,20 @@ export type RuleEvaluation = {
 };
 
 const normalizeIngredient = (value: string) => value.trim().toLocaleLowerCase();
+
+export function productFactsFromContract(product: NormalizedProductFacts): ProductFacts {
+  return {
+    ingredients: product.ingredients,
+    nutrition: Object.fromEntries(
+      Object.entries(product.nutrition).map(([nutrient, fact]) => [
+        nutrient,
+        fact.status === 'available'
+          ? { status: 'available', value: fact.value, basis: fact.basis }
+          : { status: 'unavailable' },
+      ]),
+    ) as Record<NutrientId, NutritionFact>,
+  };
+}
 
 function ingredientTriggers(rule: IngredientRule, ingredients: readonly string[]): boolean {
   const productIngredients = new Set(ingredients.map(normalizeIngredient));

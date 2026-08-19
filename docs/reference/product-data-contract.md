@@ -93,6 +93,8 @@ Every identifier is present in a found response. Each value is independently:
 
 Do not infer solid/liquid basis from product category. Do not collapse the two bases, convert serving values, or copy a basis from one nutrient to another. A rule can compare only an available value with the same basis. Equality remains non-triggering in downstream rule evaluation.
 
+For Open Food Facts fields normalized with the `_100g` suffix, determine the GoodGut basis only from explicit source quantity units: `g` or `kg` selects `per_100g`, while `ml`, `cl`, or `l` selects `per_100ml`. Product category, name, and packaging appearance are not evidence. If the explicit unit is absent, unsupported, or conflicts with other source basis evidence, emit `unavailable` with `reason: unknown_basis` for the affected nutrients. Profile work may store separate thresholds for `per_100g` and `per_100ml`; evaluation uses only the threshold whose basis exactly matches the normalized fact.
+
 ## Missing-Data Invariants
 
 - Missing, malformed, partial, uncertain, or basis-less source data never becomes an available fact.
@@ -111,7 +113,7 @@ GoodGut targets the current Open Food Facts v3 read-product API. The implementat
 | Source metadata | Provider URL and GoodGut fetch time |
 | Nutri-Score | Current Nutri-Score grade field |
 | Ingredients | Structured `ingredients`, canonical ingredient tags, raw text, language, and parsing counts |
-| Nutrition | As-sold per-100g/per-100ml nutriment values and units for the fixed catalogue |
+| Nutrition | As-sold `_100g` nutriment values and units for the fixed catalogue; explicit product quantity unit selects GoodGut `per_100g` or `per_100ml` |
 
 Raw source fields never become the public mobile contract. Production mapping belongs to roadmap slice S-01.
 
@@ -148,6 +150,24 @@ Minimal examples for all lookup branches live in `docs/reference/examples/` and 
 - S-03 consumes ingredient availability and normalized names for avoided-ingredient warnings.
 - S-05 consumes independently based nutrition facts for threshold warnings.
 - Profile configuration and warning presentation do not change this source contract.
+
+Artifact locations and rules:
+
+- Semantic contract: `docs/reference/product-data-contract.md`.
+- Canonical schemas: `docs/reference/schemas/product-lookup.schema.json` and `normalized-product.schema.json`.
+- Recorded source proof and normalized expectations: `services/api/src/test/resources/fixtures/openfoodfacts/`.
+- Mobile adapter and evaluation: `apps/mobile/src/domain/personal-rules.ts`.
+- Consumers branch first on `outcome`, then on each fact's `status`; they never derive a favorable result from an unavailable value.
+- The only nutrient keys are `energy_kcal`, `carbohydrates`, `sugars`, `fat`, `saturated_fat`, `fiber`, `protein`, and `salt`.
+- New raw Open Food Facts fields may be ignored. Changing selected fields, identifiers, required structure, basis, or availability semantics requires a contract-version increment plus schema and fixture review.
+- API v3 and its product schema evolve independently; S-01 must pin or record both versions and keep raw-to-normalized mapping out of mobile.
+
+Verification commands:
+
+```powershell
+cd services/api; .\mvnw.cmd test
+cd apps/mobile; npm.cmd run lint; npm.cmd run typecheck; npm.cmd test
+```
 
 ## References
 
