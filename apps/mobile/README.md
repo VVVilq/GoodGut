@@ -4,6 +4,10 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
+Copy `.env.example` to `.env.local` and set `EXPO_PUBLIC_API_BASE_URL` to a GoodGut API URL
+reachable from the device. A physical phone cannot use the development computer's `localhost`;
+use the computer's LAN address, for example `http://192.168.1.100:8080`.
+
 1. Install dependencies
 
    ```bash

@@ -428,23 +428,23 @@ There is no production user data or API consumer migration. Changes are additive
 
 #### Automated
 
-- [x] 2.1 Local-stub tests prove selected fields and configured source identity.
-- [x] 2.2 Source status, transport, malformed-response, and one-call mappings pass.
-- [x] 2.3 MockMvc proves validation, barcode preservation, HTTP policy, and contract serialization.
-- [x] 2.4 The complete API test suite passes offline.
+- [x] 2.1 Local-stub tests prove selected fields and configured source identity. — 74659cd
+- [x] 2.2 Source status, transport, malformed-response, and one-call mappings pass. — 74659cd
+- [x] 2.3 MockMvc proves validation, barcode preservation, HTTP policy, and contract serialization. — 74659cd
+- [x] 2.4 The complete API test suite passes offline. — 74659cd
 
 #### Manual
 
-- [x] 2.5 Human confirms representative live endpoint bodies remain contract `1.0`.
+- [x] 2.5 Human confirms representative live endpoint bodies remain contract `1.0`. — 74659cd
 
 ### Phase 3: Mobile Contract Decoder and Lookup State
 
 #### Automated
 
-- [ ] 3.1 Decoder accepts canonical examples and fixtures and rejects unsafe responses.
-- [ ] 3.2 Lookup state tests prove duplicate, retry, stale-response, and rescan behavior.
-- [ ] 3.3 Mobile contains no Open Food Facts URL or raw source DTO.
-- [ ] 3.4 Mobile lint, type checking, and tests pass.
+- [x] 3.1 Decoder accepts canonical examples and fixtures and rejects unsafe responses.
+- [x] 3.2 Lookup state tests prove duplicate, retry, stale-response, and rescan behavior.
+- [x] 3.3 Mobile contains no Open Food Facts URL or raw source DTO.
+- [x] 3.4 Mobile lint, type checking, and tests pass.
 
 #### Manual
 
