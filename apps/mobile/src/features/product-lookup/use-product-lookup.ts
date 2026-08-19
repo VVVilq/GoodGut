@@ -1,9 +1,21 @@
 import { lookupProduct } from '@/data/goodgut-api';
-import { useMemo, useState, useSyncExternalStore } from 'react';
+import {
+  createContext,
+  createElement,
+  ReactNode,
+  useContext,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 
 import { ProductLookupStateMachine } from './lookup-state-machine';
 
-export function useProductLookup() {
+type ProductLookupContextValue = ReturnType<typeof useProductLookupValue>;
+
+const ProductLookupContext = createContext<ProductLookupContextValue | null>(null);
+
+function useProductLookupValue() {
   const [machine] = useState(() => new ProductLookupStateMachine(lookupProduct));
   const state = useSyncExternalStore(machine.subscribe, machine.getState, machine.getState);
   const actions = useMemo(
@@ -16,4 +28,15 @@ export function useProductLookup() {
     [machine],
   );
   return { state, ...actions };
+}
+
+export function ProductLookupProvider({ children }: { children: ReactNode }) {
+  const value = useProductLookupValue();
+  return createElement(ProductLookupContext.Provider, { value }, children);
+}
+
+export function useProductLookup() {
+  const value = useContext(ProductLookupContext);
+  if (value === null) throw new Error('useProductLookup must be used inside ProductLookupProvider');
+  return value;
 }

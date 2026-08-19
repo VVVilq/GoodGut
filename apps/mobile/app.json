@@ -35,6 +35,14 @@
           }
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow GoodGut to use the camera to scan product barcodes.",
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ],
       "expo-image",
       "expo-web-browser"
     ],

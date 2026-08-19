@@ -441,27 +441,27 @@ There is no production user data or API consumer migration. Changes are additive
 
 #### Automated
 
-- [x] 3.1 Decoder accepts canonical examples and fixtures and rejects unsafe responses.
-- [x] 3.2 Lookup state tests prove duplicate, retry, stale-response, and rescan behavior.
-- [x] 3.3 Mobile contains no Open Food Facts URL or raw source DTO.
-- [x] 3.4 Mobile lint, type checking, and tests pass.
+- [x] 3.1 Decoder accepts canonical examples and fixtures and rejects unsafe responses. — ae45854
+- [x] 3.2 Lookup state tests prove duplicate, retry, stale-response, and rescan behavior. — ae45854
+- [x] 3.3 Mobile contains no Open Food Facts URL or raw source DTO. — ae45854
+- [x] 3.4 Mobile lint, type checking, and tests pass. — ae45854
 
 #### Manual
 
-- [ ] 3.5 Human confirms manual lookup reaches every backend outcome through the configured API URL.
+- [x] 3.5 Human confirms manual lookup reaches every backend outcome through the configured API URL.
 
 ### Phase 4: Android Scanner and Navigation Flow
 
 #### Automated
 
-- [ ] 4.1 Expo config resolves with barcode scanning and no audio recording permission.
-- [ ] 4.2 Scan policy tests prevent invalid and duplicate lookups and permit explicit rescan.
-- [ ] 4.3 Mobile lint, type checking, and tests pass.
+- [x] 4.1 Expo config resolves with barcode scanning and no audio recording permission.
+- [x] 4.2 Scan policy tests prevent invalid and duplicate lookups and permit explicit rescan.
+- [x] 4.3 Mobile lint, type checking, and tests pass.
 
 #### Manual
 
-- [ ] 4.4 Physical Android permission allow/deny/recovery behaves correctly.
-- [ ] 4.5 Real scan and manual entry each begin exactly one lookup and reach the result flow.
+- [x] 4.4 Physical Android permission allow/deny/recovery behaves correctly.
+- [x] 4.5 Real scan and manual entry each begin exactly one lookup and reach the result flow.
 
 ### Phase 5: Complete Product Facts Presentation and End-to-End Hardening
 
