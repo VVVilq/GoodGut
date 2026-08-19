@@ -1,1 +1,73 @@
-{"capture":{"barcode":"5449000000996","requestUrl":"https://world.openfoodfacts.org/api/v3/product/5449000000996?fields=code,product_name,brands,quantity,image_front_url,nutriscore_grade,ingredients,ingredients_tags,ingredients_text,ingredients_lc,known_ingredients_n,unknown_ingredients_n,nutriments,nutrition_data_per,schema_version","apiVersion":"3","returnedSchemaVersion":999,"retrievedAt":"2026-08-19T11:22:00Z","attribution":"Open Food Facts contributors; ODbL database, CC BY-SA images","kind":"recorded_response"},"response":{"status":"success","code":"5449000000996","product":{"code":"5449000000996","product_name":"coca-cola","brands":"Coca-Cola","quantity":"330 ml","product_quantity":330,"product_quantity_unit":"ml","image_front_url":"https://images.openfoodfacts.org/images/products/544/900/000/0996/front_en.1107.400.jpg","nutriscore_grade":"e","ingredients_lc":"en","ingredients_text":"carbonated water, sugar, colour (caramel e150d), acid (phosphoric acid), natural flavourings, caffeine flavouring,","known_ingredients_n":6,"unknown_ingredients_n":0,"ingredients":[{"id":"en:carbonated-water","text":"carbonated water"},{"id":"en:sugar","text":"sugar"},{"id":"en:e150d","text":"e150d"},{"id":"en:e338","text":"phosphoric acid"},{"id":"en:natural-flavouring","text":"natural flavourings"},{"id":"en:caffeine-flavour","text":"caffeine flavouring"}],"nutriments":{"energy-kcal_100g":42,"energy-kcal_unit":"kcal","carbohydrates_100g":10.6,"carbohydrates_unit":"g","sugars_100g":10.6,"sugars_unit":"g","fat_100g":0,"fat_unit":"g","saturated-fat_100g":0,"saturated-fat_unit":"g","proteins_100g":0,"proteins_unit":"g","salt_100g":0,"salt_unit":"g"},"nutrition_data_per":"100g","schema_version":999}}}
+{
+  "capture": {
+    "barcode": "5449000000996",
+    "requestUrl": "https://world.openfoodfacts.org/api/v3/product/5449000000996?fields=code,product_name,brands,quantity,product_quantity,product_quantity_unit,image_front_url,nutriscore_grade,ingredients,ingredients_tags,ingredients_text,ingredients_lc,known_ingredients_n,unknown_ingredients_n,nutriments,nutrition_data_per,schema_version",
+    "apiVersion": "3",
+    "returnedSchemaVersion": 999,
+    "retrievedAt": "2026-08-19T13:30:00Z",
+    "attribution": "Open Food Facts contributors; ODbL database, CC BY-SA images",
+    "kind": "recorded_response"
+  },
+  "response": {
+    "status": "success",
+    "code": "5449000000996",
+    "product": {
+      "code": "5449000000996",
+      "product_name": "coca-cola",
+      "brands": "Coca-Cola",
+      "quantity": "330 ml",
+      "product_quantity": 330,
+      "product_quantity_unit": "ml",
+      "image_front_url": "https://images.openfoodfacts.org/images/products/544/900/000/0996/front_en.1107.400.jpg",
+      "nutriscore_grade": "e",
+      "ingredients_lc": "en",
+      "ingredients_text": "carbonated water, sugar, colour (caramel e150d), acid (phosphoric acid), natural flavourings, caffeine flavouring,",
+      "known_ingredients_n": 6,
+      "unknown_ingredients_n": 0,
+      "ingredients": [
+        {
+          "id": "en:carbonated-water",
+          "text": "carbonated water"
+        },
+        {
+          "id": "en:sugar",
+          "text": "sugar"
+        },
+        {
+          "id": "en:e150d",
+          "text": "e150d"
+        },
+        {
+          "id": "en:e338",
+          "text": "phosphoric acid"
+        },
+        {
+          "id": "en:natural-flavouring",
+          "text": "natural flavourings"
+        },
+        {
+          "id": "en:caffeine-flavour",
+          "text": "caffeine flavouring"
+        }
+      ],
+      "nutriments": {
+        "energy-kcal_100g": 42,
+        "energy-kcal_unit": "kcal",
+        "carbohydrates_100g": 10.6,
+        "carbohydrates_unit": "g",
+        "sugars_100g": 10.6,
+        "sugars_unit": "g",
+        "fat_100g": 0,
+        "fat_unit": "g",
+        "saturated-fat_100g": 0,
+        "saturated-fat_unit": "g",
+        "proteins_100g": 0,
+        "proteins_unit": "g",
+        "salt_100g": 0,
+        "salt_unit": "g"
+      },
+      "nutrition_data_per": "100g",
+      "schema_version": 999
+    }
+  }
+}

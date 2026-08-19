@@ -1,1 +1,77 @@
-{"contractVersion":"1.0","outcome":"found","barcode":"6111242100992","source":{"provider":"open_food_facts","providerProductUrl":"https://world.openfoodfacts.org/product/6111242100992","fetchedAt":"2026-08-19T11:31:00Z"},"product":{"identity":{"displayName":"Perly","brands":["Jaouda"],"quantity":"100 g","imageUrl":"https://images.openfoodfacts.org/images/products/611/124/210/0992/front_fr.172.400.jpg"},"nutriScore":{"status":"available","grade":"a"},"ingredients":{"status":"unparseable"},"nutrition":{"energy_kcal":{"status":"available","value":97,"unit":"kcal","basis":"per_100g"},"carbohydrates":{"status":"available","value":9.4,"unit":"g","basis":"per_100g"},"sugars":{"status":"available","value":9.4,"unit":"g","basis":"per_100g"},"fat":{"status":"available","value":3,"unit":"g","basis":"per_100g"},"saturated_fat":{"status":"available","value":0,"unit":"g","basis":"per_100g"},"fiber":{"status":"available","value":0,"unit":"g","basis":"per_100g"},"protein":{"status":"available","value":8,"unit":"g","basis":"per_100g"},"salt":{"status":"available","value":0,"unit":"g","basis":"per_100g"}}}}
+{
+  "contractVersion": "1.0",
+  "outcome": "found",
+  "barcode": "6111242100992",
+  "source": {
+    "provider": "open_food_facts",
+    "providerProductUrl": "https://world.openfoodfacts.org/product/6111242100992",
+    "fetchedAt": "2026-08-19T13:30:00Z"
+  },
+  "product": {
+    "identity": {
+      "displayName": "Perly",
+      "brands": [
+        "Jaouda"
+      ],
+      "quantity": "100 g",
+      "imageUrl": "https://images.openfoodfacts.org/images/products/611/124/210/0992/front_fr.172.400.jpg"
+    },
+    "nutriScore": {
+      "status": "available",
+      "grade": "a"
+    },
+    "ingredients": {
+      "status": "unparseable"
+    },
+    "nutrition": {
+      "energy_kcal": {
+        "status": "available",
+        "value": 97,
+        "unit": "kcal",
+        "basis": "per_100g"
+      },
+      "carbohydrates": {
+        "status": "available",
+        "value": 9.4,
+        "unit": "g",
+        "basis": "per_100g"
+      },
+      "sugars": {
+        "status": "available",
+        "value": 9.4,
+        "unit": "g",
+        "basis": "per_100g"
+      },
+      "fat": {
+        "status": "available",
+        "value": 3,
+        "unit": "g",
+        "basis": "per_100g"
+      },
+      "saturated_fat": {
+        "status": "available",
+        "value": 0,
+        "unit": "g",
+        "basis": "per_100g"
+      },
+      "fiber": {
+        "status": "available",
+        "value": 0,
+        "unit": "g",
+        "basis": "per_100g"
+      },
+      "protein": {
+        "status": "available",
+        "value": 8,
+        "unit": "g",
+        "basis": "per_100g"
+      },
+      "salt": {
+        "status": "available",
+        "value": 0,
+        "unit": "g",
+        "basis": "per_100g"
+      }
+    }
+  }
+}

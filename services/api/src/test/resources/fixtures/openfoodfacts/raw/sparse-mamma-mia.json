@@ -1,1 +1,45 @@
-{"capture":{"barcode":"00001008","requestedBarcode":"0000000001008","requestUrl":"https://world.openfoodfacts.org/api/v3/product/0000000001008?fields=code,product_name,brands,quantity,image_front_url,nutriscore_grade,ingredients,ingredients_tags,ingredients_text,ingredients_lc,known_ingredients_n,unknown_ingredients_n,nutriments,nutrition_data_per,schema_version","apiVersion":"3","returnedSchemaVersion":999,"retrievedAt":"2026-08-19T11:44:00Z","attribution":"Open Food Facts contributors; ODbL database","kind":"recorded_response"},"response":{"status":"success_with_warnings","code":"00001008","product":{"code":"00001008","product_name":"Mamma Mia  American BBQ","brands":"Gymqueen","nutriscore_grade":"unknown","nutriments":{"energy-kcal_100g":31,"energy-kcal_unit":"kcal","carbohydrates_100g":6.90000009536743,"carbohydrates_unit":"g","sugars_100g":2.20000004768372,"sugars_unit":"g","fat_100g":0.5,"fat_unit":"g","saturated-fat_100g":0.100000001490116,"saturated-fat_unit":"g","proteins_100g":0.5,"proteins_unit":"g"},"nutrition_data_per":"100g","schema_version":999},"warnings":[{"message":{"id":"different_normalized_product_code"}}]}}
+{
+  "capture": {
+    "barcode": "00001008",
+    "requestedBarcode": "0000000001008",
+    "requestUrl": "https://world.openfoodfacts.org/api/v3/product/0000000001008?fields=code,product_name,brands,quantity,product_quantity,product_quantity_unit,image_front_url,nutriscore_grade,ingredients,ingredients_tags,ingredients_text,ingredients_lc,known_ingredients_n,unknown_ingredients_n,nutriments,nutrition_data_per,schema_version",
+    "apiVersion": "3",
+    "returnedSchemaVersion": 999,
+    "retrievedAt": "2026-08-19T13:30:00Z",
+    "attribution": "Open Food Facts contributors; ODbL database",
+    "kind": "recorded_response"
+  },
+  "response": {
+    "status": "success_with_warnings",
+    "code": "00001008",
+    "product": {
+      "code": "00001008",
+      "product_name": "Mamma Mia  American BBQ",
+      "brands": "Gymqueen",
+      "nutriscore_grade": "unknown",
+      "nutriments": {
+        "energy-kcal_100g": 31,
+        "energy-kcal_unit": "kcal",
+        "carbohydrates_100g": 6.90000009536743,
+        "carbohydrates_unit": "g",
+        "sugars_100g": 2.20000004768372,
+        "sugars_unit": "g",
+        "fat_100g": 0.5,
+        "fat_unit": "g",
+        "saturated-fat_100g": 0.100000001490116,
+        "saturated-fat_unit": "g",
+        "proteins_100g": 0.5,
+        "proteins_unit": "g"
+      },
+      "nutrition_data_per": "100g",
+      "schema_version": 999
+    },
+    "warnings": [
+      {
+        "message": {
+          "id": "different_normalized_product_code"
+        }
+      }
+    ]
+  }
+}

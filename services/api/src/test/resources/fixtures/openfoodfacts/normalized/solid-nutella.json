@@ -1,1 +1,73 @@
-{"contractVersion":"1.0","outcome":"found","barcode":"3017620422003","source":{"provider":"open_food_facts","providerProductUrl":"https://world.openfoodfacts.org/product/3017620422003","fetchedAt":"2026-08-19T11:20:00Z"},"product":{"identity":{"displayName":"Nutella","brands":["Nutella","Ferrero","Yum yum"],"quantity":null,"imageUrl":"https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.879.400.jpg"},"nutriScore":{"status":"available","grade":"e"},"ingredients":{"status":"available","names":["sugar","palm oil","hazelnut","fat-reduced cocoa","skimmed milk powder","whey powder","soya lecithin","vanillin"]},"nutrition":{"energy_kcal":{"status":"available","value":539,"unit":"kcal","basis":"per_100g"},"carbohydrates":{"status":"available","value":57.5,"unit":"g","basis":"per_100g"},"sugars":{"status":"available","value":56.3,"unit":"g","basis":"per_100g"},"fat":{"status":"available","value":30.9,"unit":"g","basis":"per_100g"},"saturated_fat":{"status":"available","value":10.6,"unit":"g","basis":"per_100g"},"fiber":{"status":"unavailable","reason":"missing_source"},"protein":{"status":"available","value":6.3,"unit":"g","basis":"per_100g"},"salt":{"status":"available","value":0.107,"unit":"g","basis":"per_100g"}}}}
+{
+  "contractVersion": "1.0",
+  "outcome": "found",
+  "barcode": "3017620422003",
+  "source": {
+    "provider": "open_food_facts",
+    "providerProductUrl": "https://world.openfoodfacts.org/product/3017620422003",
+    "fetchedAt": "2026-08-19T13:30:00Z"
+  },
+  "product": {
+    "identity": {
+      "displayName": "Nutella",
+      "brands": [
+        "Nutella",
+        "Ferrero",
+        "Yum yum"
+      ],
+      "quantity": null,
+      "imageUrl": "https://images.openfoodfacts.org/images/products/301/762/042/2003/front_en.879.400.jpg"
+    },
+    "nutriScore": {
+      "status": "available",
+      "grade": "e"
+    },
+    "ingredients": {
+      "status": "available",
+      "names": [
+        "sugar",
+        "palm oil",
+        "hazelnut",
+        "fat-reduced cocoa",
+        "skimmed milk powder",
+        "whey powder",
+        "soya lecithin",
+        "vanillin"
+      ]
+    },
+    "nutrition": {
+      "energy_kcal": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "carbohydrates": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "sugars": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "fat": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "saturated_fat": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "fiber": {
+        "status": "unavailable",
+        "reason": "missing_source"
+      },
+      "protein": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "salt": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      }
+    }
+  }
+}

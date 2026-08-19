@@ -4,14 +4,106 @@
   "source": "Open Food Facts",
   "license": "Open Database License (ODbL); product images under CC BY-SA where applicable",
   "entries": [
-    {"basename":"solid-nutella","barcode":"3017620422003","provenance":"recorded_api_v3_response","capabilities":["source:found","basis:per_100g","nutrition:partial","ingredients:available","nutriscore:available"]},
-    {"basename":"liquid-coca-cola","barcode":"5449000000996","provenance":"recorded_api_v3_response","capabilities":["source:found","basis:per_100ml","nutrition:partial","ingredients:available","nutriscore:available"]},
-    {"basename":"incomplete-perly","barcode":"6111242100992","provenance":"recorded_api_v3_response","capabilities":["source:found","basis:per_100g","nutrition:complete","ingredients:unparseable","nutriscore:available","nutrient:energy_kcal","nutrient:carbohydrates","nutrient:sugars","nutrient:fat","nutrient:saturated_fat","nutrient:fiber","nutrient:protein","nutrient:salt"]},
-    {"basename":"sparse-mamma-mia","barcode":"00001008","provenance":"recorded_api_v3_response","capabilities":["source:found","basis:per_100g","nutrition:partial","ingredients:missing","nutriscore:missing"]},
-    {"basename":"not-found","barcode":"0000000000000","provenance":"recorded_api_v3_http_404","capabilities":["source:not_found"]},
-    {"basename":"error-rate-limited","barcode":"9900000000001","provenance":"deterministic_transport_scenario","capabilities":["source_error:rate_limited"]},
-    {"basename":"error-network","barcode":"9900000000002","provenance":"deterministic_transport_scenario","capabilities":["source_error:network_error"]},
-    {"basename":"error-invalid-response","barcode":"9900000000003","provenance":"deterministic_transport_scenario","capabilities":["source_error:invalid_source_response"]},
-    {"basename":"error-unavailable","barcode":"9900000000004","provenance":"deterministic_transport_scenario","capabilities":["source_error:source_unavailable"]}
+    {
+      "basename": "solid-nutella",
+      "barcode": "3017620422003",
+      "provenance": "recorded_api_v3_response",
+      "capabilities": [
+        "source:found",
+        "nutrition:unavailable_unknown_basis",
+        "ingredients:available",
+        "nutriscore:available"
+      ]
+    },
+    {
+      "basename": "liquid-coca-cola",
+      "barcode": "5449000000996",
+      "provenance": "recorded_api_v3_response",
+      "capabilities": [
+        "source:found",
+        "basis:per_100ml",
+        "nutrition:partial",
+        "ingredients:available",
+        "nutriscore:available",
+        "nutrient:energy_kcal",
+        "nutrient:carbohydrates",
+        "nutrient:sugars",
+        "nutrient:fat",
+        "nutrient:saturated_fat",
+        "nutrient:protein",
+        "nutrient:salt"
+      ]
+    },
+    {
+      "basename": "incomplete-perly",
+      "barcode": "6111242100992",
+      "provenance": "recorded_api_v3_response",
+      "capabilities": [
+        "source:found",
+        "basis:per_100g",
+        "nutrition:complete",
+        "ingredients:unparseable",
+        "nutriscore:available",
+        "nutrient:energy_kcal",
+        "nutrient:carbohydrates",
+        "nutrient:sugars",
+        "nutrient:fat",
+        "nutrient:saturated_fat",
+        "nutrient:fiber",
+        "nutrient:protein",
+        "nutrient:salt"
+      ]
+    },
+    {
+      "basename": "sparse-mamma-mia",
+      "barcode": "0000000001008",
+      "provenance": "recorded_api_v3_response",
+      "capabilities": [
+        "source:found",
+        "nutrition:unavailable_unknown_basis",
+        "ingredients:missing",
+        "nutriscore:missing"
+      ]
+    },
+    {
+      "basename": "not-found",
+      "barcode": "0000000000000",
+      "provenance": "recorded_api_v3_http_404",
+      "capabilities": [
+        "source:not_found"
+      ]
+    },
+    {
+      "basename": "error-rate-limited",
+      "barcode": "9900000000001",
+      "provenance": "deterministic_transport_scenario",
+      "capabilities": [
+        "source_error:rate_limited"
+      ]
+    },
+    {
+      "basename": "error-network",
+      "barcode": "9900000000002",
+      "provenance": "deterministic_transport_scenario",
+      "capabilities": [
+        "source_error:network_error"
+      ]
+    },
+    {
+      "basename": "error-invalid-response",
+      "barcode": "9900000000003",
+      "provenance": "deterministic_transport_scenario",
+      "capabilities": [
+        "source_error:invalid_source_response"
+      ]
+    },
+    {
+      "basename": "error-unavailable",
+      "barcode": "9900000000004",
+      "provenance": "deterministic_transport_scenario",
+      "capabilities": [
+        "source_error:source_unavailable"
+      ]
+    }
   ]
 }
