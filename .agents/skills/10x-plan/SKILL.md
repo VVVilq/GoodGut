@@ -2,6 +2,7 @@
 name: 10x-plan
 description: Create detailed implementation plans with thorough research and iteration
 ---
+```
 
 # Implementation Plan
 
@@ -272,7 +273,7 @@ After getting initial clarifications from the user, NOW is when you address the 
    - Read the specific files/directories they mention
    - Only proceed once you've verified the facts yourself
 
-3. **Create research tasks** using TaskCreate to track exploration (these appear in the user's status bar). Update them via TaskUpdate as research completes.
+3. **Create research tasks** using the Task tool to track exploration (these appear in the user's status bar). Update them via the Task tool as research completes.
 
 4. **Spawn parallel sub-tasks for comprehensive research**:
    - Create multiple Task agents to research different aspects concurrently
@@ -306,7 +307,7 @@ After getting initial clarifications from the user, NOW is when you address the 
    - [Pattern or convention to follow]
    ```
 
-   Then, if there are multiple valid approaches, present them as structured choices:
+   Then, if there are multiple valid approaches, present them as structured choices to the user:
 
    Ask the user: "Which implementation approach should we use?" with options:
    - "[Option A name]" (description: "[Key tradeoffs: simpler but X, or faster but Y]")
@@ -350,6 +351,7 @@ After structure approval:
    - Otherwise derive a kebab-case `<change-id>` from the topic and create the folder + `change.md` (mirroring `/10x-new` semantics) before writing.
    - Refuse if the resolved path starts with `context/archive/` — print: "This change is archived. Open a new change with `/10x-new` instead." and STOP.
    - Update `change.md`: set `status: planned` and `updated: <today>`.
+   - **Sync the roadmap** (best effort): if `context/foundation/roadmap.md` carries an item whose `Change ID` equals `<change-id>`, flip that item to `Status: planning`. See "## Roadmap status sync" below. Never blocks; most changes won't trace to a roadmap.
 2. **Use this template structure** (Phase blocks contain plain bullets — `- ` not `- [ ]` — and a single canonical `## Progress` section at the bottom owns the checkbox state, see `references/progress-format.md` for the contract):
 
 ````markdown
@@ -616,6 +618,25 @@ For non-software: structure, workflow, key dependencies.]
 
 5. **Continue refining** until the user is satisfied
 
+## Roadmap status sync
+
+`context/foundation/roadmap.md` (produced by `/10x-roadmap`) indexes each Foundation/Slice by a stable **Change ID**. As planning turns a roadmap item into a concrete change folder + plan, mark that item **`planning`** so the roadmap reflects that the item has left the backlog and entered active work. `/10x-implement` later advances the same item to `in-progress`, and `/10x-archive` closes it to `done`.
+
+Do this in Step 4 (right after the `change.md` → `planned` stamp). The lookup is **mandatory**; "best effort" scopes only the *edits* — a missing roadmap or a not-found target is skipped silently and never blocks, prompts, or aborts the run. Do not skip the check on the assumption there's no roadmap.
+
+1. Check if `context/foundation/roadmap.md` exists. If absent, skip this step silently.
+2. Read the file. Look for `<change-id>` used as a `Change ID`:
+   - in the `## At a glance` table — the row whose **Change ID** column cell equals `<change-id>` exactly;
+   - and in the `## Foundations` / `## Slices` bodies — the `### <ID>: …` block that contains a `- **Change ID:** <change-id>` line.
+
+   Match is exact-string only. **No match** → print `ℹ context/foundation/roadmap.md has no item with Change ID "<change-id>" — roadmap left untouched.` and stop here.
+3. **Match found** → if the item's `- **Status:**` is already `planning`, `in-progress`, or `done`, leave it untouched (**forward-only**: never regress a more-advanced status) and stop. Otherwise apply both edits — each independent and best effort; skip a sub-edit whose target isn't where the `/10x-roadmap` template puts it, and note the skip. Touch only the `Status` field:
+   1. **`## At a glance`** — set the matched row's **Status** cell to `planning`.
+   2. **Item body** — rewrite the item's `- **Status:**` line to `- **Status:** planning`.
+
+   Then update the roadmap frontmatter `updated:` to `<today>` (skip if there is no frontmatter).
+4. `/10x-plan` does not commit its own artifacts; leave the flip in the working tree. It is committed later alongside the change's first `/10x-implement` phase (which re-flips the same item to `in-progress`).
+
 ## Important Guidelines
 
 1. **Be Skeptical**:
@@ -643,7 +664,7 @@ For non-software: structure, workflow, key dependencies.]
    - Include "what we're NOT doing"
 
 5. **Track Progress**:
-   - Use TaskCreate to create planning tasks and TaskUpdate to mark them completed as you progress
+   - Use the Task tool to create planning tasks and update them to mark them completed as you progress
    - Tasks appear in the user's status bar for visibility
    - Mark tasks completed as you finish research areas
 

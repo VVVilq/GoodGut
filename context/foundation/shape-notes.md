@@ -1,188 +1,189 @@
 ---
 project: "GoodGut"
-context_type: greenfield
+context_type: brownfield
 product_type: mobile
 target_scale:
   users: small
   qps: null
   data_volume: null
 timeline_budget:
-  mvp_weeks: 5
-  hard_deadline: 2026-06-28
+  delivery_weeks: 3
+  hard_deadline: 2026-09-08
   after_hours_only: true
-created: 2026-05-24
-updated: 2026-05-24
+created: 2026-08-18
+updated: 2026-08-18
 checkpoint:
   current_phase: 8
   phases_completed: [1, 2, 3, 4, 5, 6, 7]
   gray_areas_resolved:
     - topic: "context type"
-      decision: "greenfield - new project built from scratch"
+      decision: "brownfield - existing GoodGut project with a changed app concept"
     - topic: "primary persona scope"
-      decision: "Person with a dietary-relevant health profile who independently shops for food."
-    - topic: "initial health profile scope"
-      decision: "Limited list of three conditions: diabetes, coeliac disease, and ulcerative colitis."
-    - topic: "pain category"
-      decision: "Fast purchase decision and help understanding labels and nutritional values."
+      decision: "One shopper uses one local profile on one device in the MVP."
+    - topic: "concept change"
+      decision: "Preserve barcode scanning, product lookup, Nutri-Score, local profiles, and missing-data handling; remove disease analysis."
     - topic: "access model"
-      decision: "Local on-device profile without login."
-    - topic: "role model"
-      decision: "Single ordinary user managing only their own profile; no additional roles in MVP."
-    - topic: "mvp profile fields"
-      decision: "Profile includes a user name and selected condition; avatar is deferred."
-    - topic: "personal ingredient exclusions"
-      decision: "Excluded from MVP analysis; MVP analysis is based only on selected condition."
-    - topic: "mvp duration"
-      decision: "Three-condition MVP estimated at 5 weeks; user explicitly accepted sustained-effort cost."
-    - topic: "condition-specific result format"
-      decision: "Diabetes and ulcerative colitis use 1-100 scores; coeliac disease uses categorical results."
-    - topic: "ulcerative colitis phase"
-      decision: "Phase is not stored in the profile; the result screen shows separate scores for flare and remission."
-    - topic: "insufficient product data"
-      decision: "Every supported condition can result in 'brak wiarygodnej oceny' when product data is insufficient."
-    - topic: "device scope"
-      decision: "Android is required for MVP; iOS is nice-to-have."
-    - topic: "product type"
-      decision: "Mobile application."
-    - topic: "initial target scale"
-      decision: "Just the user or a handful of users."
-    - topic: "deadline and work mode"
-      decision: "MVP is after-hours work with a five-week deadline ending on 2026-06-28."
-    - topic: "mvp non-goals"
-      decision: "No iOS support, avatar, individual exclusion list, stored ulcerative-colitis phase, medical advice, or scan history in MVP."
-    - topic: "project name"
-      decision: "GoodGut."
-  frs_drafted: 9
+      decision: "One local profile per device with no login and no additional roles."
+    - topic: "nutrition threshold direction"
+      decision: "A profile threshold can flag a selected nutrition value when it is either above or below the user-defined limit."
+    - topic: "mvp delivery"
+      decision: "The complete first-launch, profile, scan, highlighting, and triggered-rule-count flow is mandatory and targeted for three weeks of after-hours work."
+    - topic: "missing product data"
+      decision: "Missing ingredient or nutrition data is shown as unavailable and never treated as a non-match."
+    - topic: "ingredient matching"
+      decision: "Predefined ingredients use known aliases; custom ingredients use case-insensitive exact-name matching; uncertain matches do not trigger."
+    - topic: "threshold equality"
+      decision: "Above and below comparisons are strict; a value equal to the configured threshold does not trigger."
+    - topic: "legacy concept precedence"
+      decision: "The new PRD supersedes the old disease-analysis concept; old documents remain historical and cannot define new implementation behavior."
+    - topic: "rule polarity"
+      decision: "The MVP supports negative warning rules only; triggered information is highlighted in red and there are no positive green rules."
+    - topic: "compatibility and migration"
+      decision: "No user-profile migration or backward-compatible product contract is required because there are no existing users or stored profiles."
+    - topic: "product framing"
+      decision: "GoodGut remains a mobile-only application for a handful of users, delivered after hours within three weeks by 2026-09-08."
+    - topic: "deferred capabilities"
+      decision: "Scan history and product recommendations are left for later and are not part of this MVP."
+  frs_drafted: 10
   quality_check_status: accepted
 ---
 
 ## Seed Idea
 
-myśle o napisaniu aplikacji która będzie asystentem żywnościowym użytkownika. Użytkownik będzie ustawiał swój profil zdrowotny, wybierając z ograniczonej listy chorób wymagających specjalnej diety. Później za pomocą skanów kodu kreskowego telefonem będe pobierał informację o produkcie i oprócz nutri score analizował go pod kontem profilu użytkownika.
+I have colitis ulcerosa, my gf have diabetes, we spend a lot of time in shops to read through the labbels, i want to lessen the pain of picking the right things. For example, i look at sweeteners and discard products that have for example sucralose in them, my gf looks at the carbs, ig and suggars. Im doint this project mostly for ourself, and in the proces i want to get certification in 10x course
 
-## Vision & Problem Statement
+## Context Decision
 
-Osoba wymagająca specjalnej diety nie potrafi szybko ocenić podczas zakupów, czy konkretny produkt pasuje do jej schorzenia. Przed zakupem musi mozolnie czytać etykiety, interpretować wartości odżywcze na podstawie własnej wiedzy i szukać dodatkowych danych, takich jak indeks glikemiczny, w internecie.
+Brownfield: the existing GoodGut application remains in place, but its product concept is being changed.
 
-Ogólna ocena produktu, taka jak Nutri-Score, nie wystarcza tej osobie: potrzebuje oceny produktu odniesionej do swojego profilu chorobowego, aby szybciej podjąć decyzję zakupową i lepiej zrozumieć etykietę oraz wartości odżywcze.
+## Current System Overview
+
+GoodGut currently has an Expo mobile client, a Spring Boot API service, and a normalized product-data contract. The planned foundation includes barcode scanning, product lookup, Nutri-Score, local profiles, and explicit handling of missing product data. These capabilities must be preserved.
+
+The earlier concept planned disease-specific analysis and medical-style product scores. That concept is being removed; no disease analysis remains in the redesigned application.
+
+## Problem Statement & Motivation
+
+Two people with different shopping needs spend significant time in shops reading product labels before deciding what to buy. One checks ingredients such as sweeteners and rejects products containing selected ingredients such as sucralose; the other checks carbohydrates, glycemic-index information, and sugars.
+
+GoodGut will reduce this repeated label-reading work by applying the shopper's own profile to scanned product information. The profile represents the shopper's personal rules and interests rather than a universal disease assessment.
 
 ## User & Persona
 
-Głównym użytkownikiem MVP jest osoba z profilem chorobowym, która samodzielnie kupuje żywność i musi dopasowywać dietę do swojego schorzenia. Sięga po produkt w sklepie i potrzebuje ocenić go przed włożeniem do koszyka.
+The primary persona is an individual shopper choosing packaged food in a store. The shopper uses one local profile on one device and wants relevant ingredients and nutrition information surfaced quickly before choosing a product.
 
-Początkowy zakres profili chorobowych obejmuje ograniczoną listę: cukrzycę, celiakię i wrzodziejące zapalenie jelita grubego.
+## Access Control Changes
 
-## Access Control
+One shopper uses one local profile on one device. There is no login, account synchronization, or role separation.
 
-Jeden użytkownik; brak logowania; profil chorobowy jest zapisany lokalnie na urządzeniu użytkownika. W MVP nie występują dodatkowe role ani zarządzanie cudzym profilem.
+The profile contains personal ingredient exclusions and selected nutrition values with user-defined thresholds. Each nutrition threshold can flag a value that is either above or below the configured limit.
 
 ## Draft MVP Flow
 
-1. Użytkownik otwiera aplikację.
-2. Tworzy lokalny profil, podając nazwę i wybierając jedno z trzech schorzeń: cukrzycę, celiakię albo wrzodziejące zapalenie jelita grubego.
-3. Zapisuje profil.
-4. Skanuje kod kreskowy produktu.
-5. Otrzymuje analizę produktu względem wybranego schorzenia.
-6. Jeżeli nie wybierze schorzenia, otrzymuje jedynie Nutri-Score.
-
-Awatar oraz analiza indywidualnie wskazanych szkodzących składników nie należą do MVP.
-
-## Timeline acknowledgment
-
-Acknowledged on 2026-05-24: 5-week MVP requires sustained dedication; user accepted.
+1. On first launch, GoodGut offers profile configuration.
+2. The shopper selects ingredients to avoid from a predefined list.
+3. The shopper sets above or below thresholds for selected nutrition values.
+4. The shopper scans a product barcode.
+5. When no profile rules are configured, GoodGut shows the complete available ingredient list, Nutri-Score, kcal, sugars, fats, and other available nutrition values.
+6. When profile rules are configured, GoodGut highlights every ingredient and nutrition value that triggers a rule and shows the total number of triggered rules.
 
 ## Success Criteria
 
 ### Primary
 
-- Użytkownik z wybranym profilem chorobowym może zeskanować produkt i otrzymać analizę produktu odnoszącą się do tego profilu.
-- Użytkownik bez wybranego profilu chorobowego może zeskanować produkt i otrzymać Nutri-Score.
+- A shopper can configure ingredient exclusions and nutrition thresholds, scan a product, and see every matching product value highlighted together with the total number of triggered rules.
+- A shopper without configured profile rules can scan a product and see its complete available ingredient list, Nutri-Score, kcal, sugars, fats, and other available nutrition values.
 
 ### Secondary
 
-- Użytkownik rozumie, dlaczego produkt został oceniony w określony sposób, dzięki wyjaśnieniu wyniku analizy.
+- No secondary outcomes are planned; every captured capability is mandatory for the MVP.
 
 ### Guardrails
 
-- Wynik analizy jest przedstawiany jako sugestia i pomoc w ocenie produktu, a nie jako diagnoza ani porada medyczna.
-- W przypadku braku danych potrzebnych do analizy aplikacja jasno komunikuje, że nie może wiarygodnie ocenić produktu.
+- Missing ingredient or nutrition data is displayed as unavailable and is never interpreted as a non-match.
+- Existing barcode scanning, product lookup, Nutri-Score, local-profile, and missing-data behavior must continue working while the product-data contract is expanded.
+
+## Scope of Change
+
+- FR-001: The shopper can configure and edit one local profile. Priority: must-have. Change: modified
+  > Socrates: No counter-argument selected; the requirement stands as written.
+- FR-002: The shopper can select avoided ingredients from a predefined list and add a custom ingredient when the list does not contain it. Priority: must-have. Change: new
+  > Socrates: Counter-argument considered: the predefined list may omit an ingredient the shopper needs. Resolution: custom ingredient entry is included alongside the predefined list.
+- FR-003: The shopper can set an above or below threshold for a selected nutrition value and an explicit per-100-g or per-100-ml basis. Priority: must-have. Change: new
+  > Socrates: Counter-argument considered: comparing thresholds across different or unknown nutrition bases could mislead the shopper. Resolution: each threshold has an explicit basis; a mismatched or unknown product basis is shown as unavailable for that rule.
+- FR-004: The shopper can scan a product barcode. Priority: must-have. Change: preserved
+  > Socrates: No counter-argument selected; the requirement stands as written.
+- FR-005: The shopper can see triggered rules first and then view the product's complete available ingredients, Nutri-Score, kcal, sugars, fats, and other available nutrition values. Priority: must-have. Change: modified
+  > Socrates: Counter-argument considered: displaying every value with equal prominence could make the result difficult to scan quickly. Resolution: triggered rules appear first while complete product details remain available below them.
+- FR-006: The shopper can see avoided ingredients highlighted when a predefined ingredient or known alias, or a case-insensitive exact custom ingredient name, occurs in the scanned product. Priority: must-have. Change: new
+  > Socrates: Counter-argument considered: exact text matching may miss synonyms, spelling variants, or translated names. Resolution: predefined ingredients use known aliases, custom ingredients use case-insensitive exact-name matching, and uncertain matches do not trigger.
+- FR-007: The shopper can see nutrition values highlighted when they are strictly above or strictly below configured thresholds with a matching basis; equality does not trigger. Priority: must-have. Change: new
+  > Socrates: Counter-argument considered: equality at the threshold needs deterministic behavior. Resolution: above and below comparisons are strict, so equality does not trigger either rule.
+- FR-008: The shopper can see the total number of profile rules triggered by the scanned product. Priority: must-have. Change: new
+  > Socrates: No counter-argument selected; the requirement stands as written.
+- FR-009: The shopper can see a prominent unavailable state when product data required by a configured rule is missing, without unrelated missing values cluttering the rule summary. Priority: must-have. Change: preserved
+  > Socrates: Counter-argument considered: showing every absent field prominently could overwhelm the result. Resolution: prominent warnings are limited to missing values relevant to configured rules.
+- FR-010: The shopper can continue using product lookup and Nutri-Score without receiving disease analysis, and new behavior follows the superseding personal-rules concept. Priority: must-have. Change: modified
+  > Socrates: Counter-argument considered: old disease-oriented documents could accidentally influence implementation. Resolution: the new PRD explicitly supersedes the old concept; historical documents remain but cannot define new behavior.
 
 ## User Stories
 
-### US-01: Ocena zeskanowanego produktu względem profilu chorobowego
+### US-01: Scan a product against personal shopping rules
 
-- **Given** użytkownik ma zapisany lokalny profil z wybranym jednym z obsługiwanych schorzeń
-- **When** skanuje kod kreskowy produktu podczas zakupów
-- **Then** widzi Nutri-Score produktu oraz analizę odnoszącą produkt do wybranego schorzenia wraz z uzasadnieniem wyniku
+- **Given** the shopper has one local profile that may contain avoided ingredients and nutrition thresholds
+- **When** the shopper scans a product barcode
+- **Then** GoodGut shows the available product information, highlights every ingredient and nutrition value that triggers a configured rule, and shows the total number of triggered rules
 
 #### Acceptance Criteria
 
-- Gdy produkt nie ma wystarczających danych do analizy, użytkownik otrzymuje jednoznaczną informację o braku możliwości wiarygodnej oceny.
-- Wynik analizy jest opisany jako pomocnicza sugestia, a nie porada medyczna.
-- Gdy profil nie zawiera schorzenia, wynik skanowania przedstawia Nutri-Score bez analizy chorobowej.
+- With no configured profile rules, the result shows the complete available ingredient list, Nutri-Score, kcal, sugars, fats, and other available nutrition values without personalized highlights.
+- With configured rules, every matching avoided ingredient and crossed nutrition threshold is highlighted.
+- The displayed trigger count equals the number of ingredient and nutrition rules triggered by the product.
+- Missing ingredient or nutrition data is displayed as unavailable and is not counted as a non-match or trigger.
+- No disease analysis or medical score appears.
 
-## Functional Requirements
+## Business Logic Changes
 
-- FR-001: Użytkownik może utworzyć lokalny profil z nazwą. Priority: must-have
-  > Socrates: Kontrargument rozważony: nazwa nie wpływa na analizę i opóźnia pierwszy skan. Rozstrzygnięcie: zachowane; użytkownik chce rozpoznawalnego profilu w MVP.
-- FR-002: Użytkownik może wybrać dla profilu jedno schorzenie z listy: cukrzyca, celiakia albo wrzodziejące zapalenie jelita grubego. Priority: must-have
-  > Socrates: Kontrargument rozważony: trzy schorzenia wymagają większej liczby wiarygodnych reguł już w pierwszej wersji. Rozstrzygnięcie: zachowane; użytkownik zaakceptował szerszy zakres MVP.
-- FR-003: Użytkownik może zapisać profil bez wybranego schorzenia. Priority: must-have
-  > Socrates: Kontrargument rozważony: profil bez schorzenia nie realizuje głównej wartości analizy profilowej. Rozstrzygnięcie: zachowane; tryb samego Nutri-Score pozostaje częścią MVP.
-- FR-004: Użytkownik może zeskanować kod kreskowy produktu telefonem. Priority: must-have
-  > Socrates: Kontrargument rozważony: brak rozpoznanego produktu po kodzie może blokować cały przepływ. Rozstrzygnięcie: zachowane; skan jest wejściem do oceny podczas zakupów.
-- FR-005: Użytkownik może zobaczyć Nutri-Score rozpoznanego produktu. Priority: must-have
-  > Socrates: Kontrargument rozważony: ogólny Nutri-Score może mylić, gdy różni się od oceny dla schorzenia. Rozstrzygnięcie: zachowane; ma stanowić kontekst obok analizy profilowej.
-- FR-006: Użytkownik z wybranym schorzeniem może zobaczyć analizę produktu względem tego schorzenia. Priority: must-have
-  > Socrates: Kontrargument rozważony: ocena dla trzech schorzeń jest ryzykowna bez jasno ograniczonych reguł. Rozstrzygnięcie: zachowane; jest główną wartością produktu.
-- FR-007: Użytkownik może zobaczyć uzasadnienie wyniku analizy. Priority: must-have
-  > Socrates: Kontrargument rozważony: uzasadnienie wymaga komunikowania niepewności danych i reguł. Rozstrzygnięcie: zachowane; użytkownik potrzebuje rozumieć wynik.
-- FR-008: Użytkownik otrzymuje jasną informację, gdy danych produktu nie wystarcza do wiarygodnej analizy. Priority: must-have
-  > Socrates: Kontrargument rozważony: częste braki danych mogą ograniczyć dowód wartości MVP. Rozstrzygnięcie: zachowane; komunikowanie braków jest konieczne dla wiarygodności.
-- FR-009: Użytkownik widzi informację, że analiza ma charakter pomocniczy i nie stanowi porady medycznej. Priority: must-have
-  > Socrates: Kontrargument rozważony: sam komunikat nie wystarczy, jeżeli prezentacja wyniku będzie brzmiała jak zalecenie zdrowotne. Rozstrzygnięcie: zachowane; jest wymaganą granicą MVP.
+GoodGut triggers a warning rule when a scanned product contains an ingredient excluded by the local profile or when a nutrition value is strictly above or below its configured threshold with a matching basis.
+
+An ingredient warning is triggered by a predefined ingredient or its known alias, or by a case-insensitive exact match for a custom ingredient. A nutrition warning is triggered only when the product value and configured threshold use the same per-100-g or per-100-ml basis; equality does not trigger.
+
+Triggered product information is highlighted in red and contributes one rule to the displayed total. The MVP has no positive or green rules. Missing or uncertain data never triggers a warning and is shown as unavailable when relevant to a configured rule.
+
+## Constraints & Compatibility
+
+- There are no existing user profiles or production users, so no profile migration is required.
+- The existing normalized product-data contract does not require backward compatibility and may be replaced to support the redesigned concept.
+- Barcode scanning, product lookup, Nutri-Score, one local profile, and explicit missing-data behavior remain required product capabilities.
+- Historical disease-analysis documents do not define new implementation behavior.
 
 ## Non-Functional Requirements
 
-- Aplikacja jest używalna na urządzeniach z Androidem w zakresie przepływu MVP; obsługa iOS nie jest wymagana dla pierwszej wersji.
-- Wynik jest przedstawiany jako sugestia pomocnicza, a nie diagnoza ani porada medyczna.
-- Dla każdego obsługiwanego profilu chorobowego brak wystarczających danych produktu skutkuje jednoznacznym wynikiem `brak wiarygodnej oceny`, a nie oceną sugerującą przydatność produktu.
-- Czas uzyskania wyniku nie ma jeszcze ustalonego mierzalnego limitu.
-
-## Business Logic
-
-Aplikacja ocenia zeskanowany produkt według wybranego profilu chorobowego: dla cukrzycy obniża ocenę `1-100` przy dużej ilości cukru albo wysokiej ilości węglowodanów i niskiej zawartości błonnika; dla celiakii oznacza jako `unikać` produkt zawierający gluten lub składnik wskazujący na jego obecność; dla WZJG pokazuje dwie oceny `1-100`, osobno dla zaostrzenia i remisji.
-
-Dla profilu cukrzycowego wejściem do oceny są dostępne informacje o cukrze, węglowodanach i błonniku w produkcie. Wynikiem jest ocena w skali `1-100` wraz z wyjaśnieniem wpływu tych informacji na ocenę.
-
-Dla profilu celiakii wejściem jest dostępna informacja o obecności glutenu albo składników wskazujących na jego obecność. Wynik jest kategoryczny; produkt spełniający ten warunek otrzymuje wynik `unikać`.
-
-Dla profilu WZJG użytkownik nie zapisuje fazy choroby w profilu. Wynik przedstawia dwie odrębne oceny w skali `1-100`: dla zaostrzenia oraz dla remisji. Dla każdego profilu, jeżeli dostępne dane produktu nie wystarczają do wiarygodnej analizy, aplikacja pokazuje wynik `brak wiarygodnej oceny`.
+- The complete MVP flow is usable on Android devices.
 
 ## Product Framing
 
-- Typ produktu: aplikacja mobilna.
-- Początkowa skala użycia: użytkownik oraz ewentualnie kilka osób.
-- Harmonogram MVP: 5 tygodni pracy po godzinach, z terminem ukończenia 2026-06-28.
-
-## Open Questions
-
-1. Przy znacznie większej liczbie użytkowników aplikacja wymagałaby dostępu do danych produktów bez restrykcyjnych ograniczeń użycia; wybór i ograniczenia źródła danych nie są jeszcze rozstrzygnięte.
+- GoodGut remains a mobile-only application.
+- The intended live user base is the shopper and at most a handful of people.
+- Delivery is after-hours within three weeks, with a hard deadline of 2026-09-08.
 
 ## Non-Goals
 
-- Brak obsługi iOS w MVP; obowiązkowym zakresem urządzeń jest Android.
-- Brak awatara i rozbudowanej personalizacji profilu; profil zawiera nazwę oraz opcjonalny wybór schorzenia.
-- Brak indywidualnej listy składników lub produktów szkodzących użytkownikowi; analiza opiera się na wybranym profilu chorobowym.
-- Brak zapisywania fazy WZJG w profilu; wynik przedstawia osobno ocenę dla zaostrzenia i remisji.
-- Brak diagnozowania, leczenia oraz udzielania indywidualnej porady medycznej; analiza ma charakter pomocniczej sugestii.
-- Brak historii skanów i zapisywania wcześniejszych ocen produktów; MVP obejmuje bieżący wynik skanowania.
+- No disease analysis, medical scoring, or medical advice; personal shopping rules replace the old medical concept.
+- No positive or green rules; the MVP supports negative warning rules only.
+- No multiple profiles, login, account synchronization, or sharing; one local profile per device is sufficient.
+- No iOS, web, or desktop interface; Android mobile is the only required client.
+- No scan history or product recommendations; both are deferred until after the core scan-and-highlight flow works.
+
+## Open Questions
+
+- None identified during shaping.
 
 ## Quality cross-check
 
-- Access Control: present - local on-device profile without login.
-- Business Logic: present - condition-specific product assessment rule is captured.
-- Project artifacts: present - this file carries a valid checkpoint.
-- Timeline-cost acknowledged: present - five-week after-hours MVP was explicitly accepted.
-- Non-Goals: present - MVP exclusions are listed explicitly.
-- Preserved behavior: n/a - greenfield project.
+- Access Control: present — one local profile per device with no login or roles.
+- Business Logic: present — deterministic ingredient and nutrition-threshold warning rules are defined.
+- Project artifacts: present — this file carries a valid finalized checkpoint.
+- Timeline-cost acknowledgment: present — delivery is limited to three weeks.
+- Non-Goals: present — disease analysis, positive rules, multi-profile access, non-Android clients, scan history, and recommendations are excluded.
+- Preserved behavior: present — barcode scanning, product lookup, Nutri-Score, local profile behavior, and missing-data handling remain required.
