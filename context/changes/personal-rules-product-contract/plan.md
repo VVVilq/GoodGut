@@ -277,11 +277,11 @@ No production compatibility is required. Replace the draft in place and update t
 
 #### Automated
 
-- [x] 3.1 API contract tests pass offline
-- [x] 3.2 Mobile lint, type checking, and tests pass
-- [x] 3.3 Repository scope check finds no endpoint, production source client, scanner, persistence, or disease analysis
+- [x] 3.1 API contract tests pass offline — 8b8110a
+- [x] 3.2 Mobile lint, type checking, and tests pass — 8b8110a
+- [x] 3.3 Repository scope check finds no endpoint, production source client, scanner, persistence, or disease analysis — 8b8110a
 
 #### Manual
 
-- [x] 3.4 Human traces solid, liquid, and incomplete fixtures through contract and evaluator availability
-- [x] 3.5 Human confirms downstream slices can proceed without reopening F-01 contract decisions
+- [x] 3.4 Human traces solid, liquid, and incomplete fixtures through contract and evaluator availability — 8b8110a
+- [x] 3.5 Human confirms downstream slices can proceed without reopening F-01 contract decisions — 8b8110a
