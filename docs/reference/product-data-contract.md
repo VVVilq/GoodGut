@@ -127,6 +127,18 @@ Raw source fields never become the public mobile contract. Production mapping be
 
 Recorded raw source snapshots live under `services/api/src/test/resources/fixtures/openfoodfacts/raw/`; paired expected GoodGut results live under `normalized/`. Automated tests must be offline. Live checks and snapshot refreshes are manual, attributable, reviewed operations.
 
+`manifest.json` is the fixture inventory and capability index. Every basename has exactly one raw file and one normalized file. Recorded API entries preserve the request URL, requested fields, API version, returned product-schema version, retrieval time, and Open Food Facts attribution. Error entries are explicit deterministic transport scenarios because a timeout or unavailable response has no trustworthy source product body; they must never be presented as recorded product data.
+
+Fixture refresh is manual only:
+
+1. Recheck the current v3 endpoint and product-schema change log, then fetch only the selected fields with a custom `User-Agent` in the documented `AppName/Version (URL or ContactEmail)` form.
+2. Remove credentials and contact-bearing request headers. Preserve the request URL, versions, timestamp, status, selected response fields, and attribution in the raw snapshot.
+3. Review each normalized value against the raw response and the ingredient trust boundary. Never refresh expected values mechanically or infer missing facts.
+4. Update the paired raw and normalized files and the manifest capability entry together. A GoodGut field or semantic change also requires contract-version and canonical-schema review.
+5. Run the offline contract suite. Commit the reviewed set together; use Git history to inspect or roll back a source refresh.
+
+Open Food Facts is credited as the source. Its database is available under ODbL, and product images may carry CC BY-SA terms; production UI and distribution must preserve the required attribution and licensing.
+
 The canonical schemas remain in `docs/reference/schemas/`. Do not maintain copied schema variants in API or mobile modules.
 Minimal examples for all lookup branches live in `docs/reference/examples/` and must validate against the lookup schema.
 

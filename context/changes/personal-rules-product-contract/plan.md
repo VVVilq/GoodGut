@@ -251,27 +251,27 @@ No production compatibility is required. Replace the draft in place and update t
 
 #### Automated
 
-- [x] 1.1 Both schemas parse and accept a minimal valid example for every lookup outcome
-- [x] 1.2 Repository search finds no superseded disease-oriented fields in the normative contract or schemas
-- [x] 1.3 Mobile type checking and personal-rule tests pass after per-value basis alignment
+- [x] 1.1 Both schemas parse and accept a minimal valid example for every lookup outcome — 741f56f
+- [x] 1.2 Repository search finds no superseded disease-oriented fields in the normative contract or schemas — 741f56f
+- [x] 1.3 Mobile type checking and personal-rule tests pass after per-value basis alignment — 741f56f
 
 #### Manual
 
-- [x] 1.4 Human confirms Markdown and schemas express identical contract semantics
-- [x] 1.5 Human confirms the eight-nutrient catalogue is sufficient for the first profile and scan slices
+- [x] 1.4 Human confirms Markdown and schemas express identical contract semantics — 741f56f
+- [x] 1.5 Human confirms the eight-nutrient catalogue is sufficient for the first profile and scan slices — 741f56f
 
 ### Phase 2: Record Representative Open Food Facts Proof
 
 #### Automated
 
-- [ ] 2.1 Every manifest entry has exactly one raw and normalized fixture and every fixture is declared once
-- [ ] 2.2 Manifest capabilities cover every required source, basis, availability, Nutri-Score, and lookup boundary
-- [ ] 2.3 Every normalized fixture validates against the canonical schemas offline
+- [x] 2.1 Every manifest entry has exactly one raw and normalized fixture and every fixture is declared once
+- [x] 2.2 Manifest capabilities cover every required source, basis, availability, Nutri-Score, and lookup boundary
+- [x] 2.3 Every normalized fixture validates against the canonical schemas offline
 
 #### Manual
 
-- [ ] 2.4 Human confirms normalized fixtures never promote absent or uncertain source values
-- [ ] 2.5 Human confirms fixture provenance and attribution are sufficient
+- [x] 2.4 Human confirms normalized fixtures never promote absent or uncertain source values
+- [x] 2.5 Human confirms fixture provenance and attribution are sufficient
 
 ### Phase 3: Enforce Contract and Evaluator Compatibility
 
