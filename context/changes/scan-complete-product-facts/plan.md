@@ -416,26 +416,26 @@ There is no production user data or API consumer migration. Changes are additive
 
 #### Automated
 
-- [x] 1.1 Every recorded raw product/not-found fixture maps exactly to its paired contract response.
-- [x] 1.2 Mapper tests cover all availability reasons, bases, ingredient states, Nutri-Score, and barcode preservation.
-- [x] 1.3 The complete API test suite passes offline.
+- [x] 1.1 Every recorded raw product/not-found fixture maps exactly to its paired contract response. — f10db8f
+- [x] 1.2 Mapper tests cover all availability reasons, bases, ingredient states, Nutri-Score, and barcode preservation. — f10db8f
+- [x] 1.3 The complete API test suite passes offline. — f10db8f
 
 #### Manual
 
-- [x] 1.4 Human confirms solid, liquid, and basis-less mapping never promotes uncertain facts.
+- [x] 1.4 Human confirms solid, liquid, and basis-less mapping never promotes uncertain facts. — f10db8f
 
 ### Phase 2: Open Food Facts Client and GoodGut Product Endpoint
 
 #### Automated
 
-- [ ] 2.1 Local-stub tests prove selected fields and configured source identity.
-- [ ] 2.2 Source status, transport, malformed-response, and one-call mappings pass.
-- [ ] 2.3 MockMvc proves validation, barcode preservation, HTTP policy, and contract serialization.
-- [ ] 2.4 The complete API test suite passes offline.
+- [x] 2.1 Local-stub tests prove selected fields and configured source identity.
+- [x] 2.2 Source status, transport, malformed-response, and one-call mappings pass.
+- [x] 2.3 MockMvc proves validation, barcode preservation, HTTP policy, and contract serialization.
+- [x] 2.4 The complete API test suite passes offline.
 
 #### Manual
 
-- [ ] 2.5 Human confirms representative live endpoint bodies remain contract `1.0`.
+- [x] 2.5 Human confirms representative live endpoint bodies remain contract `1.0`.
 
 ### Phase 3: Mobile Contract Decoder and Lookup State
 
