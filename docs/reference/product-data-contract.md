@@ -1,217 +1,146 @@
 # GoodGut Product Data Contract
 
-Status: draft for MVP implementation
+Status: normative for MVP implementation
+Contract version: `1.0`
 
-This document defines GoodGut's normalized product lookup contract. GoodGut uses Open Food Facts as the live MVP lookup source, but the mobile app and disease-analysis code must depend on this GoodGut contract, not on raw Open Food Facts JSON.
+This document defines the normalized product lookup boundary used by GoodGut's personal shopping rules. The machine-readable authority is split between `schemas/product-lookup.schema.json` and `schemas/normalized-product.schema.json`; this document defines their semantics and the Open Food Facts mapping policy.
 
-## Scope
+PRD v3 supersedes the earlier disease-oriented design. This contract contains product facts and availability only. It never produces disease analysis, medical scores, suitability, advice, or a favorable inference from missing data.
 
-This contract supports the first barcode-based product lookup flow:
+## Scope and Ownership
 
-- Find a product by scanned barcode.
-- Show Nutri-Score when it is available.
-- Expose enough normalized nutrition and ingredient evidence for later profile-specific analysis.
-- Represent missing or insufficient data explicitly.
-- Avoid any disease-profile suitability judgment when required inputs are missing.
+The Spring API owns read-only Open Food Facts lookup and normalization. Mobile calls GoodGut and never consumes raw source JSON. A later cache or import may sit behind this boundary without changing mobile behavior.
 
-This contract does not define a full product database import, cache, schema migration, background refresh job, manual search, product browsing, or Open Food Facts write/contribution flow. A future import or cache may reuse this normalized contract as its stable API boundary.
+This contract covers barcode lookup, product identity, source metadata, Nutri-Score, normalized ingredient names, a finite nutrition catalogue, and explicit unavailable states. It does not implement the endpoint, source client, mapper, scanner, profile storage, warning evaluation, database, cache, bulk import, or source write flow.
 
-## Source
+## Versioning
 
-Open Food Facts is the live MVP lookup source.
+Every response carries `contractVersion: "1.0"`. Adding an optional source mapping may be compatible, but changing lookup branches, normalized identifiers, units, bases, required fields, or availability meaning requires a reviewed contract-version change and corresponding schema and fixture updates.
 
-- Source docs: `https://openfoodfacts.github.io/openfoodfacts-server/api/`
-- Lookup mode: read-only barcode product lookup.
-- GoodGut API ownership: the Spring API calls Open Food Facts and normalizes the response before returning data to mobile.
-- Client identity: every Open Food Facts request from GoodGut must use a custom `User-Agent` that identifies GoodGut and provides a contact path.
-- Attribution and license: GoodGut must preserve attribution requirements from Open Food Facts before production rollout.
-- Rate limits and source errors: GoodGut must treat rate limits, network failures, malformed responses, and source downtime as explicit source-error states, not as product judgments.
+Consumers ignore unknown raw Open Food Facts fields. They must not ignore unknown GoodGut contract versions.
 
 ## Lookup Outcomes
 
-Every product lookup returns exactly one of these top-level outcomes.
+Every lookup returns exactly one branch selected by `outcome`.
 
-| Outcome | Meaning | User-facing implication |
+| Outcome | Meaning | Required behavior |
 | --- | --- | --- |
-| `found` | The barcode resolved to a product from Open Food Facts and GoodGut could normalize the product identity. | The app may show the recognized product and any available Nutri-Score or readiness states. |
-| `not_found` | The barcode did not resolve to a product in the live MVP source. | The app should show a clear product-not-found state. |
-| `source_error` | GoodGut could not complete lookup because the source request failed or returned unusable data. | The app should show a temporary lookup problem, not a product or health judgment. |
+| `found` | Source resolved the barcode and GoodGut has the minimum product identity. | Return a normalized product; individual facts may be unavailable. |
+| `not_found` | Source authoritatively reports no product for the barcode. | Return `reason: not_in_source`; never fabricate product data. |
+| `source_error` | Lookup could not produce a trustworthy source result. | Return one error category; never treat it as not found. |
 
-`not_found` and `source_error` are distinct. A product that is found but lacks analysis inputs remains `found`; the missing data is represented inside `analysisReadiness`.
+Supported source-error categories are `rate_limited`, `network_error`, `invalid_source_response`, and `source_unavailable`.
 
-## Normalized Product Shape
+## Found Product
 
-The future API response should follow this conceptual shape. Field names are contract-level names; implementation may use Java records/classes and JSON serialization that preserve these names.
+A found response contains:
 
-```json
-{
-  "outcome": "found",
-  "barcode": "string",
-  "source": {
-    "provider": "open_food_facts",
-    "providerProductUrl": "string | null",
-    "fetchedAt": "ISO-8601 timestamp"
-  },
-  "product": {
-    "displayName": "string",
-    "brands": ["string"],
-    "quantity": "string | null",
-    "imageUrl": "string | null"
-  },
-  "nutriScore": {
-    "status": "available | missing",
-    "grade": "a | b | c | d | e | null"
-  },
-  "nutritionPer100": {
-    "basis": "100g_or_100ml",
-    "carbohydratesG": "number | null",
-    "sugarsG": "number | null",
-    "fiberG": "number | null"
-  },
-  "ingredientEvidence": {
-    "ingredientsText": "string | null",
-    "allergenTags": ["string"],
-    "glutenEvidence": "present | absent | unknown"
-  },
-  "analysisReadiness": {
-    "diabetes": {
-      "status": "ready | insufficient_data",
-      "missingFields": ["string"],
-      "reason": "string | null"
-    },
-    "celiac": {
-      "status": "ready | insufficient_data",
-      "missingFields": ["string"],
-      "reason": "string | null"
-    },
-    "wzjg": {
-      "status": "ready | insufficient_data",
-      "missingFields": ["string"],
-      "reason": "string | null"
-    }
-  }
-}
-```
+- The scanned `barcode`.
+- Source provider, product URL when known, and fetch timestamp.
+- Product display name plus optional brand, quantity, and image metadata.
+- An independent Nutri-Score state.
+- Ingredient facts with explicit availability.
+- All eight supported nutrients, each with independent availability.
 
-For `not_found`, GoodGut should return `outcome`, `barcode`, `source.provider`, and a machine-readable reason. It should not fabricate a product object.
+Finding a product does not imply that ingredients, Nutri-Score, or nutrition values are complete.
 
-For `source_error`, GoodGut should return `outcome`, `barcode`, `source.provider`, and a machine-readable error category such as `rate_limited`, `network_error`, `invalid_source_response`, or `source_unavailable`.
+## Nutri-Score
 
-## Required Normalized Fields
+Nutri-Score is either:
 
-| Field group | Required for `found` | Notes |
-| --- | --- | --- |
-| Barcode | Yes | The scanned code and normalized lookup key. |
-| Product identity | Yes | At minimum `displayName`; brand and quantity may be absent. |
-| Source metadata | Yes | Provider and fetch metadata are needed for debugging and attribution. |
-| Nutri-Score | Yes as a status | `grade` may be null when `status` is `missing`. |
-| Nutrition per 100 | Yes as a group | Individual nutrient values may be null; readiness captures consequences. |
-| Ingredient evidence | Yes as a group | Raw text/tags may be absent; gluten evidence can be `unknown`. |
-| Analysis readiness | Yes | Each supported condition gets an independent readiness state. |
+- `available` with a lowercase grade `a` through `e`; or
+- `missing` with no grade.
 
-## Open Food Facts Mapping
+Nutri-Score availability is independent from every other fact group.
 
-GoodGut maps source data into its own fields. Raw Open Food Facts fields should not be passed through to mobile as the public API contract.
+## Ingredient Facts
 
-| GoodGut field | Open Food Facts source concept | Normalization rule |
-| --- | --- | --- |
-| `barcode` | Barcode path/input and source code value | Preserve the scanned barcode used for lookup. |
-| `product.displayName` | Product name fields | Prefer the best localized or default product name available. |
-| `product.brands` | Brand fields | Normalize to a list; empty list is allowed. |
-| `product.quantity` | Quantity/serving package text | Optional display metadata only. |
-| `product.imageUrl` | Product image URL | Optional display metadata only. |
-| `nutriScore.grade` | Nutri-Score grade | Normalize to lowercase `a` through `e`; otherwise set status `missing`. |
-| `nutritionPer100.carbohydratesG` | Carbohydrates per 100g/100ml | Numeric grams per 100g/100ml, null if unavailable. |
-| `nutritionPer100.sugarsG` | Sugars per 100g/100ml | Numeric grams per 100g/100ml, null if unavailable. |
-| `nutritionPer100.fiberG` | Fiber per 100g/100ml | Numeric grams per 100g/100ml, null if unavailable. |
-| `ingredientEvidence.ingredientsText` | Ingredients text | Preserve for explanation and gluten-evidence mapping. |
-| `ingredientEvidence.allergenTags` | Allergen/tag evidence | Normalize to a list of source tags. |
-| `ingredientEvidence.glutenEvidence` | Allergen tags, ingredient text, and explicit gluten-free claims or certifications | `present` when source evidence indicates gluten. Use `absent` only for an explicit, authoritative negative signal, such as a verified gluten-free claim or certification. Missing tags, incomplete ingredient data, silence, or lack of a gluten mention must map to `unknown`. |
+Ingredient status is one of:
 
-## Nutrition Basis
+- `available`: `names` contains zero or more normalized ingredient-name strings.
+- `missing`: the source supplies no ingredient evidence that GoodGut can normalize.
+- `unparseable`: ingredient evidence exists, but structured parsing is incomplete, inconsistent, or otherwise unsafe for exact matching.
 
-GoodGut uses per-100g/per-100ml nutrition values for MVP analysis inputs. Serving-level values are out of scope for this contract version because serving sizes are inconsistent and often absent.
+For Open Food Facts, use this trust order:
 
-The `nutritionPer100.basis` value is always `100g_or_100ml`. If Open Food Facts provides values in another basis only, GoodGut should treat the specific nutrient as missing unless a later implementation explicitly adds safe conversion rules.
+1. Prefer the structured nested `ingredients` result and canonical ingredient tags returned by the selected v3 product schema.
+2. Check parsing metadata, including known/unknown ingredient counts and ingredient language where supplied.
+3. Emit `available` only when the structured result is sufficiently complete to represent the label evidence without silently dropping unknown entries.
+4. Emit `unparseable` when raw ingredient text exists but structured parsing is absent or incomplete.
+5. Emit `missing` when ingredient evidence is absent.
 
-## Missing Data and No-Judgment Semantics
+Do not split arbitrary ingredient prose in GoodGut. Do not translate, fuzzy-match, or infer synonyms during source normalization. Downstream predefined rules own reviewed aliases; custom rules use case-insensitive exact names. An absent list must never normalize to `available` with an empty array.
 
-Missing data is not represented only by null values. Each analysis area must expose readiness so the UI and future analysis code can distinguish available data from insufficient evidence.
+## Nutrition Facts
 
-Rules:
+The complete MVP catalogue is fixed:
 
-- If the lookup outcome is `found` and Nutri-Score is available, GoodGut may display Nutri-Score even when disease-profile analysis is unavailable.
-- If Nutri-Score is missing, the product can still be `found`; the Nutri-Score section reports `status: "missing"`.
-- If disease-profile inputs are insufficient, GoodGut must not return a suitability score, recommendation, "safe", "avoid", or similar judgment for that disease profile.
-- For insufficient disease-profile data, GoodGut returns `status: "insufficient_data"` with `missingFields` and a reason suitable for mapping to `brak_wiarygodnej_oceny`.
-- A missing-data state is a reliability guardrail, not an error.
+| Identifier | Display unit |
+| --- | --- |
+| `energy_kcal` | `kcal` |
+| `carbohydrates` | `g` |
+| `sugars` | `g` |
+| `fat` | `g` |
+| `saturated_fat` | `g` |
+| `fiber` | `g` |
+| `protein` | `g` |
+| `salt` | `g` |
 
-Initial readiness requirements:
+Every identifier is present in a found response. Each value is independently:
 
-| Profile | Ready when | Insufficient when |
-| --- | --- | --- |
-| Diabetes | `sugarsG`, `carbohydratesG`, and `fiberG` are available per 100g/100ml. | Any of those fields is missing. |
-| Celiac | Gluten evidence is `present` or `absent` based on explicit allergen or ingredient evidence. | Gluten evidence is `unknown`. |
-| WZJG | Future guardrail rules can identify the needed input fields. | Until those fields are defined, WZJG readiness may be `insufficient_data` with a reason that rules are not yet established. |
+- `available` with a finite non-negative `value`, its fixed `unit`, and exact `basis` of `per_100g` or `per_100ml`; or
+- `unavailable` with `reason` equal to `missing_source`, `unknown_basis`, `invalid_value`, or `unsupported_unit`.
 
-## Recorded Fixture Contract
+Do not infer solid/liquid basis from product category. Do not collapse the two bases, convert serving values, or copy a basis from one nutrient to another. A rule can compare only an available value with the same basis. Equality remains non-triggering in downstream rule evaluation.
 
-Future API mapping and contract tests must use a fixed initial inventory of exactly six scenarios:
+## Missing-Data Invariants
 
-1. `found-with-nutri-score`: a recognized product with an available Nutri-Score grade.
-2. `not-found`: a valid barcode that Open Food Facts reports as not found.
-3. `found-without-nutri-score`: a recognized product whose Nutri-Score is missing.
-4. `diabetes-inputs`: a recognized product with carbohydrates, sugars, and fiber per 100g/100ml so diabetes readiness can be evaluated.
-5. `gluten-evidence`: a recognized product with an explicit, authoritative gluten-free claim or certification; its expected normalized output is `glutenEvidence: "absent"`. Missing tags, incomplete ingredient data, silence, or lack of a gluten mention must instead normalize to `unknown`.
-6. `wzjg-partial-data`: a recognized product with partial or missing WZJG-relevant inputs, producing `insufficient_data` without a suitability judgment.
+- Missing, malformed, partial, uncertain, or basis-less source data never becomes an available fact.
+- An unavailable fact is neither a trigger nor a non-match.
+- A found product remains found when some or all optional facts are unavailable.
+- `not_found` and `source_error` contain no product object.
+- Only missing facts relevant to configured rules need prominent warning treatment in later UI work; the contract still exposes availability for every supported fact.
 
-Each scenario has two recorded JSON files with the same scenario basename:
+## Open Food Facts Mapping Boundary
 
-- Raw Open Food Facts responses belong in `services/api/src/test/resources/fixtures/openfoodfacts/raw/`.
-- Expected GoodGut-normalized outputs belong in `services/api/src/test/resources/fixtures/openfoodfacts/normalized/`.
+GoodGut targets the current Open Food Facts v3 read-product API. The implementation must select only required fields and record the requested API/product schema version because v3 evolves.
 
-Automated tests must read these recorded fixtures and must not call the live Open Food Facts API. Live API checks are manual smoke checks only, because source availability, rate limits, and product records can change independently of GoodGut.
+| GoodGut field | Source concept |
+| --- | --- |
+| Barcode and identity | Barcode input/code, localized product name, brands, quantity, selected image |
+| Source metadata | Provider URL and GoodGut fetch time |
+| Nutri-Score | Current Nutri-Score grade field |
+| Ingredients | Structured `ingredients`, canonical ingredient tags, raw text, language, and parsing counts |
+| Nutrition | As-sold per-100g/per-100ml nutriment values and units for the fixed catalogue |
 
-## Future API Integration
+Raw source fields never become the public mobile contract. Production mapping belongs to roadmap slice S-01.
 
-GoodGut's Spring API owns the Open Food Facts integration boundary. Mobile clients call GoodGut and must not call Open Food Facts directly. The backend is responsible for the source request, custom client identity, response validation, normalization into this contract, rate-limit and source-error handling, and any later cache or import migration. The response exposed to mobile follows the GoodGut contract regardless of whether a future implementation reads from live lookup, a cache, or imported records.
+## Source Compliance
 
-### Reserved endpoint
+- Use a custom `User-Agent` in the documented `AppName/Version (ContactEmail)` form.
+- Keep this MVP path read-only and complete the Open Food Facts API usage declaration before production use.
+- Preserve required database and image attribution/licensing.
+- Respect current read limits and map throttling or HTTP 503 to `source_error`, never `not_found`.
+- Recheck current API version, terms, licenses, and rate limits before production rollout.
 
-A later implementation may add `GET /products/{barcode}`. This change reserves the route and response behavior but does not implement it.
+## Fixtures and Automated Tests
 
-- A successfully normalized product returns the `found` contract, including independent Nutri-Score and analysis-readiness states.
-- A confirmed source miss returns the `not_found` contract rather than an empty or fabricated product.
-- A timeout, rate limit, upstream failure, or unusable source response returns the `source_error` contract with a machine-readable error category.
-- The endpoint must not expose raw Open Food Facts JSON or make missing source data look like a health judgment.
+Recorded raw source snapshots live under `services/api/src/test/resources/fixtures/openfoodfacts/raw/`; paired expected GoodGut results live under `normalized/`. Automated tests must be offline. Live checks and snapshot refreshes are manual, attributable, reviewed operations.
 
-HTTP status selection is deferred to the endpoint implementation plan. Clients must branch on the explicit contract outcome and must not infer `not_found` from `source_error`.
+The canonical schemas remain in `docs/reference/schemas/`. Do not maintain copied schema variants in API or mobile modules.
+Minimal examples for all lookup branches live in `docs/reference/examples/` and must validate against the lookup schema.
 
-## Implementation Handoff
+## Downstream Handoff
 
-Before implementing the endpoint or a mobile consumer:
-
-1. Use Java 21 for API development and verification.
-2. Run API verification from the repository root with `cd services\api; .\mvnw.cmd test` on PowerShell. Use `cd services/api && ./mvnw test` on Unix-like shells.
-3. When mobile begins consuming this contract, run `cd apps\mobile; npm.cmd run lint` on PowerShell or `cd apps/mobile && npm run lint` on Unix-like shells.
-4. Keep automated mapping and contract tests deterministic by using the recorded raw and normalized fixtures; reserve live source requests for manual smoke checks.
-5. In a live smoke check, verify the configured custom `User-Agent`, the representative barcode response shape, and the mappings for `found`, `not_found`, and source failures.
-6. Recheck the current Open Food Facts API version, terms, licenses, attribution requirements, and rate limits immediately before production rollout.
-
-Any later cache or import must sit behind the same normalized GoodGut contract. Treat that work as a separate change with explicit freshness, storage, licensing, migration, backup, and rollback decisions; mobile and analysis code must not depend on the storage strategy.
-
-## Compliance Notes
-
-Before production use, implementation must confirm current Open Food Facts requirements. At minimum:
-
-- Send a custom GoodGut `User-Agent` in the documented `AppName/Version (ContactEmail)` form.
-- Keep lookup read-only for this MVP path.
-- Attribute Open Food Facts according to its current license and terms.
-- Respect the current product-read rate limit and handle HTTP 503 or other source throttling as `source_error`; avoid automated bulk download through the live lookup API.
-- Treat a future import/cache as a separate change with its own license, storage, backup, and rollback review.
+- S-01 implements source lookup and normalization against this contract.
+- S-03 consumes ingredient availability and normalized names for avoided-ingredient warnings.
+- S-05 consumes independently based nutrition facts for threshold warnings.
+- Profile configuration and warning presentation do not change this source contract.
 
 ## References
 
-- GoodGut roadmap: `context/foundation/roadmap.md`
-- GoodGut PRD v2: `context/foundation/prd-v2.md`
-- Open Food Facts API docs: `https://openfoodfacts.github.io/openfoodfacts-server/api/`
+- `context/foundation/prd-v3.md`
+- `context/foundation/roadmap.md`
+- Open Food Facts API: `https://openfoodfacts.github.io/documentation/docs/Product-Opener/api/`
+- Ingredient schema: `https://openfoodfacts.github.io/documentation/docs/Product-Opener/schemas/schemas/product_ingredients/`
+- Schema change log: `https://openfoodfacts.github.io/documentation/docs/Product-Opener/api/ref-api-and-product-schema-change-log/`

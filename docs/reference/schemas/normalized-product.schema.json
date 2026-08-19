@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://goodgut.app/schemas/normalized-product-1.0.schema.json",
+  "title": "GoodGut normalized product 1.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity", "nutriScore", "ingredients", "nutrition"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["displayName", "brands", "quantity", "imageUrl"],
+      "properties": {
+        "displayName": { "type": "string", "minLength": 1 },
+        "brands": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "quantity": { "type": ["string", "null"] },
+        "imageUrl": { "type": ["string", "null"], "format": "uri" }
+      }
+    },
+    "nutriScore": { "$ref": "#/$defs/nutriScore" },
+    "ingredients": { "$ref": "#/$defs/ingredients" },
+    "nutrition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["energy_kcal", "carbohydrates", "sugars", "fat", "saturated_fat", "fiber", "protein", "salt"],
+      "properties": {
+        "energy_kcal": { "$ref": "#/$defs/energyFact" },
+        "carbohydrates": { "$ref": "#/$defs/massFact" },
+        "sugars": { "$ref": "#/$defs/massFact" },
+        "fat": { "$ref": "#/$defs/massFact" },
+        "saturated_fat": { "$ref": "#/$defs/massFact" },
+        "fiber": { "$ref": "#/$defs/massFact" },
+        "protein": { "$ref": "#/$defs/massFact" },
+        "salt": { "$ref": "#/$defs/massFact" }
+      }
+    }
+  },
+  "$defs": {
+    "nutriScore": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "grade"],
+          "properties": { "status": { "const": "available" }, "grade": { "enum": ["a", "b", "c", "d", "e"] } }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": { "status": { "const": "missing" } }
+        }
+      ]
+    },
+    "ingredients": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "names"],
+          "properties": {
+            "status": { "const": "available" },
+            "names": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status"],
+          "properties": { "status": { "enum": ["missing", "unparseable"] } }
+        }
+      ]
+    },
+    "unavailableFact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {
+        "status": { "const": "unavailable" },
+        "reason": { "enum": ["missing_source", "unknown_basis", "invalid_value", "unsupported_unit"] }
+      }
+    },
+    "availableEnergyFact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "value", "unit", "basis"],
+      "properties": {
+        "status": { "const": "available" },
+        "value": { "type": "number", "minimum": 0 },
+        "unit": { "const": "kcal" },
+        "basis": { "enum": ["per_100g", "per_100ml"] }
+      }
+    },
+    "availableMassFact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "value", "unit", "basis"],
+      "properties": {
+        "status": { "const": "available" },
+        "value": { "type": "number", "minimum": 0 },
+        "unit": { "const": "g" },
+        "basis": { "enum": ["per_100g", "per_100ml"] }
+      }
+    },
+    "energyFact": { "oneOf": [{ "$ref": "#/$defs/availableEnergyFact" }, { "$ref": "#/$defs/unavailableFact" }] },
+    "massFact": { "oneOf": [{ "$ref": "#/$defs/availableMassFact" }, { "$ref": "#/$defs/unavailableFact" }] }
+  }
+}

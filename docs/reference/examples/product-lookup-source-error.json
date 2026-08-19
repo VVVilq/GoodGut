@@ -1,0 +1,7 @@
+{
+  "contractVersion": "1.0",
+  "outcome": "source_error",
+  "barcode": "12345678",
+  "source": { "provider": "open_food_facts" },
+  "errorCategory": "source_unavailable"
+}

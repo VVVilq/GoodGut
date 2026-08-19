@@ -1,0 +1,7 @@
+{
+  "contractVersion": "1.0",
+  "outcome": "not_found",
+  "barcode": "12345678",
+  "source": { "provider": "open_food_facts" },
+  "reason": "not_in_source"
+}
