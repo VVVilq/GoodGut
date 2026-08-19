@@ -29,7 +29,7 @@ GoodGut reduces time spent reading food labels by applying one shopper's persona
 
 | ID | Change ID | Outcome (user can …) | Prerequisites | PRD refs | Status |
 |---|---|---|---|---|---|
-| F-01 | personal-rules-product-contract | (foundation) the external product-data contract and representative fixtures support personal ingredient and nutrition rules | — | FR-004, FR-005, FR-009, FR-010 | in-progress |
+| F-01 | personal-rules-product-contract | (foundation) the external product-data contract and representative fixtures support personal ingredient and nutrition rules | — | FR-004, FR-005, FR-009, FR-010 | done |
 | S-01 | scan-complete-product-facts | scan a barcode and see complete available product facts or explicit unavailable states without personalization | F-01 | US-01, FR-004, FR-005, FR-009, FR-010 | proposed |
 | S-02 | avoided-ingredient-profile | configure and edit one on-device profile containing predefined and custom avoided ingredients | — | US-01, FR-001, FR-002 | ready |
 | S-03 | ingredient-warning-scan | scan a product and see avoided ingredients highlighted with the total triggered-rule count | S-01, S-02 | US-01, FR-004, FR-005, FR-006, FR-008, FR-009, FR-010 | proposed |
@@ -72,7 +72,7 @@ Foundations below assume these are present and do not re-scaffold them.
 - **Unknowns:**
   - Do representative source records reliably distinguish per-100-g from per-100-ml nutrition and provide ingredient arrays suitable for exact matching? — Owner: team. Block: no.
 - **Risk:** External records are incomplete and mutable; proving and recording representative mappings first prevents every later slice from inventing incompatible fallback behavior.
-- **Status:** in-progress
+- **Status:** done
 
 ## Slices
 
@@ -167,3 +167,5 @@ No roadmap-wide questions remain open. Non-blocking implementation questions are
 - **CI, deployment automation, and expanded observability** — Why parked: the confirmed baseline records these as later operational work, while the current sequence is constrained by external product data and the mandatory on-device flow.
 
 ## Done
+
+- **F-01: (foundation) the normalized product contract and representative recorded fixtures expose complete ingredient names, Nutri-Score, kcal, sugars, fats, other supported nutrition values, exact per-100-g or per-100-ml basis, and explicit lookup and missing-data states suitable for personal rules.** — Archived 2026-08-19 → `context/archive/2026-08-19-personal-rules-product-contract/`. Lesson: —.
