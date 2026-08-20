@@ -11,9 +11,9 @@ export default function RootLayout() {
       <AnimatedSplashOverlay />
       <ProductLookupProvider>
         <Stack>
-          <Stack.Screen name="index" options={{ title: 'GoodGut' }} />
-          <Stack.Screen name="scan" options={{ title: 'Skanuj produkt' }} />
-          <Stack.Screen name="result" options={{ title: 'Wynik' }} />
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="scan" options={{ title: 'Skanuj produkt', headerShadowVisible: false }} />
+          <Stack.Screen name="result" options={{ title: 'Szczegóły produktu', headerShadowVisible: false }} />
         </Stack>
       </ProductLookupProvider>
     </ThemeProvider>

@@ -20,7 +20,11 @@ export function ManualBarcodeEntry({ onSubmit }: { onSubmit: (barcode: string) =
 
   return (
     <View style={styles.container}>
-      <ThemedText type="smallBold">Wpisz kod ręcznie</ThemedText>
+      <View style={styles.heading}>
+        <View style={styles.rule} />
+        <ThemedText type="small" themeColor="textSecondary">lub wpisz kod ręcznie</ThemedText>
+        <View style={styles.rule} />
+      </View>
       <TextInput
         accessibilityLabel="Kod kreskowy"
         keyboardType="number-pad"
@@ -31,6 +35,7 @@ export function ManualBarcodeEntry({ onSubmit }: { onSubmit: (barcode: string) =
         }}
         onSubmitEditing={submit}
         placeholder="8–14 cyfr"
+        placeholderTextColor="#8A9B94"
         style={styles.input}
         value={value}
       />
@@ -44,8 +49,10 @@ export function ManualBarcodeEntry({ onSubmit }: { onSubmit: (barcode: string) =
 
 const styles = StyleSheet.create({
   container: { gap: Spacing.two },
-  input: { backgroundColor: '#FFFFFF', borderColor: '#A0A0A0', borderWidth: 1, borderRadius: 12, padding: 14 },
+  heading: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two, marginVertical: Spacing.one },
+  rule: { height: 1, flex: 1, backgroundColor: '#D9E3DD' },
+  input: { backgroundColor: '#FFFFFF', color: '#17352D', borderColor: '#D4E1DA', borderWidth: 1, borderRadius: 14, padding: 15, fontSize: 17, letterSpacing: 1.2 },
   error: { color: '#B42318' },
-  button: { backgroundColor: '#208AEF', borderRadius: 12, padding: 14, alignItems: 'center' },
+  button: { backgroundColor: '#1F7A57', borderRadius: 14, padding: 14, alignItems: 'center' },
   buttonText: { color: '#FFFFFF', fontWeight: '700' },
 });

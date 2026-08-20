@@ -48,13 +48,24 @@ export function ProductScanner({ onBarcode }: { onBarcode: (barcode: string) => 
   if (!focused) return null;
 
   return (
-    <CameraView
-      active={focused}
-      barcodeScannerSettings={{ barcodeTypes: [...supportedBarcodeTypes] }}
-      onBarcodeScanned={handleScan}
-      onMountError={() => setMountError(true)}
-      style={styles.camera}
-    />
+    <View style={styles.cameraFrame}>
+      <CameraView
+        active={focused}
+        barcodeScannerSettings={{ barcodeTypes: [...supportedBarcodeTypes] }}
+        onBarcodeScanned={handleScan}
+        onMountError={() => setMountError(true)}
+        style={styles.camera}
+      />
+      <View pointerEvents="none" style={styles.overlay}>
+        <View style={styles.target}>
+          <View style={[styles.corner, styles.topLeft]} />
+          <View style={[styles.corner, styles.topRight]} />
+          <View style={[styles.corner, styles.bottomLeft]} />
+          <View style={[styles.corner, styles.bottomRight]} />
+        </View>
+        <ThemedText style={styles.hint}>Ustaw kod wewnątrz ramki</ThemedText>
+      </View>
+    </View>
   );
 }
 
@@ -67,8 +78,17 @@ function Action({ text, onPress }: { text: string; onPress: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  camera: { width: '100%', aspectRatio: 3 / 4, borderRadius: 16, overflow: 'hidden' },
+  cameraFrame: { width: '100%', aspectRatio: 4 / 5, borderRadius: 24, overflow: 'hidden', backgroundColor: '#17352D' },
+  camera: { position: 'absolute', inset: 0 },
+  overlay: { position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(8, 26, 21, 0.18)' },
+  target: { width: '82%', height: 150, position: 'relative' },
+  corner: { position: 'absolute', width: 34, height: 34, borderColor: '#D9F99D' },
+  topLeft: { left: 0, top: 0, borderLeftWidth: 4, borderTopWidth: 4, borderTopLeftRadius: 12 },
+  topRight: { right: 0, top: 0, borderRightWidth: 4, borderTopWidth: 4, borderTopRightRadius: 12 },
+  bottomLeft: { left: 0, bottom: 0, borderLeftWidth: 4, borderBottomWidth: 4, borderBottomLeftRadius: 12 },
+  bottomRight: { right: 0, bottom: 0, borderRightWidth: 4, borderBottomWidth: 4, borderBottomRightRadius: 12 },
+  hint: { position: 'absolute', bottom: 24, color: '#FFFFFF', backgroundColor: 'rgba(8, 26, 21, 0.65)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999 },
   message: { gap: Spacing.two },
-  action: { backgroundColor: '#208AEF', borderRadius: 12, padding: 14, alignItems: 'center' },
+  action: { backgroundColor: '#1F7A57', borderRadius: 14, padding: 14, alignItems: 'center' },
   actionText: { color: '#FFFFFF', fontWeight: '700' },
 });

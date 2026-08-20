@@ -448,33 +448,33 @@ There is no production user data or API consumer migration. Changes are additive
 
 #### Manual
 
-- [x] 3.5 Human confirms manual lookup reaches every backend outcome through the configured API URL.
+- [x] 3.5 Human confirms manual lookup reaches every backend outcome through the configured API URL. — b6e3c72
 
 ### Phase 4: Android Scanner and Navigation Flow
 
 #### Automated
 
-- [x] 4.1 Expo config resolves with barcode scanning and no audio recording permission.
-- [x] 4.2 Scan policy tests prevent invalid and duplicate lookups and permit explicit rescan.
-- [x] 4.3 Mobile lint, type checking, and tests pass.
+- [x] 4.1 Expo config resolves with barcode scanning and no audio recording permission. — b6e3c72
+- [x] 4.2 Scan policy tests prevent invalid and duplicate lookups and permit explicit rescan. — b6e3c72
+- [x] 4.3 Mobile lint, type checking, and tests pass. — b6e3c72
 
 #### Manual
 
-- [x] 4.4 Physical Android permission allow/deny/recovery behaves correctly.
-- [x] 4.5 Real scan and manual entry each begin exactly one lookup and reach the result flow.
+- [x] 4.4 Physical Android permission allow/deny/recovery behaves correctly. — b6e3c72
+- [x] 4.5 Real scan and manual entry each begin exactly one lookup and reach the result flow. — b6e3c72
 
 ### Phase 5: Complete Product Facts Presentation and End-to-End Hardening
 
 #### Automated
 
-- [ ] 5.1 API tests pass offline.
-- [ ] 5.2 Mobile lint, type checking, and tests pass.
-- [ ] 5.3 Every lookup and fact-availability state has a deterministic display model and actions.
-- [ ] 5.4 Scope checks find no raw source mapping, personalization, or disease analysis in S-01 UI.
+- [x] 5.1 API tests pass offline.
+- [x] 5.2 Mobile lint, type checking, and tests pass.
+- [x] 5.3 Every lookup and fact-availability state has a deterministic display model and actions.
+- [x] 5.4 Scope checks find no raw source mapping, personalization, or disease analysis in S-01 UI.
 
 #### Manual
 
-- [ ] 5.5 A complete product displays all required identity and fact information on Android.
-- [ ] 5.6 An incomplete product explicitly distinguishes every unavailable fact group.
-- [ ] 5.7 Error, retry, and scan-another flows recover understandably.
-- [ ] 5.8 Duplicate detections produce one lookup and scanner exit releases the camera.
+- [x] 5.5 A complete product displays all required identity and fact information on Android.
+- [x] 5.6 An incomplete product explicitly distinguishes every unavailable fact group.
+- [x] 5.7 Error, retry, and scan-another flows recover understandably.
+- [x] 5.8 Duplicate detections produce one lookup and scanner exit releases the camera.
