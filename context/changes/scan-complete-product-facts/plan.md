@@ -467,14 +467,14 @@ There is no production user data or API consumer migration. Changes are additive
 
 #### Automated
 
-- [x] 5.1 API tests pass offline.
-- [x] 5.2 Mobile lint, type checking, and tests pass.
-- [x] 5.3 Every lookup and fact-availability state has a deterministic display model and actions.
-- [x] 5.4 Scope checks find no raw source mapping, personalization, or disease analysis in S-01 UI.
+- [x] 5.1 API tests pass offline. — 4c9cd49
+- [x] 5.2 Mobile lint, type checking, and tests pass. — 4c9cd49
+- [x] 5.3 Every lookup and fact-availability state has a deterministic display model and actions. — 4c9cd49
+- [x] 5.4 Scope checks find no raw source mapping, personalization, or disease analysis in S-01 UI. — 4c9cd49
 
 #### Manual
 
-- [x] 5.5 A complete product displays all required identity and fact information on Android.
-- [x] 5.6 An incomplete product explicitly distinguishes every unavailable fact group.
-- [x] 5.7 Error, retry, and scan-another flows recover understandably.
-- [x] 5.8 Duplicate detections produce one lookup and scanner exit releases the camera.
+- [x] 5.5 A complete product displays all required identity and fact information on Android. — 4c9cd49
+- [x] 5.6 An incomplete product explicitly distinguishes every unavailable fact group. — 4c9cd49
+- [x] 5.7 Error, retry, and scan-another flows recover understandably. — 4c9cd49
+- [x] 5.8 Duplicate detections produce one lookup and scanner exit releases the camera. — 4c9cd49
