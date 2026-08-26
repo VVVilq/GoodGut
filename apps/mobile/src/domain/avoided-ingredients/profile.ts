@@ -1,6 +1,6 @@
 import { IngredientRule, ingredientComparisonKey } from '../personal-rules';
 import {
-  predefinedIngredientById,
+  findPredefinedIngredient,
   predefinedIngredients,
   predefinedIngredientTokens,
 } from './catalog';
@@ -52,7 +52,7 @@ export function validateAvoidedIngredientProfile(
 ): ProfileValidationError | null {
   const selected = new Set<string>();
   for (const id of profile.selectedPredefinedIds) {
-    if (!predefinedIngredientById.has(id)) return { code: 'unknown_predefined', fieldId: id };
+    if (!findPredefinedIngredient(id)) return { code: 'unknown_predefined', fieldId: id };
     if (selected.has(id)) return { code: 'duplicate_id', fieldId: id };
     selected.add(id);
   }
@@ -73,7 +73,7 @@ export function selectPredefinedIngredient(
   profile: AvoidedIngredientProfile,
   id: string,
 ): ProfileMutationResult {
-  if (!predefinedIngredientById.has(id)) return { ok: false, error: { code: 'unknown_predefined', fieldId: id } };
+  if (!findPredefinedIngredient(id)) return { ok: false, error: { code: 'unknown_predefined', fieldId: id } };
   if (profile.selectedPredefinedIds.includes(id)) return { ok: true, profile };
   return { ok: true, profile: { ...profile, selectedPredefinedIds: [...profile.selectedPredefinedIds, id] } };
 }
@@ -138,7 +138,7 @@ export function profileToIngredientRules(profile: AvoidedIngredientProfile): Ing
 
   return [
     ...profile.selectedPredefinedIds.map((id): IngredientRule => {
-      const ingredient = predefinedIngredientById.get(id)!;
+      const ingredient = findPredefinedIngredient(id)!;
       return {
         id: `predefined:${id}`,
         kind: 'ingredient',

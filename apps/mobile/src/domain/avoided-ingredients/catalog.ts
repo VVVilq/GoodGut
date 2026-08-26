@@ -8,19 +8,19 @@ export type AvoidedIngredientCategoryId =
   | 'common-ingredients';
 
 export type AvoidedIngredientCategory = {
-  id: AvoidedIngredientCategoryId;
-  labelPl: string;
+  readonly id: AvoidedIngredientCategoryId;
+  readonly labelPl: string;
 };
 
 export type PredefinedIngredient = {
-  id: string;
-  categoryId: AvoidedIngredientCategoryId;
-  labelPl: string;
-  canonicalName: string;
-  aliases: readonly string[];
+  readonly id: string;
+  readonly categoryId: AvoidedIngredientCategoryId;
+  readonly labelPl: string;
+  readonly canonicalName: string;
+  readonly aliases: readonly string[];
 };
 
-export const avoidedIngredientCategories: readonly AvoidedIngredientCategory[] = [
+const categoryEntries: readonly AvoidedIngredientCategory[] = [
   { id: 'sweeteners', labelPl: 'Substancje słodzące' },
   { id: 'preservatives', labelPl: 'Konserwanty' },
   { id: 'colourants', labelPl: 'Barwniki' },
@@ -28,7 +28,11 @@ export const avoidedIngredientCategories: readonly AvoidedIngredientCategory[] =
   { id: 'common-ingredients', labelPl: 'Częste składniki alergenne — wybór osobisty' },
 ];
 
-export const predefinedIngredients: readonly PredefinedIngredient[] = [
+export const avoidedIngredientCategories: readonly AvoidedIngredientCategory[] = Object.freeze(
+  categoryEntries.map((category) => Object.freeze(category)),
+);
+
+const catalogueEntries: readonly PredefinedIngredient[] = [
   { id: 'sucralose', categoryId: 'sweeteners', labelPl: 'Sukraloza', canonicalName: 'sucralose', aliases: ['E955', 'E 955'] },
   { id: 'aspartame', categoryId: 'sweeteners', labelPl: 'Aspartam', canonicalName: 'aspartame', aliases: ['E951', 'E 951'] },
   { id: 'acesulfame-potassium', categoryId: 'sweeteners', labelPl: 'Acesulfam K', canonicalName: 'acesulfame potassium', aliases: ['acesulfame k', 'E950', 'E 950'] },
@@ -65,9 +69,19 @@ export const predefinedIngredients: readonly PredefinedIngredient[] = [
   { id: 'peanut', categoryId: 'common-ingredients', labelPl: 'Orzeszki ziemne', canonicalName: 'peanut', aliases: ['peanuts', 'groundnut', 'orzeszki ziemne'] },
 ];
 
-export const predefinedIngredientById = new Map(
+export const predefinedIngredients: readonly PredefinedIngredient[] = Object.freeze(
+  catalogueEntries.map((ingredient) =>
+    Object.freeze({ ...ingredient, aliases: Object.freeze([...ingredient.aliases]) }),
+  ),
+);
+
+const predefinedIngredientById = new Map(
   predefinedIngredients.map((ingredient) => [ingredient.id, ingredient] as const),
 );
+
+export function findPredefinedIngredient(id: string): PredefinedIngredient | undefined {
+  return predefinedIngredientById.get(id);
+}
 
 export function predefinedIngredientTokens(ingredient: PredefinedIngredient): readonly string[] {
   return [ingredient.canonicalName, ...ingredient.aliases].map(ingredientComparisonKey);

@@ -1,6 +1,8 @@
 import { ingredientComparisonKey } from '../../personal-rules';
 import {
   avoidedIngredientCategories,
+  findPredefinedIngredient,
+  PredefinedIngredient,
   predefinedIngredients,
   predefinedIngredientTokens,
 } from '../catalog';
@@ -35,5 +37,26 @@ describe('predefined avoided ingredient catalogue', () => {
     expect(predefinedIngredientTokens(sucralose)).not.toContain(
       ingredientComparisonKey(sucralose.labelPl),
     );
+  });
+
+  it('exposes deeply frozen catalogue data behind a read-only lookup', () => {
+    const sucralose = findPredefinedIngredient('sucralose')!;
+    expect(Object.isFrozen(avoidedIngredientCategories)).toBe(true);
+    expect(Object.isFrozen(avoidedIngredientCategories[0])).toBe(true);
+    expect(Object.isFrozen(predefinedIngredients)).toBe(true);
+    expect(Object.isFrozen(sucralose)).toBe(true);
+    expect(Object.isFrozen(sucralose.aliases)).toBe(true);
+
+    expect(() =>
+      (predefinedIngredients as unknown as PredefinedIngredient[]).push({
+        id: 'mutated',
+        categoryId: 'sweeteners',
+        labelPl: 'Mutacja',
+        canonicalName: 'mutated',
+        aliases: [],
+      }),
+    ).toThrow();
+    expect(findPredefinedIngredient('sucralose')).toBe(sucralose);
+    expect(findPredefinedIngredient('mutated')).toBeUndefined();
   });
 });

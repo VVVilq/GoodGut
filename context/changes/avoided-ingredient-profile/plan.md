@@ -360,15 +360,15 @@ There are no existing profiles or production users to migrate. Missing storage i
 
 #### Automated
 
-- [x] 1.1 Catalogue tests prove unique IDs/tokens and reviewed exact alias behavior.
-- [x] 1.2 Profile tests prove stable persisted CRUD and cross-source duplicate rejection.
-- [x] 1.3 Adapter tests preserve existing evaluator semantics and trigger counts.
-- [x] 1.4 Mobile lint, type checking, and tests pass.
-- [x] 1.5 MVP test plan maps every S-02 high-risk behavior to evidence.
+- [x] 1.1 Catalogue tests prove unique IDs/tokens and reviewed exact alias behavior. — 72632d3
+- [x] 1.2 Profile tests prove stable persisted CRUD and cross-source duplicate rejection. — 72632d3
+- [x] 1.3 Adapter tests preserve existing evaluator semantics and trigger counts. — 72632d3
+- [x] 1.4 Mobile lint, type checking, and tests pass. — 72632d3
+- [x] 1.5 MVP test plan maps every S-02 high-risk behavior to evidence. — 72632d3
 
 #### Manual
 
-- [x] 1.6 Human approves Polish labels, matching aliases, categories, and non-medical wording.
+- [x] 1.6 Human approves Polish labels, matching aliases, categories, and non-medical wording. — 72632d3
 
 ### Phase 2: Crash-Safe Local Persistence and Profile State
 
