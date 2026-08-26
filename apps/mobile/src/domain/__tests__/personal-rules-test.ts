@@ -1,5 +1,6 @@
 import {
   evaluatePersonalRules,
+  ingredientComparisonKey,
   NutrientId,
   NutritionFact,
   NormalizedProductFacts,
@@ -36,6 +37,11 @@ const product = (overrides: Partial<ProductFacts> = {}): ProductFacts => ({
 });
 
 describe('evaluatePersonalRules', () => {
+  it('uses locale-stable Unicode normalization for exact ingredient keys', () => {
+    expect(ingredientComparisonKey('  Ｅ９５５ ')).toBe('e955');
+    expect(ingredientComparisonKey('CAFE\u0301')).toBe(ingredientComparisonKey('café'));
+  });
+
   it('matches a predefined ingredient by a known alias', () => {
     const rules: PersonalRule[] = [
       {

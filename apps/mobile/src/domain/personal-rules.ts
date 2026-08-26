@@ -60,7 +60,8 @@ export type RuleEvaluation = {
   triggerCount: number;
 };
 
-const normalizeIngredient = (value: string) => value.trim().toLocaleLowerCase();
+export const ingredientComparisonKey = (value: string) =>
+  value.normalize('NFKC').trim().toLowerCase();
 
 export function productFactsFromContract(product: NormalizedProductFacts): ProductFacts {
   return {
@@ -77,11 +78,13 @@ export function productFactsFromContract(product: NormalizedProductFacts): Produ
 }
 
 function ingredientTriggers(rule: IngredientRule, ingredients: readonly string[]): boolean {
-  const productIngredients = new Set(ingredients.map(normalizeIngredient));
+  const productIngredients = new Set(ingredients.map(ingredientComparisonKey));
   const candidates =
     rule.source === 'predefined' ? [rule.name, ...(rule.aliases ?? [])] : [rule.name];
 
-  return candidates.map(normalizeIngredient).some((candidate) => productIngredients.has(candidate));
+  return candidates
+    .map(ingredientComparisonKey)
+    .some((candidate) => productIngredients.has(candidate));
 }
 
 export function evaluatePersonalRules(
