@@ -81,11 +81,11 @@ export function catalogueSections(query: string): CatalogueSection[] {
   })).filter((section) => section.data.length > 0);
 }
 
-export function profileErrorMessage(error: ProfileValidationError): string {
+export function profileErrorMessage(error: ProfileValidationError, conflictingLabel?: string): string {
   if (error.code === 'blank_name') return 'Wpisz nazwę składnika.';
   if (error.code === 'name_too_long') return 'Nazwa może mieć maksymalnie 80 znaków.';
-  if (error.code === 'duplicate_name') return 'Ten składnik jest już na Twojej liście.';
-  if (error.code === 'reserved_name') return 'Ten składnik jest dostępny na liście powyżej.';
+  if (error.code === 'duplicate_name') return `Ten składnik jest już na Twojej liście${conflictingLabel ? `: ${conflictingLabel}` : ''}.`;
+  if (error.code === 'reserved_name') return `Ten składnik jest dostępny na liście powyżej${conflictingLabel ? `: ${conflictingLabel}` : ''}.`;
   return 'Nie udało się zapisać tej nazwy.';
 }
 

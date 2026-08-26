@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { AvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
+import { findPredefinedIngredient } from '@/domain/avoided-ingredients/catalog';
 import {
   acceptSavedDraft,
   addCustom,
@@ -38,6 +39,13 @@ export function ProfileEditor({ activeProfile, saving, recovered, saveFailed, on
   const hasErrors = Object.keys(editor.fieldErrors).length > 0;
   registerDirtyGuard(() => dirty);
   const sections = useMemo(() => catalogueSections(query), [query]);
+  const formatError = (error: import('@/domain/avoided-ingredients/profile').ProfileValidationError) => {
+    const label = error.conflictingId
+      ? findPredefinedIngredient(error.conflictingId)?.labelPl
+        ?? editor.draft.customIngredients.find((ingredient) => ingredient.id === error.conflictingId)?.name
+      : undefined;
+    return profileErrorMessage(error, label);
+  };
 
   const add = () => {
     const id = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -48,7 +56,12 @@ export function ProfileEditor({ activeProfile, saving, recovered, saveFailed, on
     if (!next.fieldErrors[id]) setNewName('');
   };
   const save = async () => {
-    if (await onSave(editor.draft)) setEditor((current) => acceptSavedDraft(current));
+    const submitted = editor.draft;
+    if (await onSave(submitted)) {
+      setEditor((current) => JSON.stringify(current.draft) === JSON.stringify(submitted)
+        ? acceptSavedDraft(current)
+        : { ...current, active: submitted });
+    }
   };
   const restore = () => {
     onRestore();
@@ -99,10 +112,10 @@ export function ProfileEditor({ activeProfile, saving, recovered, saveFailed, on
             <ThemedText type="small" themeColor="textSecondary">Dopasowanie odbywa się wyłącznie do dokładnej nazwy.</ThemedText>
             {editor.draft.customIngredients.map((ingredient) => (
               <CustomRow
-                key={ingredient.id}
+                key={`${ingredient.id}:${ingredient.name}`}
                 id={ingredient.id}
                 name={ingredient.name}
-                error={editor.fieldErrors[ingredient.id] && profileErrorMessage(editor.fieldErrors[ingredient.id])}
+                error={editor.fieldErrors[ingredient.id] && formatError(editor.fieldErrors[ingredient.id])}
                 onRename={(name) => setEditor((current) => renameCustom(current, ingredient.id, name))}
                 onDelete={() => setEditor((current) => removeCustom(current, ingredient.id))}
               />
@@ -122,7 +135,7 @@ export function ProfileEditor({ activeProfile, saving, recovered, saveFailed, on
               />
               <ActionButton label="Dodaj" onPress={add} disabled={saving} />
             </View>
-            {editor.fieldErrors[newId] && <ThemedText style={styles.error}>{profileErrorMessage(editor.fieldErrors[newId])}</ThemedText>}
+            {editor.fieldErrors[newId] && <ThemedText style={styles.error}>{formatError(editor.fieldErrors[newId])}</ThemedText>}
             <View style={styles.actions}>
               <ActionButton label={saving ? 'Zapisywanie…' : 'Zapisz profil'} onPress={() => void save()} disabled={saving || !dirty || hasErrors} />
               {saveFailed && <ActionButton label="Ponów zapis" onPress={() => void save()} disabled={saving || hasErrors} secondary />}
