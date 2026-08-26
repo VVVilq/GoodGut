@@ -388,29 +388,29 @@ There are no existing profiles or production users to migrate. Missing storage i
 
 #### Automated
 
-- [x] 3.1 Editor/state tests prove draft CRUD, dirty tracking, validation, save isolation, retry, and restore.
-- [x] 3.2 Search/presentation tests preserve category order and matching metadata.
-- [x] 3.3 Existing product lookup and scanner suites remain passing.
-- [x] 3.4 Mobile lint, type checking, and tests pass.
+- [x] 3.1 Editor/state tests prove draft CRUD, dirty tracking, validation, save isolation, retry, and restore. — bc01c05
+- [x] 3.2 Search/presentation tests preserve category order and matching metadata. — bc01c05
+- [x] 3.3 Existing product lookup and scanner suites remain passing. — bc01c05
+- [x] 3.4 Mobile lint, type checking, and tests pass. — bc01c05
 
 #### Manual
 
-- [ ] 3.5 Android Home exposes profile configuration without blocking empty-profile scanning.
-- [ ] 3.6 Broad catalogue selection and custom inline CRUD work with understandable duplicate errors.
-- [ ] 3.7 Save, retry, restore, dirty-back, keyboard, long-list, loading, recovery, and empty states are usable.
+- [x] 3.5 Android Home exposes profile configuration without blocking empty-profile scanning. — bc01c05
+- [x] 3.6 Broad catalogue selection and custom inline CRUD work with understandable duplicate errors. — bc01c05
+- [x] 3.7 Save, retry, restore, dirty-back, keyboard, long-list, loading, recovery, and empty states are usable. — bc01c05
 
 ### Phase 4: Android Persistence and S-03 Handoff Verification
 
 #### Automated
 
-- [ ] 4.1 Persisted profile integration tests produce stable evaluator-compatible rules and counts.
-- [ ] 4.2 Every automated MVP test-plan evidence row points to a passing test.
-- [ ] 4.3 Mobile lint, type checking, and all tests pass.
-- [ ] 4.4 API regression tests pass offline.
-- [ ] 4.5 Scope checks find no backend profiles, auth/sync, fuzzy matching, medical claims, nutrition rules, or S-03 UI.
+- [x] 4.1 Persisted profile integration tests produce stable evaluator-compatible rules and counts.
+- [x] 4.2 Every automated MVP test-plan evidence row points to a passing test.
+- [x] 4.3 Mobile lint, type checking, and all tests pass.
+- [x] 4.4 API regression tests pass offline.
+- [x] 4.5 Scope checks find no backend profiles, auth/sync, fuzzy matching, medical claims, nutrition rules, or S-03 UI.
 
 #### Manual
 
-- [ ] 4.6 Physical Android persisted CRUD survives restarts and only promotes successful saves.
-- [ ] 4.7 Recovery, dirty-discard, empty-profile, catalogue, and scan-regression checks pass the MVP test plan.
-- [ ] 4.8 Human accepts the S-03 evaluator handoff and final S-02 behavior.
+- [x] 4.6 Physical Android persisted CRUD survives restarts and only promotes successful saves.
+- [x] 4.7 Recovery, dirty-discard, empty-profile, catalogue, and scan-regression checks pass the MVP test plan.
+- [x] 4.8 Human accepts the S-03 evaluator handoff and final S-02 behavior.
