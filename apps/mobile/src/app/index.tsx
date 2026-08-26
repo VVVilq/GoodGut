@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Href, router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -50,6 +50,17 @@ export default function HomeScreen() {
           </Pressable>
         </ThemedView>
 
+        <Pressable
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.profileButton, pressed && styles.pressed]}
+          onPress={() => router.push('/profile' as Href)}>
+          <View>
+            <ThemedText type="smallBold">Unikane składniki</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">Ustaw własną listę wyborów</ThemedText>
+          </View>
+          <ThemedText style={styles.profileArrow}>→</ThemedText>
+        </Pressable>
+
         <View style={styles.trustRow}>
           <ThemedText type="small" themeColor="textSecondary">Dane: Open Food Facts</ThemedText>
           <View style={styles.dot} />
@@ -81,6 +92,8 @@ const styles = StyleSheet.create({
   buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
   arrow: { color: '#FFFFFF', fontSize: 23 },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
+  profileButton: { borderColor: '#BFD4C7', borderWidth: 1, borderRadius: 18, padding: Spacing.three, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F6FAF7' },
+  profileArrow: { color: '#1F7A57', fontSize: 23 },
   trustRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.two },
   dot: { width: 3, height: 3, borderRadius: 2, backgroundColor: '#8A9B94' },
 });

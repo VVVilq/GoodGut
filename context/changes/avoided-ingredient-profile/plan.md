@@ -374,24 +374,24 @@ There are no existing profiles or production users to migrate. Missing storage i
 
 #### Automated
 
-- [x] 2.1 Repository tests prove strict v1 decoding, recovery, pointer-last saves, and last-valid preservation.
-- [x] 2.2 Store tests prove hydration, promotion, failure isolation, retry, and active-rule exposure.
-- [x] 2.3 Expo resolves the SDK-compatible AsyncStorage dependency and configuration.
-- [x] 2.4 Mobile lint, type checking, and tests pass.
+- [x] 2.1 Repository tests prove strict v1 decoding, recovery, pointer-last saves, and last-valid preservation. — 232ef72
+- [x] 2.2 Store tests prove hydration, promotion, failure isolation, retry, and active-rule exposure. — 232ef72
+- [x] 2.3 Expo resolves the SDK-compatible AsyncStorage dependency and configuration. — 232ef72
+- [x] 2.4 Mobile lint, type checking, and tests pass. — 232ef72
 
 #### Manual
 
-- [x] 2.5 Android restart and simulated save failure preserve the last saved profile and retryable draft.
-- [x] 2.6 Corrupt storage is reported or recovered without silent reset or overwrite.
+- [x] 2.5 Android restart and simulated save failure preserve the last saved profile and retryable draft. — 232ef72
+- [x] 2.6 Corrupt storage is reported or recovered without silent reset or overwrite. — 232ef72
 
 ### Phase 3: Profile Editor and Navigation
 
 #### Automated
 
-- [ ] 3.1 Editor/state tests prove draft CRUD, dirty tracking, validation, save isolation, retry, and restore.
-- [ ] 3.2 Search/presentation tests preserve category order and matching metadata.
-- [ ] 3.3 Existing product lookup and scanner suites remain passing.
-- [ ] 3.4 Mobile lint, type checking, and tests pass.
+- [x] 3.1 Editor/state tests prove draft CRUD, dirty tracking, validation, save isolation, retry, and restore.
+- [x] 3.2 Search/presentation tests preserve category order and matching metadata.
+- [x] 3.3 Existing product lookup and scanner suites remain passing.
+- [x] 3.4 Mobile lint, type checking, and tests pass.
 
 #### Manual
 
