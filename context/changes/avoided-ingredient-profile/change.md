@@ -1,7 +1,7 @@
 ---
 change_id: avoided-ingredient-profile
 title: Avoided ingredient profile
-status: implementing
+status: implemented
 created: 2026-08-26
 updated: 2026-08-26
 archived_at: null

@@ -403,14 +403,14 @@ There are no existing profiles or production users to migrate. Missing storage i
 
 #### Automated
 
-- [x] 4.1 Persisted profile integration tests produce stable evaluator-compatible rules and counts.
-- [x] 4.2 Every automated MVP test-plan evidence row points to a passing test.
-- [x] 4.3 Mobile lint, type checking, and all tests pass.
-- [x] 4.4 API regression tests pass offline.
-- [x] 4.5 Scope checks find no backend profiles, auth/sync, fuzzy matching, medical claims, nutrition rules, or S-03 UI.
+- [x] 4.1 Persisted profile integration tests produce stable evaluator-compatible rules and counts. — 5d9781e
+- [x] 4.2 Every automated MVP test-plan evidence row points to a passing test. — 5d9781e
+- [x] 4.3 Mobile lint, type checking, and all tests pass. — 5d9781e
+- [x] 4.4 API regression tests pass offline. — 5d9781e
+- [x] 4.5 Scope checks find no backend profiles, auth/sync, fuzzy matching, medical claims, nutrition rules, or S-03 UI. — 5d9781e
 
 #### Manual
 
-- [x] 4.6 Physical Android persisted CRUD survives restarts and only promotes successful saves.
-- [x] 4.7 Recovery, dirty-discard, empty-profile, catalogue, and scan-regression checks pass the MVP test plan.
-- [x] 4.8 Human accepts the S-03 evaluator handoff and final S-02 behavior.
+- [x] 4.6 Physical Android persisted CRUD survives restarts and only promotes successful saves. — 5d9781e
+- [x] 4.7 Recovery, dirty-discard, empty-profile, catalogue, and scan-regression checks pass the MVP test plan. — 5d9781e
+- [x] 4.8 Human accepts the S-03 evaluator handoff and final S-02 behavior. — 5d9781e
