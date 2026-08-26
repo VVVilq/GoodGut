@@ -374,15 +374,15 @@ There are no existing profiles or production users to migrate. Missing storage i
 
 #### Automated
 
-- [ ] 2.1 Repository tests prove strict v1 decoding, recovery, pointer-last saves, and last-valid preservation.
-- [ ] 2.2 Store tests prove hydration, promotion, failure isolation, retry, and active-rule exposure.
-- [ ] 2.3 Expo resolves the SDK-compatible AsyncStorage dependency and configuration.
-- [ ] 2.4 Mobile lint, type checking, and tests pass.
+- [x] 2.1 Repository tests prove strict v1 decoding, recovery, pointer-last saves, and last-valid preservation.
+- [x] 2.2 Store tests prove hydration, promotion, failure isolation, retry, and active-rule exposure.
+- [x] 2.3 Expo resolves the SDK-compatible AsyncStorage dependency and configuration.
+- [x] 2.4 Mobile lint, type checking, and tests pass.
 
 #### Manual
 
-- [ ] 2.5 Android restart and simulated save failure preserve the last saved profile and retryable draft.
-- [ ] 2.6 Corrupt storage is reported or recovered without silent reset or overwrite.
+- [x] 2.5 Android restart and simulated save failure preserve the last saved profile and retryable draft.
+- [x] 2.6 Corrupt storage is reported or recovered without silent reset or overwrite.
 
 ### Phase 3: Profile Editor and Navigation
 
