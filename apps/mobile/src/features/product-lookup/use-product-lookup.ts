@@ -16,7 +16,9 @@ type ProductLookupContextValue = ReturnType<typeof useProductLookupValue>;
 const ProductLookupContext = createContext<ProductLookupContextValue | null>(null);
 
 function useProductLookupValue() {
-  const [machine] = useState(() => new ProductLookupStateMachine(lookupProduct));
+  const [machine] = useState(
+    () => new ProductLookupStateMachine((barcode, signal) => lookupProduct(barcode, { signal })),
+  );
   const state = useSyncExternalStore(machine.subscribe, machine.getState, machine.getState);
   const actions = useMemo(
     () => ({

@@ -1,9 +1,9 @@
 ---
 change_id: scan-complete-product-facts
 title: Scan complete product facts
-status: implemented
+status: impl_reviewed
 created: 2026-08-19
-updated: 2026-08-20
+updated: 2026-08-26
 archived_at: null
 ---
 

@@ -15,7 +15,10 @@ describe('GoodGut API client', () => {
     await expect(
       lookupProduct('00001234', { baseUrl: ' http://api.example.test/ ', fetch: request }),
     ).resolves.toEqual(notFound);
-    expect(request).toHaveBeenCalledWith('http://api.example.test/products/00001234');
+    expect(request).toHaveBeenCalledWith(
+      'http://api.example.test/products/00001234',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 
   it.each([undefined, '', 'not a URL', 'ftp://example.com', 'https://user:pass@example.com'])(
@@ -57,5 +60,26 @@ describe('GoodGut API client', () => {
 
   it('uses a typed client error', () => {
     expect(new GoodGutClientError('transport_failure', 'offline')).toBeInstanceOf(Error);
+  });
+
+  it('aborts a lookup after its configured deadline', async () => {
+    jest.useFakeTimers();
+    const request = jest.fn((_url: URL | RequestInfo, init?: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+      }),
+    );
+
+    const lookup = lookupProduct('12345678', {
+      baseUrl: 'http://api.test',
+      fetch: request,
+      timeoutMs: 25,
+    });
+    const rejected = expect(lookup).rejects.toMatchObject({ kind: 'transport_failure' });
+    await jest.advanceTimersByTimeAsync(25);
+
+    await rejected;
+    expect(request.mock.calls[0][1]?.signal?.aborted).toBe(true);
+    jest.useRealTimers();
   });
 });

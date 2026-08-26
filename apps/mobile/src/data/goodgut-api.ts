@@ -20,34 +20,52 @@ export class GoodGutClientError extends Error {
 
 type Fetch = typeof fetch;
 
+const DEFAULT_TIMEOUT_MS = 15_000;
+
 export async function lookupProduct(
   barcode: string,
-  options: { baseUrl?: string; fetch?: Fetch } = {},
+  options: { baseUrl?: string; fetch?: Fetch; signal?: AbortSignal; timeoutMs?: number } = {},
 ): Promise<ProductLookup> {
   const baseUrl = configuredBaseUrl(options.baseUrl ?? process.env.EXPO_PUBLIC_API_BASE_URL);
   const request = options.fetch ?? fetch;
-  let response: Response;
+  const controller = new AbortController();
+  const abortFromCaller = () => controller.abort();
+  options.signal?.addEventListener('abort', abortFromCaller, { once: true });
+  if (options.signal?.aborted) controller.abort();
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+
   try {
-    response = await request(`${baseUrl}/products/${encodeURIComponent(barcode)}`);
-  } catch {
-    throw new GoodGutClientError('transport_failure', 'Could not reach the GoodGut API.');
-  }
-  if (!response.ok) {
-    throw new GoodGutClientError('http_error', `GoodGut API returned HTTP ${response.status}.`, response.status);
-  }
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch {
-    throw new GoodGutClientError('invalid_response', 'GoodGut API returned invalid JSON.');
-  }
-  try {
-    return decodeProductLookup(body);
-  } catch (error) {
-    if (error instanceof ProductLookupDecodeError) {
-      throw new GoodGutClientError('invalid_response', error.message);
+    let response: Response;
+    try {
+      response = await request(`${baseUrl}/products/${encodeURIComponent(barcode)}`, {
+        signal: controller.signal,
+      });
+    } catch {
+      throw new GoodGutClientError('transport_failure', 'Could not reach the GoodGut API.');
     }
-    throw error;
+    if (!response.ok) {
+      throw new GoodGutClientError('http_error', `GoodGut API returned HTTP ${response.status}.`, response.status);
+    }
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      if (controller.signal.aborted) {
+        throw new GoodGutClientError('transport_failure', 'GoodGut API request timed out.');
+      }
+      throw new GoodGutClientError('invalid_response', 'GoodGut API returned invalid JSON.');
+    }
+    try {
+      return decodeProductLookup(body);
+    } catch (error) {
+      if (error instanceof ProductLookupDecodeError) {
+        throw new GoodGutClientError('invalid_response', error.message);
+      }
+      throw error;
+    }
+  } finally {
+    clearTimeout(timeout);
+    options.signal?.removeEventListener('abort', abortFromCaller);
   }
 }
 

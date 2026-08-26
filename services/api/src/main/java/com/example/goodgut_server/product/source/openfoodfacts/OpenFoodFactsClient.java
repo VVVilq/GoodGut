@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 @Component
@@ -40,7 +41,7 @@ public class OpenFoodFactsClient implements ProductSourceClient {
             return new ProductSourceResult.Failure(SourceErrorCategory.NETWORK_ERROR);
         } catch (RestClientResponseException exception) {
             return classifyStatus(exception.getStatusCode());
-        } catch (RuntimeException exception) {
+        } catch (RestClientException exception) {
             return new ProductSourceResult.Failure(SourceErrorCategory.INVALID_SOURCE_RESPONSE);
         }
     }

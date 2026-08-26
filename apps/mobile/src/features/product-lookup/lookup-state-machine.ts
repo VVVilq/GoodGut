@@ -13,11 +13,12 @@ export type ProductLookupState =
   | { status: 'resolved'; barcode: string; result: ProductLookup }
   | { status: 'client_error'; barcode: string; error: LookupClientError };
 
-export type ProductLookupRequest = (barcode: string) => Promise<ProductLookup>;
+export type ProductLookupRequest = (barcode: string, signal?: AbortSignal) => Promise<ProductLookup>;
 
 export class ProductLookupStateMachine {
   private state: ProductLookupState = { status: 'idle' };
   private generation = 0;
+  private activeRequest?: AbortController;
   private listeners = new Set<() => void>();
 
   constructor(private readonly request: ProductLookupRequest) {}
@@ -50,21 +51,30 @@ export class ProductLookupStateMachine {
   }
 
   rescan(): void {
+    this.activeRequest?.abort();
+    this.activeRequest = undefined;
     this.generation += 1;
     this.setState({ status: 'idle' });
   }
 
   private async start(barcode: string): Promise<boolean> {
+    this.activeRequest?.abort();
+    const controller = new AbortController();
+    this.activeRequest = controller;
     const requestGeneration = ++this.generation;
     this.setState({ status: 'loading', barcode });
     try {
-      const result = await this.request(barcode);
+      const result = await this.request(barcode, controller.signal);
       if (requestGeneration === this.generation) {
         this.setState({ status: 'resolved', barcode, result });
       }
     } catch (error) {
       if (requestGeneration === this.generation) {
         this.setState({ status: 'client_error', barcode, error: clientError(error) });
+      }
+    } finally {
+      if (this.activeRequest === controller) {
+        this.activeRequest = undefined;
       }
     }
     return true;

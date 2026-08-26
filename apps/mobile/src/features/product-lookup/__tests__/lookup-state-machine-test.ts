@@ -43,7 +43,7 @@ describe('ProductLookupStateMachine', () => {
 
   it('retries only explicitly and with the same barcode', async () => {
     const request = jest
-      .fn<Promise<ProductLookup>, [string]>()
+      .fn<Promise<ProductLookup>, [string, AbortSignal?]>()
       .mockResolvedValueOnce(sourceError('12345678'))
       .mockResolvedValueOnce(notFound('12345678'));
     const machine = new ProductLookupStateMachine(request);
@@ -51,12 +51,12 @@ describe('ProductLookupStateMachine', () => {
     await machine.submit('12345678');
     expect(request).toHaveBeenCalledTimes(1);
     await machine.retry();
-    expect(request).toHaveBeenNthCalledWith(2, '12345678');
+    expect(request.mock.calls[1][0]).toBe('12345678');
   });
 
   it('maps client failures and retries only after user action', async () => {
     const request = jest
-      .fn<Promise<ProductLookup>, [string]>()
+      .fn<Promise<ProductLookup>, [string, AbortSignal?]>()
       .mockRejectedValueOnce(new GoodGutClientError('transport_failure', 'offline'))
       .mockResolvedValueOnce(notFound('12345678'));
     const machine = new ProductLookupStateMachine(request);
@@ -78,7 +78,9 @@ describe('ProductLookupStateMachine', () => {
     const machine = new ProductLookupStateMachine(request);
 
     const oldLookup = machine.submit('12345678');
+    const firstSignal = request.mock.calls[0][1] as AbortSignal;
     machine.rescan();
+    expect(firstSignal.aborted).toBe(true);
     const newLookup = machine.capture('87654321');
     first.resolve(notFound('12345678'));
     await oldLookup;
