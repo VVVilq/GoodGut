@@ -3,7 +3,7 @@ project: GoodGut
 version: 1
 status: draft
 created: 2026-08-18
-updated: 2026-08-26
+updated: 2026-08-31
 prd_version: 3
 main_goal: speed
 top_blocker: external
@@ -31,7 +31,7 @@ GoodGut reduces time spent reading food labels by applying one shopper's persona
 |---|---|---|---|---|---|
 | F-01 | personal-rules-product-contract | (foundation) the external product-data contract and representative fixtures support personal ingredient and nutrition rules | — | FR-004, FR-005, FR-009, FR-010 | done |
 | S-01 | scan-complete-product-facts | scan a barcode and see complete available product facts or explicit unavailable states without personalization | F-01 | US-01, FR-004, FR-005, FR-009, FR-010 | done |
-| S-02 | avoided-ingredient-profile | configure and edit one on-device profile containing predefined and custom avoided ingredients | — | US-01, FR-001, FR-002 | ready |
+| S-02 | avoided-ingredient-profile | configure and edit one on-device profile containing predefined and custom avoided ingredients | — | US-01, FR-001, FR-002 | done |
 | S-03 | ingredient-warning-scan | scan a product and see avoided ingredients highlighted with the total triggered-rule count | S-01, S-02 | US-01, FR-004, FR-005, FR-006, FR-008, FR-009, FR-010 | proposed |
 | S-04 | nutrition-threshold-profile | configure and edit above-or-below nutrition thresholds with an explicit per-100-g or per-100-ml basis | — | US-01, FR-001, FR-003 | ready |
 | S-05 | nutrition-warning-scan | scan a product and see matching nutrition warnings combined with ingredient warnings and an accurate total | S-03, S-04 | US-01, FR-003, FR-004, FR-005, FR-007, FR-008, FR-009, FR-010 | proposed |
@@ -100,7 +100,7 @@ Foundations below assume these are present and do not re-scaffold them.
 - **Unknowns:**
   - What is the smallest predefined ingredient-and-alias set needed for the first usable release beyond the required sucralose example? — Owner: user. Block: no.
 - **Risk:** An oversized catalogue would consume deadline capacity; a small editable list plus custom entry preserves usefulness without blocking the first warning flow.
-- **Status:** ready
+- **Status:** done
 
 ### S-03: Highlight avoided ingredients after scanning
 
@@ -170,3 +170,4 @@ No roadmap-wide questions remain open. Non-blocking implementation questions are
 
 - **F-01: (foundation) the normalized product contract and representative recorded fixtures expose complete ingredient names, Nutri-Score, kcal, sugars, fats, other supported nutrition values, exact per-100-g or per-100-ml basis, and explicit lookup and missing-data states suitable for personal rules.** — Archived 2026-08-19 → `context/archive/2026-08-19-personal-rules-product-contract/`. Lesson: —.
 - **S-01: shopper can scan a barcode and see complete available ingredients, Nutri-Score, kcal, sugars, fats, and other available nutrition values, with explicit not-found, source-error, and unavailable states and no personalized highlights when no rules exist.** — Archived 2026-08-26 → `context/archive/2026-08-19-scan-complete-product-facts/`. Lesson: —.
+- **S-02: shopper can configure and edit one on-device profile by selecting predefined avoided ingredients and adding case-insensitive exact-name custom ingredients.** — Archived 2026-08-31 → `context/archive/2026-08-26-avoided-ingredient-profile/`. Lesson: —.
