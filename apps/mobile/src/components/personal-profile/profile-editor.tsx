@@ -6,6 +6,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { AvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
 import { findPredefinedIngredient } from '@/domain/avoided-ingredients/catalog';
+import { useTheme } from '@/hooks/use-theme';
 import {
   acceptSavedDraft,
   addCustom,
@@ -31,6 +32,7 @@ type Props = {
 };
 
 export function ProfileEditor({ activeProfile, saving, recovered, saveFailed, onSave, onRestore, registerDirtyGuard }: Props) {
+  const theme = useTheme();
   const [editor, setEditor] = useState(() => createProfileEditorState(activeProfile));
   const [query, setQuery] = useState('');
   const [newName, setNewName] = useState('');
@@ -92,7 +94,15 @@ export function ProfileEditor({ activeProfile, saving, recovered, saveFailed, on
             />
           </View>
         )}
-        renderSectionHeader={({ section }) => <ThemedText type="smallBold" style={styles.sectionTitle}>{section.title}</ThemedText>}
+        renderSectionHeader={({ section }) => (
+          <ThemedText
+            accessibilityRole="header"
+            type="smallBold"
+            style={[styles.sectionTitle, { backgroundColor: theme.backgroundElement }]}
+          >
+            {section.title}
+          </ThemedText>
+        )}
         renderItem={({ item }) => {
           const selected = editor.draft.selectedPredefinedIds.includes(item.id);
           return (
@@ -100,9 +110,13 @@ export function ProfileEditor({ activeProfile, saving, recovered, saveFailed, on
               accessibilityRole="checkbox"
               accessibilityState={{ checked: selected }}
               onPress={() => setEditor((current) => togglePredefined(current, item.id))}
-              style={[styles.row, selected && styles.selectedRow]}>
-              <ThemedText>{item.labelPl}</ThemedText>
-              <ThemedText style={styles.check}>{selected ? '✓' : ''}</ThemedText>
+              style={[
+                styles.row,
+                selected && styles.selectedRow,
+                selected && { backgroundColor: theme.backgroundSelected },
+              ]}>
+              <ThemedText style={selected && styles.selectedLabel}>{item.labelPl}</ThemedText>
+              <ThemedText style={[styles.check, { color: theme.text }]}>{selected ? '✓' : ''}</ThemedText>
             </Pressable>
           );
         }}
@@ -186,9 +200,10 @@ const styles = StyleSheet.create({
   screen: { flex: 1 }, content: { padding: Spacing.three, paddingBottom: Spacing.five },
   header: { gap: Spacing.two, marginBottom: Spacing.three },
   input: { backgroundColor: '#FFFFFF', color: '#17352D', borderColor: '#CCDAD2', borderWidth: 1, borderRadius: 12, padding: 12, fontSize: 16 },
-  sectionTitle: { backgroundColor: '#F4F8F5', paddingVertical: 10, marginTop: Spacing.two },
+  sectionTitle: { paddingHorizontal: 14, paddingVertical: 10, marginTop: Spacing.two },
   row: { minHeight: 50, paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E1E9E4', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  selectedRow: { backgroundColor: '#E3F2E8' }, check: { color: '#1F7A57', fontWeight: '800' },
+  selectedRow: { borderWidth: 2, borderColor: '#42A579', borderRadius: 10, marginVertical: 2 },
+  selectedLabel: { fontWeight: '800' }, check: { fontWeight: '800' },
   customSection: { gap: Spacing.two, marginTop: Spacing.four }, customRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.two },
   addRow: { flexDirection: 'row', gap: Spacing.two, alignItems: 'center' }, flex: { flex: 1 },
   deleteButton: { padding: 12 }, deleteText: { color: '#B42318', fontWeight: '700' }, error: { color: '#B42318', marginTop: 4 },
