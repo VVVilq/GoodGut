@@ -1,10 +1,10 @@
 ---
 change_id: avoided-ingredient-profile
 title: Avoided ingredient profile
-status: impl_reviewed
+status: archived
 created: 2026-08-26
-updated: 2026-08-26
-archived_at: null
+updated: 2026-08-31
+archived_at: 2026-08-31T09:58:01Z
 ---
 
 ## Notes
