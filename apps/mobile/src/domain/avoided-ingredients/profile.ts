@@ -17,6 +17,11 @@ export type AvoidedIngredientProfile = {
   customIngredients: readonly CustomIngredient[];
 };
 
+export type IngredientRuleDescriptor = {
+  rule: IngredientRule;
+  label: string;
+};
+
 export type ProfileValidationErrorCode =
   | 'blank_name'
   | 'name_too_long'
@@ -133,25 +138,37 @@ export function deleteCustomIngredient(
 }
 
 export function profileToIngredientRules(profile: AvoidedIngredientProfile): IngredientRule[] {
+  return profileToIngredientRuleDescriptors(profile).map(({ rule }) => rule);
+}
+
+export function profileToIngredientRuleDescriptors(
+  profile: AvoidedIngredientProfile,
+): IngredientRuleDescriptor[] {
   const error = validateAvoidedIngredientProfile(profile);
   if (error) throw new Error(`Invalid avoided ingredient profile: ${error.code}`);
 
   return [
-    ...profile.selectedPredefinedIds.map((id): IngredientRule => {
+    ...profile.selectedPredefinedIds.map((id): IngredientRuleDescriptor => {
       const ingredient = findPredefinedIngredient(id)!;
       return {
-        id: `predefined:${id}`,
-        kind: 'ingredient',
-        name: ingredient.canonicalName,
-        source: 'predefined',
-        aliases: ingredient.aliases,
+        label: ingredient.labelPl,
+        rule: {
+          id: `predefined:${id}`,
+          kind: 'ingredient',
+          name: ingredient.canonicalName,
+          source: 'predefined',
+          aliases: ingredient.aliases,
+        },
       };
     }),
-    ...profile.customIngredients.map((ingredient): IngredientRule => ({
-      id: `custom:${ingredient.id}`,
-      kind: 'ingredient',
-      name: ingredient.name,
-      source: 'custom',
+    ...profile.customIngredients.map((ingredient): IngredientRuleDescriptor => ({
+      label: ingredient.name,
+      rule: {
+        id: `custom:${ingredient.id}`,
+        kind: 'ingredient',
+        name: ingredient.name,
+        source: 'custom',
+      },
     })),
   ];
 }

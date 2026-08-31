@@ -1,4 +1,5 @@
 import {
+  evaluateIngredientRules,
   evaluatePersonalRules,
   ingredientComparisonKey,
   NutrientId,
@@ -57,6 +58,42 @@ describe('evaluatePersonalRules', () => {
       'avoid-sucralose',
     ]);
   });
+
+  it('exposes every distinct matching source name while counting the rule once', () => {
+    const rules = [{
+      id: 'avoid-sucralose',
+      kind: 'ingredient' as const,
+      name: 'sucralose',
+      source: 'predefined' as const,
+      aliases: ['E955', 'E 955'],
+    }];
+
+    expect(
+      evaluateIngredientRules(rules, {
+        status: 'available',
+        names: ['sucralose', 'E 955', 'E 955', 'water'],
+      }),
+    ).toEqual({
+      matches: [{
+        ruleId: 'avoid-sucralose',
+        matchedIngredientNames: ['sucralose', 'E 955'],
+      }],
+      unavailableRuleIds: [],
+      triggerCount: 1,
+    });
+  });
+
+  it.each(['missing', 'unparseable'] as const)(
+    'exposes unavailable ingredient rule IDs for %s facts',
+    (status) => {
+      expect(
+        evaluateIngredientRules(
+          [{ id: 'custom', kind: 'ingredient', name: 'Apple', source: 'custom' }],
+          { status },
+        ),
+      ).toEqual({ matches: [], unavailableRuleIds: ['custom'], triggerCount: 0 });
+    },
+  );
 
   it('matches a custom ingredient only by case-insensitive exact name', () => {
     const rules: PersonalRule[] = [

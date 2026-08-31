@@ -6,6 +6,7 @@ import {
   emptyAvoidedIngredientProfile,
   MAX_CUSTOM_INGREDIENT_LENGTH,
   ProfileMutationResult,
+  profileToIngredientRuleDescriptors,
   profileToIngredientRules,
   renameCustomIngredient,
   selectPredefinedIngredient,
@@ -104,6 +105,24 @@ describe('avoided ingredient profile', () => {
       triggeredRuleIds: [],
       triggerCount: 0,
     });
+  });
+
+  it('adapts rules with shopper-facing predefined and custom labels', () => {
+    let profile = expectSuccess(
+      selectPredefinedIngredient(emptyAvoidedIngredientProfile(), 'sucralose'),
+    );
+    profile = expectSuccess(addCustomIngredient(profile, { id: 'apple', name: 'Apple' }));
+
+    expect(profileToIngredientRuleDescriptors(profile)).toEqual([
+      {
+        label: 'Sukraloza',
+        rule: expect.objectContaining({ id: 'predefined:sucralose', name: 'sucralose' }),
+      },
+      {
+        label: 'Apple',
+        rule: { id: 'custom:apple', kind: 'ingredient', name: 'Apple', source: 'custom' },
+      },
+    ]);
   });
 });
 

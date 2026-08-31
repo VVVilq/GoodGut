@@ -60,6 +60,17 @@ export type RuleEvaluation = {
   triggerCount: number;
 };
 
+export type IngredientRuleMatch = {
+  ruleId: string;
+  matchedIngredientNames: readonly string[];
+};
+
+export type IngredientRuleEvaluation = {
+  matches: readonly IngredientRuleMatch[];
+  unavailableRuleIds: readonly string[];
+  triggerCount: number;
+};
+
 export const ingredientComparisonKey = (value: string) =>
   value.normalize('NFKC').trim().toLowerCase();
 
@@ -77,14 +88,37 @@ export function productFactsFromContract(product: NormalizedProductFacts): Produ
   };
 }
 
-function ingredientTriggers(rule: IngredientRule, ingredients: readonly string[]): boolean {
-  const productIngredients = new Set(ingredients.map(ingredientComparisonKey));
+function matchingIngredientNames(
+  rule: IngredientRule,
+  ingredients: readonly string[],
+): string[] {
   const candidates =
     rule.source === 'predefined' ? [rule.name, ...(rule.aliases ?? [])] : [rule.name];
+  const candidateKeys = new Set(candidates.map(ingredientComparisonKey));
 
-  return candidates
-    .map(ingredientComparisonKey)
-    .some((candidate) => productIngredients.has(candidate));
+  return [...new Set(
+    ingredients.filter((ingredient) => candidateKeys.has(ingredientComparisonKey(ingredient))),
+  )];
+}
+
+export function evaluateIngredientRules(
+  rules: readonly IngredientRule[],
+  ingredients: IngredientFacts,
+): IngredientRuleEvaluation {
+  if (ingredients.status !== 'available') {
+    return {
+      matches: [],
+      unavailableRuleIds: rules.map((rule) => rule.id),
+      triggerCount: 0,
+    };
+  }
+
+  const matches = rules.flatMap((rule): IngredientRuleMatch[] => {
+    const matchedIngredientNames = matchingIngredientNames(rule, ingredients.names);
+    return matchedIngredientNames.length > 0 ? [{ ruleId: rule.id, matchedIngredientNames }] : [];
+  });
+
+  return { matches, unavailableRuleIds: [], triggerCount: matches.length };
 }
 
 export function evaluatePersonalRules(
@@ -98,7 +132,7 @@ export function evaluatePersonalRules(
     if (rule.kind === 'ingredient') {
       if (product.ingredients.status !== 'available') {
         unavailableRuleIds.push(rule.id);
-      } else if (ingredientTriggers(rule, product.ingredients.names)) {
+      } else if (matchingIngredientNames(rule, product.ingredients.names).length > 0) {
         triggeredRuleIds.push(rule.id);
       }
       continue;
