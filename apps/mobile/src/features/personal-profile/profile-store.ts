@@ -8,6 +8,7 @@ export type PersonalProfileState =
   | { status: 'hydrating' }
   | { status: 'ready'; activeProfile: AvoidedIngredientProfile }
   | { status: 'recovered'; activeProfile: AvoidedIngredientProfile }
+  | { status: 'reset_notice'; activeProfile: AvoidedIngredientProfile }
   | { status: 'load_error'; error: ProfileErrorKind }
   | { status: 'saving'; activeProfile: AvoidedIngredientProfile; candidate: AvoidedIngredientProfile }
   | { status: 'save_error'; activeProfile: AvoidedIngredientProfile; candidate: AvoidedIngredientProfile; error: 'storage' };
@@ -68,6 +69,8 @@ export class PersonalProfileStore {
   private applyLoadResult(result: PersonalProfileLoadResult) {
     if (result.kind === 'empty' || result.kind === 'loaded') {
       this.setState({ status: 'ready', activeProfile: result.profile });
+    } else if (result.kind === 'reset') {
+      this.setState({ status: 'reset_notice', activeProfile: result.profile });
     } else if (result.kind === 'recovered') {
       this.setState({ status: 'recovered', activeProfile: result.profile });
     } else {

@@ -1,213 +1,37 @@
-import { useMemo, useState } from 'react';
-import { Alert, Pressable, SectionList, StyleSheet, TextInput, View } from 'react-native';
-
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
-import { AvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
-import { findPredefinedIngredient } from '@/domain/avoided-ingredients/catalog';
+import { Dispatch, SetStateAction, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ThemedText } from '@/components/themed-text'; import { ThemedView } from '@/components/themed-view'; import { Spacing } from '@/constants/theme';
+import { AvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile'; import { CatalogueItem, SelectionScope } from '@/domain/ingredient-catalogue';
+import { acceptSavedDraft, addCustom, catalogueItemSelectionState, chooseCatalogueItem, clearFieldError, createProfileEditorState, isProfileDraftDirty, profileErrorMessage, removeCustom, removeSelection, renameCustom, resetDraft } from '@/features/personal-profile/profile-editor-state';
+import { useIngredientCatalogue } from '@/features/personal-profile/use-ingredient-catalogue';
 import { useTheme } from '@/hooks/use-theme';
-import {
-  acceptSavedDraft,
-  addCustom,
-  catalogueSections,
-  clearFieldError,
-  createProfileEditorState,
-  isProfileDraftDirty,
-  profileErrorMessage,
-  removeCustom,
-  renameCustom,
-  resetDraft,
-  togglePredefined,
-} from '@/features/personal-profile/profile-editor-state';
 
-type Props = {
-  activeProfile: AvoidedIngredientProfile;
-  saving: boolean;
-  recovered: boolean;
-  saveFailed: boolean;
-  onSave(profile: AvoidedIngredientProfile): Promise<boolean>;
-  onRestore(): void;
-  registerDirtyGuard(isDirty: () => boolean): void;
-};
-
-export function ProfileEditor({ activeProfile, saving, recovered, saveFailed, onSave, onRestore, registerDirtyGuard }: Props) {
-  const theme = useTheme();
-  const [editor, setEditor] = useState(() => createProfileEditorState(activeProfile));
-  const [query, setQuery] = useState('');
-  const [newName, setNewName] = useState('');
-  const newId = 'new-custom';
-  const dirty = isProfileDraftDirty(editor);
-  const hasErrors = Object.keys(editor.fieldErrors).length > 0;
-  registerDirtyGuard(() => dirty);
-  const sections = useMemo(() => catalogueSections(query), [query]);
-  const formatError = (error: import('@/domain/avoided-ingredients/profile').ProfileValidationError) => {
-    const label = error.conflictingId
-      ? findPredefinedIngredient(error.conflictingId)?.labelPl
-        ?? editor.draft.customIngredients.find((ingredient) => ingredient.id === error.conflictingId)?.name
-      : undefined;
-    return profileErrorMessage(error, label);
-  };
-
-  const add = () => {
-    const id = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const next = addCustom(clearFieldError(editor, newId), id, newName);
-    setEditor(next.fieldErrors[id]
-      ? { ...next, fieldErrors: { ...next.fieldErrors, [newId]: next.fieldErrors[id] } }
-      : next);
-    if (!next.fieldErrors[id]) setNewName('');
-  };
-  const save = async () => {
-    const submitted = editor.draft;
-    if (await onSave(submitted)) {
-      setEditor((current) => JSON.stringify(current.draft) === JSON.stringify(submitted)
-        ? acceptSavedDraft(current)
-        : { ...current, active: submitted });
-    }
-  };
-  const restore = () => {
-    onRestore();
-    setEditor((current) => resetDraft(current));
-  };
-
-  return (
-    <ThemedView style={styles.screen}>
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.content}
-        ListHeaderComponent={(
-          <View style={styles.header}>
-            <ThemedText themeColor="textSecondary">
-              Wybierz składniki, których osobiście chcesz unikać. Lista nie jest poradą medyczną ani pełnym wykazem alergenów.
-            </ThemedText>
-            {recovered && <Banner text="Odzyskano ostatni poprawny profil z kopii." />}
-            {saveFailed && <Banner error text="Nie udało się zapisać. Poprzedni profil pozostaje aktywny." />}
-            <TextInput
-              accessibilityLabel="Szukaj składnika"
-              onChangeText={setQuery}
-              placeholder="Szukaj składnika lub numeru E"
-              placeholderTextColor="#75867F"
-              style={styles.input}
-              value={query}
-            />
-          </View>
-        )}
-        renderSectionHeader={({ section }) => (
-          <ThemedText
-            accessibilityRole="header"
-            type="smallBold"
-            style={[styles.sectionTitle, { backgroundColor: theme.backgroundElement }]}
-          >
-            {section.title}
-          </ThemedText>
-        )}
-        renderItem={({ item }) => {
-          const selected = editor.draft.selectedPredefinedIds.includes(item.id);
-          return (
-            <Pressable
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: selected }}
-              onPress={() => setEditor((current) => togglePredefined(current, item.id))}
-              style={[
-                styles.row,
-                selected && styles.selectedRow,
-                selected && { backgroundColor: theme.backgroundSelected },
-              ]}>
-              <ThemedText style={selected && styles.selectedLabel}>{item.labelPl}</ThemedText>
-              <ThemedText style={[styles.check, { color: theme.text }]}>{selected ? '✓' : ''}</ThemedText>
-            </Pressable>
-          );
-        }}
-        ListFooterComponent={(
-          <View style={styles.customSection}>
-            <ThemedText type="subtitle">Własne składniki</ThemedText>
-            <ThemedText type="small" themeColor="textSecondary">Dopasowanie odbywa się wyłącznie do dokładnej nazwy.</ThemedText>
-            {editor.draft.customIngredients.map((ingredient) => (
-              <CustomRow
-                key={`${ingredient.id}:${ingredient.name}`}
-                id={ingredient.id}
-                name={ingredient.name}
-                error={editor.fieldErrors[ingredient.id] && formatError(editor.fieldErrors[ingredient.id])}
-                onRename={(name) => setEditor((current) => renameCustom(current, ingredient.id, name))}
-                onDelete={() => setEditor((current) => removeCustom(current, ingredient.id))}
-              />
-            ))}
-            <View style={styles.addRow}>
-              <TextInput
-                accessibilityLabel="Nowy własny składnik"
-                onChangeText={(value) => {
-                  setNewName(value);
-                  setEditor((current) => clearFieldError(current, newId));
-                }}
-                onSubmitEditing={add}
-                placeholder="np. inulina"
-                placeholderTextColor="#75867F"
-                style={[styles.input, styles.flex]}
-                value={newName}
-              />
-              <ActionButton label="Dodaj" onPress={add} disabled={saving} />
-            </View>
-            {editor.fieldErrors[newId] && <ThemedText style={styles.error}>{formatError(editor.fieldErrors[newId])}</ThemedText>}
-            <View style={styles.actions}>
-              <ActionButton label={saving ? 'Zapisywanie…' : 'Zapisz profil'} onPress={() => void save()} disabled={saving || !dirty || hasErrors} />
-              {saveFailed && <ActionButton label="Ponów zapis" onPress={() => void save()} disabled={saving || hasErrors} secondary />}
-              {(dirty || saveFailed) && <ActionButton label="Przywróć zapisany profil" onPress={restore} disabled={saving} secondary />}
-            </View>
-          </View>
-        )}
-      />
-    </ThemedView>
-  );
+type Props={activeProfile:AvoidedIngredientProfile;saving:boolean;recovered:boolean;resetNotice:boolean;saveFailed:boolean;onSave(profile:AvoidedIngredientProfile):Promise<boolean>;onRestore():void;registerDirtyGuard(isDirty:()=>boolean):void};
+export function ProfileEditor({activeProfile,saving,recovered,resetNotice,saveFailed,onSave,onRestore,registerDirtyGuard}:Props){
+ const [editor,setEditor]=useState(()=>createProfileEditorState(activeProfile));const [query,setQuery]=useState('');const [newName,setNewName]=useState('');const catalogue=useIngredientCatalogue(query);const dirty=isProfileDraftDirty(editor);registerDirtyGuard(()=>dirty);
+ const [expanded,setExpanded]=useState<ReadonlySet<string>>(()=>new Set());
+ const save=async()=>{const submitted=editor.draft;if(await onSave(submitted))setEditor((current)=>JSON.stringify(current.draft)===JSON.stringify(submitted)?acceptSavedDraft(current):{...current,active:submitted});};
+ const add=()=>{const id=`custom-${Date.now()}`;const next=addCustom(clearFieldError(editor,'new-custom'),id,newName);setEditor(next);if(!next.fieldErrors[id])setNewName('');};
+ return <ThemedView style={styles.screen}><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+  <ThemedText themeColor="textSecondary">Wybierz składnik lub całą gałąź katalogu OFF. Profil pozostaje wyłącznie na tym urządzeniu.</ThemedText>
+  {resetNotice&&<Banner text="Poprzednia lista została zachowana, ale zresetowana po aktualizacji katalogu. Wybierz składniki ponownie."/>}{recovered&&<Banner text="Odzyskano ostatni poprawny profil z kopii."/>}{saveFailed&&<Banner text="Nie udało się zapisać. Poprzedni profil pozostaje aktywny."/>}
+  <TextInput accessibilityLabel="Szukaj składnika" onChangeText={setQuery} placeholder="np. mleko kozie lub goat milk" style={styles.input} value={query}/>
+  {catalogue.state.status==='loading'&&<ThemedText>Dane katalogu są ładowane…</ThemedText>}{catalogue.state.status==='stale'&&<Banner text="Pokazujemy zapisaną wersję katalogu. Wyniki mogą być nieaktualne."/>}{catalogue.state.status==='error'&&<View><Banner text="Katalog jest teraz niedostępny. Zapisane wybory pozostały bez zmian."/><Action label="Spróbuj ponownie" onPress={()=>void catalogue.retry()}/></View>}
+  {catalogue.state.items.map((item)=><CatalogueTreeRow key={item.nodeId} item={item} depth={0} editor={editor} setEditor={setEditor} expanded={expanded} onExpand={async(nodeId)=>{if(expanded.has(nodeId)){setExpanded((current)=>{const next=new Set(current);next.delete(nodeId);return next;});return;}await catalogue.loadChildren(nodeId);setExpanded((current)=>new Set([...current,nodeId]));}} childrenByNode={catalogue.childrenByNode} loadingNodeId={catalogue.loadingNodeId}/>)}
+  {editor.consolidationMessage&&<Banner text={editor.consolidationMessage}/>}
+  <ThemedText type="subtitle">Własne składniki</ThemedText><ThemedText type="small" themeColor="textSecondary">Sugestie katalogu mają pierwszeństwo. Własna nazwa dopasowuje się dokładnie.</ThemedText>
+  {editor.draft.customIngredients.map((item)=><View key={item.id} style={styles.selected}><TextInput style={[styles.input,styles.flex]} value={item.name} onChangeText={(name)=>setEditor((current)=>renameCustom(current,item.id,name))}/><Action label="Usuń" onPress={()=>setEditor((current)=>removeCustom(current,item.id))} secondary/></View>)}
+  <View style={styles.selected}><TextInput accessibilityLabel="Nowy własny składnik" style={[styles.input,styles.flex]} value={newName} onChangeText={setNewName} placeholder="np. inulina"/><Action label="Dodaj" onPress={add}/></View>{editor.fieldErrors['new-custom']&&<ThemedText style={styles.error}>{profileErrorMessage(editor.fieldErrors['new-custom'])}</ThemedText>}
+  <Action label={saving?'Zapisywanie…':'Zapisz profil'} onPress={()=>void save()} disabled={saving||!dirty}/>{(dirty||saveFailed)&&<Action label="Przywróć zapisany profil" onPress={()=>{onRestore();setEditor((current)=>resetDraft(current));}} secondary/>}
+ </ScrollView></ThemedView>;
 }
-
-function CustomRow({ id, name, error, onRename, onDelete }: { id: string; name: string; error?: string; onRename(name: string): void; onDelete(): void }) {
-  const [value, setValue] = useState(name);
-  return (
-    <View style={styles.customRow}>
-      <View style={styles.flex}>
-        <TextInput accessibilityLabel={`Nazwa składnika ${name}`} onChangeText={setValue} onEndEditing={() => onRename(value)} style={styles.input} value={value} />
-        {error && <ThemedText style={styles.error}>{error}</ThemedText>}
-      </View>
-      <Pressable accessibilityLabel={`Usuń ${name}`} accessibilityRole="button" onPress={onDelete} style={styles.deleteButton}>
-        <ThemedText style={styles.deleteText}>Usuń</ThemedText>
-      </Pressable>
-    </View>
-  );
+function CatalogueRow({item,selection,onCheck,onScope}:{item:CatalogueItem;selection:{nodeChecked:boolean;subtreeChecked:boolean;coveredByAncestor:boolean};onCheck():void;onScope(scope:SelectionScope):void}){const checked=selection.nodeChecked||selection.subtreeChecked;return <View style={styles.catalogue}><Checkbox label={item.label} checked={checked} disabled={selection.coveredByAncestor} onPress={onCheck}/>{item.locale==='en'&&<ThemedText type="small" themeColor="textSecondary">Brak polskiej etykiety — pokazano angielską.</ThemedText>}<ThemedText type="small" themeColor="textSecondary">{item.breadcrumb.map(({label})=>label).concat(item.label).join(' › ')}</ThemedText>{checked&&!selection.coveredByAncestor&&item.supportedScopes.includes('subtree')&&<View accessibilityRole="radiogroup" style={styles.scopeGroup}><ScopeOption label="Tylko ten składnik" selected={!selection.subtreeChecked} onPress={()=>onScope('node')}/><ScopeOption label="Ten składnik i cała gałąź" selected={selection.subtreeChecked} onPress={()=>onScope('subtree')}/></View>}{selection.coveredByAncestor&&<ThemedText type="small" themeColor="textSecondary">Zaznaczone przez wybraną gałąź nadrzędną.</ThemedText>}</View>;}
+function CatalogueTreeRow({item,depth,editor,setEditor,expanded,onExpand,childrenByNode,loadingNodeId}:{item:CatalogueItem;depth:number;editor:ReturnType<typeof createProfileEditorState>;setEditor:Dispatch<SetStateAction<ReturnType<typeof createProfileEditorState>>>;expanded:ReadonlySet<string>;onExpand(nodeId:string):Promise<void>;childrenByNode:Readonly<Record<string,readonly CatalogueItem[]>>;loadingNodeId?:string}){
+ const theme=useTheme();const selection=catalogueItemSelectionState(editor,item);const isExpanded=expanded.has(item.nodeId);const exact=editor.draft.selections.find((entry)=>entry.nodeId===item.nodeId);return <View style={{marginLeft:Math.min(depth,4)*12,gap:Spacing.two}}><CatalogueRow item={item} selection={selection} onCheck={()=>setEditor((current)=>exact?removeSelection(current,item.nodeId):chooseCatalogueItem(current,item,item.hasChildren?'subtree':'node'))} onScope={(scope)=>setEditor((current)=>chooseCatalogueItem(current,item,scope))}/>{item.hasChildren&&<Pressable accessibilityRole="button" accessibilityState={{expanded:isExpanded}} onPress={()=>void onExpand(item.nodeId)} style={[styles.expand,{backgroundColor:theme.backgroundSelected,borderColor:theme.textSecondary}]}><ThemedText type="smallBold">{loadingNodeId===item.nodeId?'Ładowanie…':isExpanded?'▾ Ukryj elementy gałęzi':'▸ Pokaż elementy gałęzi'}</ThemedText></Pressable>}{isExpanded&&childrenByNode[item.nodeId]?.map((child)=><CatalogueTreeRow key={child.nodeId} item={child} depth={depth+1} editor={editor} setEditor={setEditor} expanded={expanded} onExpand={onExpand} childrenByNode={childrenByNode} loadingNodeId={loadingNodeId}/>)}</View>;
 }
-
-function ActionButton({ label, onPress, disabled, secondary = false }: { label: string; onPress(): void; disabled?: boolean; secondary?: boolean }) {
-  return (
-    <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={[styles.button, secondary && styles.secondaryButton, disabled && styles.disabled]}>
-      <ThemedText style={secondary ? styles.secondaryText : styles.buttonText}>{label}</ThemedText>
-    </Pressable>
-  );
-}
-
-function Banner({ text, error = false }: { text: string; error?: boolean }) {
-  return <View style={[styles.banner, error && styles.errorBanner]}><ThemedText type="small">{text}</ThemedText></View>;
-}
-
-export function confirmDiscard(onDiscard: () => void) {
-  Alert.alert('Odrzucić zmiany?', 'Niezapisane zmiany zostaną utracone.', [
-    { text: 'Zostań', style: 'cancel' },
-    { text: 'Odrzuć', style: 'destructive', onPress: onDiscard },
-  ]);
-}
-
-const styles = StyleSheet.create({
-  screen: { flex: 1 }, content: { padding: Spacing.three, paddingBottom: Spacing.five },
-  header: { gap: Spacing.two, marginBottom: Spacing.three },
-  input: { backgroundColor: '#FFFFFF', color: '#17352D', borderColor: '#CCDAD2', borderWidth: 1, borderRadius: 12, padding: 12, fontSize: 16 },
-  sectionTitle: { paddingHorizontal: 14, paddingVertical: 10, marginTop: Spacing.two },
-  row: { minHeight: 50, paddingHorizontal: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E1E9E4', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  selectedRow: { borderWidth: 2, borderColor: '#42A579', borderRadius: 10, marginVertical: 2 },
-  selectedLabel: { fontWeight: '800' }, check: { fontWeight: '800' },
-  customSection: { gap: Spacing.two, marginTop: Spacing.four }, customRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.two },
-  addRow: { flexDirection: 'row', gap: Spacing.two, alignItems: 'center' }, flex: { flex: 1 },
-  deleteButton: { padding: 12 }, deleteText: { color: '#B42318', fontWeight: '700' }, error: { color: '#B42318', marginTop: 4 },
-  actions: { gap: Spacing.two, marginTop: Spacing.two }, button: { backgroundColor: '#1F7A57', borderRadius: 14, padding: 14, alignItems: 'center' },
-  secondaryButton: { backgroundColor: '#E3F2E8' }, buttonText: { color: '#FFFFFF', fontWeight: '700' }, secondaryText: { color: '#1F7A57', fontWeight: '700' }, disabled: { opacity: 0.5 },
-  banner: { backgroundColor: '#FFF5CC', borderRadius: 12, padding: 12 }, errorBanner: { backgroundColor: '#FDE7E5' },
-});
+function Checkbox({label,checked,disabled,onPress}:{label:string;checked:boolean;disabled?:boolean;onPress():void}){return <Pressable accessibilityRole="checkbox" accessibilityState={{checked,disabled}} disabled={disabled} onPress={onPress} style={[styles.checkboxRow,disabled&&styles.disabled]}><View style={[styles.checkbox,checked&&styles.checkboxChecked]}><ThemedText style={styles.checkmark}>{checked?'✓':''}</ThemedText></View><ThemedText type="small">{label}</ThemedText></Pressable>;}
+function ScopeOption({label,selected,onPress}:{label:string;selected:boolean;onPress():void}){return <Pressable accessibilityRole="radio" accessibilityState={{selected}} onPress={onPress} style={[styles.scopeOption,selected&&styles.scopeSelected]}><ThemedText type="smallBold" style={selected&&styles.scopeSelectedText}>{label}</ThemedText></Pressable>;}
+function Action({label,onPress,disabled,secondary}:{label:string;onPress():void;disabled?:boolean;secondary?:boolean}){return <Pressable accessibilityRole="button" accessibilityState={{disabled}} disabled={disabled} onPress={onPress} style={[styles.button,secondary&&styles.secondary,disabled&&styles.disabled]}><ThemedText style={secondary?styles.secondaryText:styles.buttonText}>{label}</ThemedText></Pressable>;}
+function Banner({text}:{text:string}){const theme=useTheme();return <View accessibilityRole="alert" style={[styles.banner,{backgroundColor:theme.backgroundSelected,borderColor:theme.textSecondary}]}><ThemedText type="small">{text}</ThemedText></View>;}
+export function confirmDiscard(onDiscard:()=>void){Alert.alert('Odrzucić zmiany?','Niezapisane zmiany zostaną utracone.',[{text:'Zostań',style:'cancel'},{text:'Odrzuć',style:'destructive',onPress:onDiscard}]);}
+const styles=StyleSheet.create({screen:{flex:1},content:{padding:Spacing.three,paddingBottom:Spacing.five,gap:Spacing.three},input:{backgroundColor:'#FFFFFF',color:'#17352D',borderColor:'#CCDAD2',borderWidth:1,borderRadius:12,padding:12,fontSize:16},selected:{flexDirection:'row',gap:Spacing.two,alignItems:'center'},flex:{flex:1},catalogue:{padding:14,borderWidth:1,borderColor:'#60736C',borderRadius:12,gap:Spacing.one},buttons:{flexDirection:'row',gap:Spacing.two,flexWrap:'wrap'},expand:{minHeight:44,justifyContent:'center',paddingHorizontal:12,borderWidth:1,borderRadius:10},checkboxGroup:{gap:Spacing.two,marginTop:Spacing.one},checkboxRow:{minHeight:44,flexDirection:'row',alignItems:'center',gap:Spacing.two},checkbox:{width:24,height:24,borderRadius:5,borderWidth:2,borderColor:'#42A579',alignItems:'center',justifyContent:'center'},checkboxChecked:{backgroundColor:'#1F7A57'},checkmark:{color:'#FFFFFF',fontWeight:'800'},scopeGroup:{gap:Spacing.two,marginTop:Spacing.two},scopeOption:{minHeight:44,justifyContent:'center',paddingHorizontal:12,borderWidth:1,borderColor:'#60736C',borderRadius:10},scopeSelected:{backgroundColor:'#1F7A57',borderColor:'#1F7A57'},scopeSelectedText:{color:'#FFFFFF'},button:{backgroundColor:'#1F7A57',borderRadius:12,padding:11,alignItems:'center'},secondary:{backgroundColor:'#E3F2E8'},buttonText:{color:'#FFFFFF',fontWeight:'700'},secondaryText:{color:'#1F7A57',fontWeight:'700'},disabled:{opacity:.5},banner:{borderWidth:1,borderRadius:12,padding:12},error:{color:'#B42318'}});

@@ -1,5 +1,5 @@
 import { AvoidedIngredientProfile, emptyAvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
-import { decodePersonalProfile, encodePersonalProfile } from './personal-profile-codec';
+import { decodePersonalProfile, encodePersonalProfile, isV1PersonalProfile } from './personal-profile-codec';
 
 export type AsyncKeyValueStore = {
   getItem(key: string): Promise<string | null>;
@@ -10,6 +10,7 @@ export type PersonalProfileLoadResult =
   | { kind: 'empty'; profile: AvoidedIngredientProfile }
   | { kind: 'loaded'; profile: AvoidedIngredientProfile }
   | { kind: 'recovered'; profile: AvoidedIngredientProfile }
+  | { kind: 'reset'; profile: AvoidedIngredientProfile }
   | { kind: 'corrupt' }
   | { kind: 'storage_error' };
 
@@ -19,9 +20,12 @@ export interface PersonalProfileRepository {
 }
 
 export const PERSONAL_PROFILE_KEYS = Object.freeze({
-  active: 'goodgut.personal-profile.active',
-  a: 'goodgut.personal-profile.slot.a',
-  b: 'goodgut.personal-profile.slot.b',
+  active: 'goodgut.personal-profile.v2.active',
+  a: 'goodgut.personal-profile.v2.slot.a',
+  b: 'goodgut.personal-profile.v2.slot.b',
+  legacyActive: 'goodgut.personal-profile.active',
+  legacyA: 'goodgut.personal-profile.slot.a',
+  legacyB: 'goodgut.personal-profile.slot.b',
 });
 
 type Slot = 'a' | 'b';
@@ -35,6 +39,15 @@ export class TwoSlotPersonalProfileRepository implements PersonalProfileReposito
       const a = await this.storage.getItem(PERSONAL_PROFILE_KEYS.a);
       const b = await this.storage.getItem(PERSONAL_PROFILE_KEYS.b);
       if (pointer === null && a === null && b === null) {
+        const legacyPointer = await this.storage.getItem(PERSONAL_PROFILE_KEYS.legacyActive);
+        const legacyA = await this.storage.getItem(PERSONAL_PROFILE_KEYS.legacyA);
+        const legacyB = await this.storage.getItem(PERSONAL_PROFILE_KEYS.legacyB);
+        const legacy = legacyPointer === 'b' ? legacyB : legacyA ?? legacyB;
+        if (legacy && isV1PersonalProfile(legacy)) {
+          const profile = emptyAvoidedIngredientProfile();
+          await this.save(profile);
+          return { kind: 'reset', profile };
+        }
         return { kind: 'empty', profile: emptyAvoidedIngredientProfile() };
       }
       const activeSlot = pointer === 'a' || pointer === 'b' ? pointer : null;

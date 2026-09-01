@@ -1,4 +1,6 @@
 import { NormalizedProduct, ProductLookup } from '@/domain/product-lookup/types';
+import { AvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
+import { PersonalProfileState } from '@/features/personal-profile/profile-store';
 import { ProductLookupState } from '../lookup-state-machine';
 import { presentProductLookup } from '../presentation';
 
@@ -27,6 +29,15 @@ const resolved = (result: ProductLookup): ProductLookupState => ({
   result,
 });
 
+const EMPTY_PROFILE: AvoidedIngredientProfile = {
+  selections: [],
+  customIngredients: [],
+};
+const ready = (profile: AvoidedIngredientProfile = EMPTY_PROFILE): PersonalProfileState => ({
+  status: 'ready',
+  activeProfile: profile,
+});
+
 describe('product lookup presentation', () => {
   it('keeps all eight nutrients in stable order and preserves zero and both bases', () => {
     const presentation = presentProductLookup(
@@ -37,6 +48,7 @@ describe('product lookup presentation', () => {
         source: { provider: 'open_food_facts', providerProductUrl: null, fetchedAt: '2026-08-19T00:00:00Z' },
         product: product(),
       }),
+      ready(),
     );
     expect(presentation.kind).toBe('found');
     if (presentation.kind !== 'found') throw new Error('expected found');
@@ -72,20 +84,79 @@ describe('product lookup presentation', () => {
     const result: ProductLookup = category === 'not_found'
       ? { contractVersion: '1.0', outcome: 'not_found', barcode: '12345678', source: { provider: 'open_food_facts' }, reason: 'not_in_source' }
       : { contractVersion: '1.0', outcome: 'source_error', barcode: '12345678', source: { provider: 'open_food_facts' }, errorCategory: category };
-    expect(presentProductLookup(resolved(result))).toMatchObject({ kind, actions });
+    expect(presentProductLookup(resolved(result), ready())).toMatchObject({ kind, actions });
   });
 
   it.each(['missing_configuration', 'transport_failure', 'http_error', 'invalid_response', 'unexpected'] as const)(
     'maps client error %s to retry and scan-another actions',
     (kind) => {
       expect(
-        presentProductLookup({ status: 'client_error', barcode: '12345678', error: { kind } }),
+        presentProductLookup(
+          { status: 'client_error', barcode: '12345678', error: { kind } },
+          ready(),
+        ),
       ).toMatchObject({ kind: 'client_error', actions: ['retry', 'scan_another'] });
     },
   );
+
+  it('places triggered warning evidence before facts and marks every matched ingredient', () => {
+    const presentation = foundPresentation(
+      product({ ingredients: { status: 'available', names: ['water', 'E 955', 'sucralose'] } }),
+      ready({ selections: [], customIngredients: [{ id: 'sucralose', name: 'Sucralose' }] }),
+    );
+
+    expect(presentation.ingredientWarnings).toEqual({
+      kind: 'triggered',
+      title: '1 ostrzeżenie',
+      detail: 'Produkt zawiera składniki pasujące do Twoich reguł.',
+      warnings: [{
+        ruleId: 'custom:sucralose',
+        ruleLabel: 'Sucralose',
+        matchedIngredientNames: ['sucralose'],
+      }],
+      actions: [],
+    });
+    expect(presentation.ingredients).toEqual({
+      available: true,
+      items: [
+        { text: 'water', warning: false },
+        { text: 'E 955', warning: false },
+        { text: 'sucralose', warning: true },
+      ],
+    });
+  });
+
+  it('distinguishes no rules, trustworthy zero, profile lifecycle, and unavailable ingredients', () => {
+    const available = product({ ingredients: { status: 'available', names: ['water'] } });
+    const configured = ready({
+      selections: [],
+      customIngredients: [{ id: 'apple', name: 'Apple' }],
+    });
+
+    expect(foundPresentation(available).ingredientWarnings).toEqual({ kind: 'none' });
+    expect(foundPresentation(available, configured).ingredientWarnings).toMatchObject({
+      kind: 'no_triggers',
+      title: '0 ostrzeżeń',
+    });
+    expect(foundPresentation(available, { status: 'hydrating' }).ingredientWarnings).toMatchObject({
+      kind: 'loading',
+    });
+    expect(
+      foundPresentation(available, { status: 'load_error', error: 'storage' }).ingredientWarnings,
+    ).toMatchObject({
+      kind: 'profile_error',
+      actions: ['retry_profile', 'open_profile'],
+    });
+    expect(foundPresentation(product(), configured).ingredientWarnings).toMatchObject({
+      kind: 'unavailable',
+    });
+  });
 });
 
-function foundPresentation(value: NormalizedProduct) {
+function foundPresentation(
+  value: NormalizedProduct,
+  profileState: PersonalProfileState = ready(),
+) {
   const presentation = presentProductLookup(
     resolved({
       contractVersion: '1.0',
@@ -94,6 +165,7 @@ function foundPresentation(value: NormalizedProduct) {
       source: { provider: 'open_food_facts', providerProductUrl: null, fetchedAt: '2026-08-19T00:00:00Z' },
       product: value,
     }),
+    profileState,
   );
   if (presentation.kind !== 'found') throw new Error('expected found');
   return presentation;

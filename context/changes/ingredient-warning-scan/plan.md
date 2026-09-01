@@ -299,24 +299,24 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 ### Phase 3: PostgreSQL Catalogue and Safe OFF Import
 
 #### Automated
-- [x] 3.1 PostgreSQL and Flyway foundation is verified.
-- [x] 3.2 Taxonomy schema enforces release, node, label, and edge integrity.
-- [x] 3.3 Pinned fixture imports, validates, activates, and rolls back safely.
-- [x] 3.4 API tests pass without live taxonomy access.
+- [x] 3.1 PostgreSQL and Flyway foundation is verified. — 83f256f
+- [x] 3.2 Taxonomy schema enforces release, node, label, and edge integrity. — 83f256f
+- [x] 3.3 Pinned fixture imports, validates, activates, and rolls back safely. — 83f256f
+- [x] 3.4 API tests pass without live taxonomy access. — 83f256f
 
 #### Manual
-- [x] 3.5 A reviewed real OFF snapshot imports and rolls back locally.
+- [x] 3.5 A reviewed real OFF snapshot imports and rolls back locally. — 83f256f
 
 ### Phase 4: Catalogue API and Profile Editor v2
 
 #### Automated
-- [ ] 4.1 Catalogue APIs cover locale, synonyms, breadcrumbs, ranking, paging, and unavailable state.
-- [ ] 4.2 Mobile cache and decoders cover fresh, stale, and unavailable data.
-- [ ] 4.3 Profile v2 reset, persistence, scope, overlap, and custom fallback pass.
-- [ ] 4.4 Editor coverage and API/mobile quality gates pass.
+- [x] 4.1 Catalogue APIs cover locale, synonyms, breadcrumbs, ranking, paging, and unavailable state.
+- [x] 4.2 Mobile cache and decoders cover fresh, stale, and unavailable data.
+- [x] 4.3 Profile v2 reset, persistence, scope, overlap, and custom fallback pass.
+- [x] 4.4 Editor coverage and API/mobile quality gates pass.
 
 #### Manual
-- [ ] 4.5 Bilingual discovery, scope, consolidation, and reset notice are usable on Android.
+- [x] 4.5 Bilingual discovery, scope, consolidation, and reset notice are usable on Android.
 
 ### Phase 5: Product Contract 2.0 and Server Classification
 

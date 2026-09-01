@@ -2,8 +2,8 @@ import { PersonalProfileLoadResult, PersonalProfileRepository } from '@/data/per
 import { AvoidedIngredientProfile, emptyAvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
 import { activeIngredientRulesFromState, PersonalProfileStore } from '@/features/personal-profile/profile-store';
 
-const SAVED: AvoidedIngredientProfile = { selectedPredefinedIds: ['sucralose'], customIngredients: [] };
-const CANDIDATE: AvoidedIngredientProfile = { selectedPredefinedIds: [], customIngredients: [{ id: 'custom-1', name: 'Inulina' }] };
+const SAVED: AvoidedIngredientProfile = { selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree' }], customIngredients: [] };
+const CANDIDATE: AvoidedIngredientProfile = { selections: [], customIngredients: [{ id: 'custom-1', name: 'Inulina' }] };
 
 class FakeRepository implements PersonalProfileRepository {
   loadResult: PersonalProfileLoadResult = { kind: 'empty', profile: emptyAvoidedIngredientProfile() };
@@ -41,7 +41,7 @@ describe('PersonalProfileStore', () => {
     const store = new PersonalProfileStore(repository); await store.hydrate();
     await expect(store.save(CANDIDATE)).resolves.toBe(false);
     expect(store.getState()).toEqual({ status: 'save_error', activeProfile: SAVED, candidate: CANDIDATE, error: 'storage' });
-    expect(activeIngredientRulesFromState(store.getState())?.[0].id).toBe('predefined:sucralose');
+    expect(activeIngredientRulesFromState(store.getState())).toEqual([]);
     repository.saveError = false;
     await expect(store.retrySave()).resolves.toBe(true);
     expect(store.getState()).toEqual({ status: 'ready', activeProfile: CANDIDATE });

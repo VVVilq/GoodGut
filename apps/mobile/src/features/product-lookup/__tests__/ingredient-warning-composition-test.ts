@@ -6,15 +6,15 @@ import { composeIngredientWarnings } from '../ingredient-warning-composition';
 import { ProductLookupState } from '../lookup-state-machine';
 
 const EMPTY_PROFILE: AvoidedIngredientProfile = {
-  selectedPredefinedIds: [],
+  selections: [],
   customIngredients: [],
 };
 const SAVED_PROFILE: AvoidedIngredientProfile = {
-  selectedPredefinedIds: ['sucralose'],
-  customIngredients: [{ id: 'apple', name: 'Apple' }],
+  selections: [],
+  customIngredients: [{ id: 'sucralose', name: 'Sucralose' }, { id: 'apple', name: 'Apple' }],
 };
 const CANDIDATE_PROFILE: AvoidedIngredientProfile = {
-  selectedPredefinedIds: [],
+  selections: [],
   customIngredients: [{ id: 'water', name: 'Water' }],
 };
 
@@ -70,9 +70,9 @@ describe('composeIngredientWarnings', () => {
       triggerCount: 2,
       warnings: [
         {
-          ruleId: 'predefined:sucralose',
-          ruleLabel: 'Sukraloza',
-          matchedIngredientNames: ['sucralose', 'E 955'],
+          ruleId: 'custom:sucralose',
+          ruleLabel: 'Sucralose',
+          matchedIngredientNames: ['sucralose'],
         },
         {
           ruleId: 'custom:apple',
@@ -80,7 +80,7 @@ describe('composeIngredientWarnings', () => {
           matchedIngredientNames: [' apple '],
         },
       ],
-      matchedIngredientNames: ['sucralose', 'E 955', ' apple '],
+      matchedIngredientNames: ['sucralose', ' apple '],
     });
   });
 
