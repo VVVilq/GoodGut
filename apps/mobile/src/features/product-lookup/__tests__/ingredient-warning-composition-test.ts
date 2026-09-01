@@ -47,7 +47,7 @@ describe('composeIngredientWarnings', () => {
   it('reports a trustworthy zero only after evaluating available ingredients', () => {
     expect(
       composeIngredientWarnings(
-        found({ ingredients: { status: 'available', names: ['water'] } }),
+        found({ ingredients: availableIngredients(['water']) }),
         ready(SAVED_PROFILE),
       ),
     ).toEqual({ kind: 'no_triggers', ruleCount: 2 });
@@ -57,10 +57,7 @@ describe('composeIngredientWarnings', () => {
     expect(
       composeIngredientWarnings(
         found({
-          ingredients: {
-            status: 'available',
-            names: ['sucralose', 'E 955', 'E 955', ' apple '],
-          },
+          ingredients: availableIngredients(['sucralose', 'E 955', 'E 955', ' apple ']),
         }),
         ready(SAVED_PROFILE),
       ),
@@ -97,7 +94,7 @@ describe('composeIngredientWarnings', () => {
           };
 
       const result = composeIngredientWarnings(
-        found({ ingredients: { status: 'available', names: ['water'] } }),
+        found({ ingredients: availableIngredients(['water']) }),
         profileState,
       );
       expect(result).toEqual({ kind: 'no_triggers', ruleCount: 2 });
@@ -113,7 +110,7 @@ function found(overrides: Partial<NormalizedProduct> = {}): ProductLookupState {
   const product: NormalizedProduct = {
     identity: { displayName: 'Product', brands: [], quantity: null, imageUrl: null },
     nutriScore: { status: 'missing' },
-    ingredients: { status: 'available', names: ['water'] },
+    ingredients: availableIngredients(['water']),
     nutrition: {
       energy_kcal: unavailable(),
       carbohydrates: unavailable(),
@@ -127,7 +124,7 @@ function found(overrides: Partial<NormalizedProduct> = {}): ProductLookupState {
     ...overrides,
   };
   const result: FoundLookup = {
-    contractVersion: '1.0',
+    contractVersion: '2.0',
     outcome: 'found',
     barcode: '12345678',
     source: {
@@ -142,4 +139,18 @@ function found(overrides: Partial<NormalizedProduct> = {}): ProductLookupState {
 
 function unavailable() {
   return { status: 'unavailable' as const, reason: 'missing_source' as const };
+}
+
+function availableIngredients(names: readonly string[]): NormalizedProduct['ingredients'] {
+  return {
+    status: 'available',
+    completeness: 'complete',
+    catalogueVersion: 'fixture',
+    items: names.map((displayName, index) => ({
+      displayName,
+      nodeId: `en:test-${index}`,
+      ancestorNodeIds: [],
+    })),
+    names,
+  };
 }

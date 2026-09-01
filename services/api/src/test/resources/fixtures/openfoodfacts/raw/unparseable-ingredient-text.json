@@ -1,0 +1,21 @@
+{
+  "capture": {
+    "barcode": "9900000000010",
+    "requestedBarcode": "9900000000010",
+    "requestUrl": "https://world.openfoodfacts.org/api/v3/product/9900000000010?fields=code,product_name,brands,quantity,product_quantity_unit,image_front_url,nutriscore_grade,ingredients,ingredients_text,known_ingredients_n,unknown_ingredients_n,nutriments,nutrition_data_per,schema_version",
+    "apiVersion": "3",
+    "returnedSchemaVersion": 999,
+    "retrievedAt": "2026-08-19T13:30:00Z",
+    "attribution": "Open Food Facts contributors; ODbL database",
+    "kind": "recorded_response"
+  },
+  "response": {
+    "status": "success",
+    "code": "9900000000010",
+    "product": {
+      "code": "9900000000010",
+      "product_name": "Unparseable ingredient example",
+      "ingredients_text": "ingredient fragments unavailable"
+    }
+  }
+}

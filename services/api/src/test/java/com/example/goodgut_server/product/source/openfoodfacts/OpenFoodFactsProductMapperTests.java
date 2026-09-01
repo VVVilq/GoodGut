@@ -1,5 +1,7 @@
 package com.example.goodgut_server.product.source.openfoodfacts;
 
+import com.example.goodgut_server.product.classification.IngredientClassification;
+import com.example.goodgut_server.product.classification.IngredientClassificationBatch;
 import com.example.goodgut_server.product.domain.NotFoundProductLookup;
 import com.example.goodgut_server.product.domain.ProductLookupResponse;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +30,12 @@ class OpenFoodFactsProductMapperTests {
             "services/api/src/test/resources/fixtures/openfoodfacts");
 
     private final OpenFoodFactsProductMapper mapper = new OpenFoodFactsProductMapper(
-            Clock.fixed(FETCHED_AT, ZoneOffset.UTC));
+            Clock.fixed(FETCHED_AT, ZoneOffset.UTC), taxonomyIds -> new IngredientClassificationBatch(
+                    "fixture-2026-08-19", taxonomyIds.stream().distinct().map(taxonomyId ->
+                            new IngredientClassification("fixture-2026-08-19", taxonomyId,
+                                    Set.of("en:skimmed-milk-powder", "en:whey-powder", "en:cream")
+                                            .contains(taxonomyId) ? List.of("en:milk") : List.of()))
+                            .collect(Collectors.toMap(IngredientClassification::nodeId, Function.identity()))));
 
     @Test
     void recordedProductAndNotFoundFixturesMapExactlyToCanonicalExpectations() throws IOException {
@@ -106,8 +116,9 @@ class OpenFoodFactsProductMapperTests {
                 """)));
         JsonNode product = JSON.valueToTree(available).get("product");
         assertEquals("b", product.get("nutriScore").get("grade").asText());
-        assertEquals(List.of("sugar", "soya lecithin"),
-                product.get("ingredients").get("names").valueStream().map(JsonNode::asText).toList());
+        assertEquals(List.of("en:sugar", "en:soya-lecithin"),
+                product.get("ingredients").get("items").valueStream()
+                        .map(item -> item.get("nodeId").asText()).toList());
 
         ProductLookupResponse unparseable = mapper.map("12345678", response(minimalProduct("""
                 "nutriscore_grade":"unknown","unknown_ingredients_n":1,
@@ -115,7 +126,7 @@ class OpenFoodFactsProductMapperTests {
                 """)));
         product = JSON.valueToTree(unparseable).get("product");
         assertEquals("missing", product.get("nutriScore").get("status").asText());
-        assertEquals("unparseable", product.get("ingredients").get("status").asText());
+        assertEquals("partial", product.get("ingredients").get("completeness").asText());
 
         ProductLookupResponse missing = mapper.map("12345678", response(minimalProduct("")));
         assertEquals("missing", JSON.valueToTree(missing).get("product").get("ingredients")

@@ -1,8 +1,13 @@
 import { NutrientId, nutrientIds, NormalizedProduct } from '@/domain/product-lookup/types';
+import { PersonalProfileState } from '@/features/personal-profile/profile-store';
 
+import {
+  composeIngredientWarnings,
+  IngredientWarningComposition,
+} from './ingredient-warning-composition';
 import { ProductLookupState } from './lookup-state-machine';
 
-export type ResultAction = 'retry' | 'scan_another';
+export type ResultAction = 'retry' | 'scan_another' | 'retry_profile' | 'open_profile';
 
 export type NutrientRow = {
   id: NutrientId;
@@ -10,6 +15,29 @@ export type NutrientRow = {
   displayValue: string;
   available: boolean;
 };
+
+export type IngredientItem = {
+  text: string;
+  warning: boolean;
+};
+
+export type IngredientWarningPresentation =
+  | { kind: 'none' }
+  | { kind: 'loading'; title: string; detail: string; actions: readonly ResultAction[] }
+  | { kind: 'profile_error'; title: string; detail: string; actions: readonly ResultAction[] }
+  | { kind: 'unavailable'; title: string; detail: string; actions: readonly ResultAction[] }
+  | { kind: 'no_triggers'; title: string; detail: string; actions: readonly ResultAction[] }
+  | {
+      kind: 'triggered';
+      title: string;
+      detail: string;
+      warnings: readonly {
+        ruleId: string;
+        ruleLabel: string;
+        matchedIngredientNames: readonly string[];
+      }[];
+      actions: readonly ResultAction[];
+    };
 
 export type FoundProductPresentation = {
   kind: 'found';
@@ -23,7 +51,10 @@ export type FoundProductPresentation = {
   };
   providerProductUrl: string | null;
   nutriScore: string;
-  ingredients: { text: string; available: boolean };
+  ingredientWarnings: IngredientWarningPresentation;
+  ingredients:
+    | { available: true; items: readonly IngredientItem[] }
+    | { available: false; text: string };
   nutrients: readonly NutrientRow[];
   actions: readonly ResultAction[];
 };
@@ -48,7 +79,10 @@ const nutrientLabels: Record<NutrientId, string> = {
   salt: 'Sól',
 };
 
-export function presentProductLookup(state: ProductLookupState): ProductLookupPresentation {
+export function presentProductLookup(
+  state: ProductLookupState,
+  profileState: PersonalProfileState,
+): ProductLookupPresentation {
   if (state.status === 'loading') {
     return {
       kind: 'loading',
@@ -58,7 +92,14 @@ export function presentProductLookup(state: ProductLookupState): ProductLookupPr
     };
   }
   if (state.status === 'resolved') {
-    if (state.result.outcome === 'found') return found(state.result.barcode, state.result.product, state.result.source.providerProductUrl);
+    if (state.result.outcome === 'found') {
+      return found(
+        state.result.barcode,
+        state.result.product,
+        state.result.source.providerProductUrl,
+        composeIngredientWarnings(state, profileState),
+      );
+    }
     if (state.result.outcome === 'not_found') {
       return {
         kind: 'not_found',
@@ -90,7 +131,15 @@ export function presentProductLookup(state: ProductLookupState): ProductLookupPr
   };
 }
 
-function found(barcode: string, product: NormalizedProduct, providerProductUrl: string | null): FoundProductPresentation {
+function found(
+  barcode: string,
+  product: NormalizedProduct,
+  providerProductUrl: string | null,
+  warningComposition: IngredientWarningComposition,
+): FoundProductPresentation {
+  const matchedNames = warningComposition.kind === 'triggered'
+    ? new Set(warningComposition.matchedIngredientNames)
+    : new Set<string>();
   return {
     kind: 'found',
     title: 'Informacje o produkcie',
@@ -102,13 +151,20 @@ function found(barcode: string, product: NormalizedProduct, providerProductUrl: 
       imageUrl: product.identity.imageUrl,
     },
     providerProductUrl,
+    ingredientWarnings: ingredientWarningPresentation(warningComposition),
     nutriScore:
       product.nutriScore.status === 'available'
         ? product.nutriScore.grade.toUpperCase()
         : 'Brak danych',
     ingredients:
       product.ingredients.status === 'available'
-        ? { text: product.ingredients.names.join(', '), available: true }
+        ? {
+            available: true,
+            items: product.ingredients.names.map((text) => ({
+              text,
+              warning: matchedNames.has(text),
+            })),
+          }
         : {
             text:
               product.ingredients.status === 'missing'
@@ -131,6 +187,58 @@ function found(barcode: string, product: NormalizedProduct, providerProductUrl: 
     }),
     actions: ['scan_another'],
   };
+}
+
+function ingredientWarningPresentation(
+  composition: IngredientWarningComposition,
+): IngredientWarningPresentation {
+  switch (composition.kind) {
+    case 'not_applicable':
+    case 'no_rules':
+      return { kind: 'none' };
+    case 'profile_loading':
+      return {
+        kind: 'loading',
+        title: 'Sprawdzanie Twoich reguł…',
+        detail: 'Informacje o produkcie są już dostępne. Profil jest jeszcze wczytywany.',
+        actions: [],
+      };
+    case 'profile_error':
+      return {
+        kind: 'profile_error',
+        title: 'Nie udało się sprawdzić Twoich reguł',
+        detail: 'Profil jest niedostępny. Nie traktuj tego wyniku jako braku ostrzeżeń.',
+        actions: ['retry_profile', 'open_profile'],
+      };
+    case 'ingredients_unavailable':
+      return {
+        kind: 'unavailable',
+        title: 'Nie można sprawdzić unikanych składników',
+        detail: composition.reason === 'missing'
+          ? 'Produkt nie ma danych o składnikach potrzebnych do oceny Twoich reguł.'
+          : 'Składników produktu nie udało się odczytać wystarczająco wiarygodnie.',
+        actions: [],
+      };
+    case 'no_triggers':
+      return {
+        kind: 'no_triggers',
+        title: '0 ostrzeżeń',
+        detail: `Żadna z ${composition.ruleCount} skonfigurowanych reguł nie pasuje do dostępnych składników.`,
+        actions: [],
+      };
+    case 'triggered':
+      return {
+        kind: 'triggered',
+        title: `${composition.triggerCount} ${warningCountLabel(composition.triggerCount)}`,
+        detail: 'Produkt zawiera składniki pasujące do Twoich reguł.',
+        warnings: composition.warnings,
+        actions: [],
+      };
+  }
+}
+
+function warningCountLabel(count: number): string {
+  return count === 1 ? 'ostrzeżenie' : count < 5 ? 'ostrzeżenia' : 'ostrzeżeń';
 }
 
 function formatNumber(value: number): string {

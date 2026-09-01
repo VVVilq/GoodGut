@@ -1,5 +1,8 @@
 package com.example.goodgut_server.product.source.openfoodfacts;
 
+import com.example.goodgut_server.product.classification.IngredientClassification;
+import com.example.goodgut_server.product.classification.IngredientClassificationBatch;
+import com.example.goodgut_server.product.classification.IngredientClassifier;
 import com.example.goodgut_server.product.domain.FoundProductLookup;
 import com.example.goodgut_server.product.domain.FoundProductSource;
 import com.example.goodgut_server.product.domain.NormalizedProduct;
@@ -8,6 +11,7 @@ import com.example.goodgut_server.product.domain.NutritionBasis;
 import com.example.goodgut_server.product.domain.NutritionFact;
 import com.example.goodgut_server.product.domain.NutritionUnavailableReason;
 import com.example.goodgut_server.product.domain.ProductIdentity;
+import com.example.goodgut_server.product.domain.ProductIngredientItem;
 import com.example.goodgut_server.product.domain.ProductIngredients;
 import com.example.goodgut_server.product.domain.ProductLookupResponse;
 import com.example.goodgut_server.product.domain.ProductNutrition;
@@ -29,9 +33,11 @@ public final class OpenFoodFactsProductMapper {
     private static final Set<String> NUTRI_SCORE_GRADES = Set.of("a", "b", "c", "d", "e");
 
     private final Clock clock;
+    private final IngredientClassifier ingredientClassifier;
 
-    public OpenFoodFactsProductMapper(Clock clock) {
+    public OpenFoodFactsProductMapper(Clock clock, IngredientClassifier ingredientClassifier) {
         this.clock = clock;
+        this.ingredientClassifier = ingredientClassifier;
     }
 
     public ProductLookupResponse map(String requestedBarcode, OpenFoodFactsResponse response) {
@@ -102,51 +108,57 @@ public final class OpenFoodFactsProductMapper {
                     ? ProductIngredients.missing()
                     : ProductIngredients.unparseable();
         }
-        if (source.unknownIngredientsCount() == null || source.unknownIngredientsCount() != 0) {
-            return ProductIngredients.unparseable();
-        }
-
-        List<String> names = new ArrayList<>();
+        boolean[] partial = {source.unknownIngredientsCount() == null || source.unknownIngredientsCount() != 0};
+        List<LeafCandidate> candidates = new ArrayList<>();
         for (OpenFoodFactsIngredient ingredient : source.ingredients()) {
-            if (!collectTrustedLeafNames(ingredient, names)) {
-                return ProductIngredients.unparseable();
+            collectTrustedLeaves(ingredient, candidates, partial);
+        }
+        IngredientClassificationBatch batch = ingredientClassifier.classify(
+                candidates.stream().map(LeafCandidate::nodeId).toList());
+        List<ProductIngredientItem> items = new ArrayList<>();
+        for (LeafCandidate candidate : candidates) {
+            IngredientClassification resolved = batch.classifications().get(candidate.nodeId());
+            if (resolved == null) {
+                partial[0] = true;
+            } else {
+                items.add(new ProductIngredientItem(
+                        candidate.displayName(), resolved.nodeId(), resolved.ancestorNodeIds()));
             }
         }
-        LinkedHashSet<String> uniqueNames = new LinkedHashSet<>(names);
-        return uniqueNames.isEmpty()
+        List<ProductIngredientItem> uniqueItems = new ArrayList<>();
+        Set<String> seen = new LinkedHashSet<>();
+        for (ProductIngredientItem item : items) {
+            if (seen.add(item.nodeId())) uniqueItems.add(item);
+        }
+        return uniqueItems.isEmpty() || batch.catalogueVersion() == null
                 ? ProductIngredients.unparseable()
-                : ProductIngredients.available(List.copyOf(uniqueNames));
+                : ProductIngredients.available(partial[0] ? "partial" : "complete",
+                        batch.catalogueVersion(), uniqueItems);
     }
 
-    private boolean collectTrustedLeafNames(OpenFoodFactsIngredient ingredient, List<String> names) {
+    private void collectTrustedLeaves(OpenFoodFactsIngredient ingredient,
+            List<LeafCandidate> candidates, boolean[] partial) {
         if (ingredient == null || Integer.valueOf(0).equals(ingredient.isInTaxonomy())) {
-            return false;
+            partial[0] = true;
+            return;
         }
         if (ingredient.ingredients() != null && !ingredient.ingredients().isEmpty()) {
             for (OpenFoodFactsIngredient child : ingredient.ingredients()) {
-                if (!collectTrustedLeafNames(child, names)) {
-                    return false;
-                }
+                collectTrustedLeaves(child, candidates, partial);
             }
-            return true;
+            return;
         }
         String id = usable(ingredient.id());
         if (id == null || !id.startsWith("en:")) {
-            return false;
+            partial[0] = true;
+            return;
         }
-        names.add(canonicalIngredientName(id.substring(3), ingredient.text()));
-        return true;
+        candidates.add(new LeafCandidate(id, displayIngredientName(id.substring(3), ingredient.text())));
     }
 
-    private String canonicalIngredientName(String taxonomyId, String sourceText) {
-        if (taxonomyId.matches("e[0-9]+") && usable(sourceText) != null
-                && !taxonomyId.equalsIgnoreCase(sourceText.trim())) {
-            return sourceText.trim().toLowerCase(Locale.ROOT);
-        }
-        if (taxonomyId.startsWith("fat-reduced-")) {
-            return "fat-reduced " + taxonomyId.substring("fat-reduced-".length()).replace('-', ' ');
-        }
-        return taxonomyId.replace('-', ' ');
+    private String displayIngredientName(String taxonomyId, String sourceText) {
+        String text = usable(sourceText);
+        return text == null ? taxonomyId.replace('-', ' ') : text;
     }
 
     private ProductNutrition mapNutrition(OpenFoodFactsProduct source) {
@@ -223,5 +235,8 @@ public final class OpenFoodFactsProductMapper {
             return null;
         }
         return value.trim();
+    }
+
+    private record LeafCandidate(String nodeId, String displayName) {
     }
 }

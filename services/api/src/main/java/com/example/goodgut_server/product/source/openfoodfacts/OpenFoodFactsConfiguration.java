@@ -1,5 +1,6 @@
 package com.example.goodgut_server.product.source.openfoodfacts;
 
+import com.example.goodgut_server.product.classification.IngredientClassifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,8 +21,9 @@ class OpenFoodFactsConfiguration {
     }
 
     @Bean
-    OpenFoodFactsProductMapper openFoodFactsProductMapper(Clock productLookupClock) {
-        return new OpenFoodFactsProductMapper(productLookupClock);
+    OpenFoodFactsProductMapper openFoodFactsProductMapper(
+            Clock productLookupClock, IngredientClassifier ingredientClassifier) {
+        return new OpenFoodFactsProductMapper(productLookupClock, ingredientClassifier);
     }
 
     @Bean

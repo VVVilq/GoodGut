@@ -1,5 +1,7 @@
 package com.example.goodgut_server.product;
 
+import com.example.goodgut_server.product.classification.IngredientClassification;
+import com.example.goodgut_server.product.classification.IngredientClassificationBatch;
 import com.example.goodgut_server.product.domain.ProductLookupResponse;
 import com.example.goodgut_server.product.domain.SourceErrorCategory;
 import com.example.goodgut_server.product.source.openfoodfacts.OpenFoodFactsProductMapper;
@@ -10,13 +12,19 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ProductLookupServiceTests {
 
     private final OpenFoodFactsProductMapper mapper = new OpenFoodFactsProductMapper(
-            Clock.fixed(Instant.parse("2026-08-19T13:30:00Z"), ZoneOffset.UTC));
+            Clock.fixed(Instant.parse("2026-08-19T13:30:00Z"), ZoneOffset.UTC),
+            taxonomyIds -> new IngredientClassificationBatch("fixture", taxonomyIds.stream().distinct()
+                    .map(id -> new IngredientClassification("fixture", id, List.of()))
+                    .collect(Collectors.toMap(IngredientClassification::nodeId, Function.identity()))));
 
     @Test
     void mapsFoundNotFoundAndSourceFailuresThroughOneSourceCall() {

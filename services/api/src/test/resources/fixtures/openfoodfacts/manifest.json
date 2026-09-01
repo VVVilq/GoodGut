@@ -1,6 +1,6 @@
 {
   "manifestVersion": 1,
-  "contractVersion": "1.0",
+  "contractVersion": "2.0",
   "source": "Open Food Facts",
   "license": "Open Database License (ODbL); product images under CC BY-SA where applicable",
   "entries": [
@@ -12,6 +12,7 @@
         "source:found",
         "nutrition:unavailable_unknown_basis",
         "ingredients:available",
+        "ingredients:complete",
         "nutriscore:available"
       ]
     },
@@ -24,6 +25,7 @@
         "basis:per_100ml",
         "nutrition:partial",
         "ingredients:available",
+        "ingredients:complete",
         "nutriscore:available",
         "nutrient:energy_kcal",
         "nutrient:carbohydrates",
@@ -42,7 +44,8 @@
         "source:found",
         "basis:per_100g",
         "nutrition:complete",
-        "ingredients:unparseable",
+        "ingredients:available",
+        "ingredients:partial",
         "nutriscore:available",
         "nutrient:energy_kcal",
         "nutrient:carbohydrates",
@@ -62,6 +65,16 @@
         "source:found",
         "nutrition:unavailable_unknown_basis",
         "ingredients:missing",
+        "nutriscore:missing"
+      ]
+    },
+    {
+      "basename": "unparseable-ingredient-text",
+      "barcode": "9900000000010",
+      "provenance": "recorded_api_v3_response",
+      "capabilities": [
+        "source:found",
+        "ingredients:unparseable",
         "nutriscore:missing"
       ]
     },

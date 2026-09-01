@@ -1,7 +1,7 @@
 import { configuredBaseUrl, GoodGutClientError, lookupProduct } from '../goodgut-api';
 
 const notFound = {
-  contractVersion: '1.0',
+  contractVersion: '2.0',
   outcome: 'not_found',
   barcode: '12345678',
   source: { provider: 'open_food_facts' },

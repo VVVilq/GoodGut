@@ -4,12 +4,16 @@ type FoundExample = typeof import('../../../../../../docs/reference/examples/pro
 type NotFoundExample = typeof import('../../../../../../docs/reference/examples/product-lookup-not-found.json');
 type SourceErrorExample = typeof import('../../../../../../docs/reference/examples/product-lookup-source-error.json');
 type LiquidFixture = typeof import('../../../../../../services/api/src/test/resources/fixtures/openfoodfacts/normalized/liquid-coca-cola.json');
+type PartialFixture = typeof import('../../../../../../services/api/src/test/resources/fixtures/openfoodfacts/normalized/incomplete-perly.json');
 
 const foundExample = fixture<FoundExample>('docs/reference/examples/product-lookup-found.json');
 const notFoundExample = fixture<NotFoundExample>('docs/reference/examples/product-lookup-not-found.json');
 const sourceErrorExample = fixture<SourceErrorExample>('docs/reference/examples/product-lookup-source-error.json');
 const liquidFixture = fixture<LiquidFixture>(
   'services/api/src/test/resources/fixtures/openfoodfacts/normalized/liquid-coca-cola.json',
+);
+const partialFixture = fixture<PartialFixture>(
+  'services/api/src/test/resources/fixtures/openfoodfacts/normalized/incomplete-perly.json',
 );
 
 describe('decodeProductLookup', () => {
@@ -18,8 +22,15 @@ describe('decodeProductLookup', () => {
     ['not found', notFoundExample],
     ['source error', sourceErrorExample],
     ['representative fixture', liquidFixture],
+    ['partial ingredient fixture', partialFixture],
   ])('accepts the canonical %s response', (_name, value) => {
-    expect(decodeProductLookup(value)).toEqual(value);
+    const decoded = decodeProductLookup(value);
+    if (decoded.outcome === 'found' && decoded.product.ingredients.status === 'available') {
+      const { names: _names, ...wireIngredients } = decoded.product.ingredients;
+      expect({ ...decoded, product: { ...decoded.product, ingredients: wireIngredients } }).toEqual(value);
+    } else {
+      expect(decoded).toEqual(value);
+    }
   });
 
   it('preserves zero values and both nutrition bases', () => {
@@ -53,7 +64,7 @@ describe('decodeProductLookup', () => {
   );
 
   it.each([
-    ['unknown contract version', { ...notFoundExample, contractVersion: '2.0' }],
+    ['unknown contract version', { ...notFoundExample, contractVersion: '3.0' }],
     ['extra branch field', { ...notFoundExample, extra: true }],
     ['missing branch field', { ...notFoundExample, reason: undefined }],
     ['invalid enum', { ...sourceErrorExample, errorCategory: 'mystery' }],
@@ -67,6 +78,20 @@ describe('decodeProductLookup', () => {
     ],
   ])('rejects %s', (_name, value) => {
     expect(() => decodeProductLookup(value)).toThrow(ProductLookupDecodeError);
+  });
+
+  it('preserves versioned taxonomy identity and ancestry for partial evidence', () => {
+    const result = decodeProductLookup(partialFixture);
+    if (result.outcome !== 'found' || result.product.ingredients.status !== 'available') {
+      throw new Error('expected available ingredients');
+    }
+    expect(result.product.ingredients.completeness).toBe('partial');
+    expect(result.product.ingredients.catalogueVersion).toBe('fixture-2026-08-19');
+    expect(result.product.ingredients.items[0]).toEqual({
+      displayName: 'milk cream',
+      nodeId: 'en:cream',
+      ancestorNodeIds: ['en:milk'],
+    });
   });
 });
 

@@ -24,13 +24,13 @@ export class ProductLookupDecodeError extends Error {
 
 export function decodeProductLookup(value: unknown): ProductLookup {
   const root = object(value, 'response');
-  literal(root.contractVersion, '1.0', 'contractVersion');
+  literal(root.contractVersion, '2.0', 'contractVersion');
   const outcome = oneOf(root.outcome, ['found', 'not_found', 'source_error'] as const, 'outcome');
 
   if (outcome === 'found') {
     exactKeys(root, ['contractVersion', 'outcome', 'barcode', 'source', 'product'], 'response');
     return {
-      contractVersion: '1.0',
+      contractVersion: '2.0',
       outcome,
       barcode: barcode(root.barcode),
       source: foundSource(root.source),
@@ -41,7 +41,7 @@ export function decodeProductLookup(value: unknown): ProductLookup {
     exactKeys(root, ['contractVersion', 'outcome', 'barcode', 'source', 'reason'], 'response');
     literal(root.reason, 'not_in_source', 'reason');
     return {
-      contractVersion: '1.0',
+      contractVersion: '2.0',
       outcome,
       barcode: barcode(root.barcode),
       source: commonSource(root.source),
@@ -51,7 +51,7 @@ export function decodeProductLookup(value: unknown): ProductLookup {
 
   exactKeys(root, ['contractVersion', 'outcome', 'barcode', 'source', 'errorCategory'], 'response');
   return {
-    contractVersion: '1.0',
+    contractVersion: '2.0',
     outcome,
     barcode: barcode(root.barcode),
     source: commonSource(root.source),
@@ -117,14 +117,41 @@ function ingredients(value: unknown): Ingredients {
     exactKeys(result, ['status'], 'ingredients');
     return { status };
   }
-  exactKeys(result, ['status', 'names'], 'ingredients');
-  const names = array(result.names, 'ingredients.names').map((name, index) =>
-    nonEmptyString(name, `ingredients.names[${index}]`),
+  exactKeys(result, ['status', 'completeness', 'catalogueVersion', 'items'], 'ingredients');
+  const catalogueVersion = nonEmptyString(result.catalogueVersion, 'ingredients.catalogueVersion');
+  const completeness = oneOf(
+    result.completeness,
+    ['complete', 'partial'] as const,
+    'ingredients.completeness',
   );
-  if (new Set(names).size !== names.length) {
-    fail('ingredients.names must be unique');
+  const items = array(result.items, 'ingredients.items').map((value, index) => {
+    const item = object(value, `ingredients.items[${index}]`);
+    exactKeys(item, ['displayName', 'nodeId', 'ancestorNodeIds'], `ingredients.items[${index}]`);
+    const ancestorNodeIds = array(item.ancestorNodeIds, `ingredients.items[${index}].ancestorNodeIds`).map(
+      (ancestor, ancestorIndex) => taxonomyId(
+        ancestor,
+        `ingredients.items[${index}].ancestorNodeIds[${ancestorIndex}]`,
+      ),
+    );
+    if (new Set(ancestorNodeIds).size !== ancestorNodeIds.length) {
+      fail(`ingredients.items[${index}].ancestorNodeIds must be unique`);
+    }
+    return {
+      displayName: nonEmptyString(item.displayName, `ingredients.items[${index}].displayName`),
+      nodeId: taxonomyId(item.nodeId, `ingredients.items[${index}].nodeId`),
+      ancestorNodeIds,
+    };
+  });
+  if (new Set(items.map((item) => item.nodeId)).size !== items.length) {
+    fail('ingredients.items nodeId values must be unique');
   }
-  return { status, names };
+  return { status, completeness, catalogueVersion, items, names: items.map((item) => item.displayName) };
+}
+
+function taxonomyId(value: unknown, path: string): string {
+  const result = nonEmptyString(value, path);
+  if (!/^[a-z]{2}:[^\s:]+$/.test(result)) fail(`${path} must be a canonical taxonomy id`);
+  return result;
 }
 
 function nutritionFact(value: unknown, nutrient: string): NutritionFact {

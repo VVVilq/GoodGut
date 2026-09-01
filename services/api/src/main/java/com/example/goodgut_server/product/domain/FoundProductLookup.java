@@ -8,6 +8,6 @@ public record FoundProductLookup(
         NormalizedProduct product) implements ProductLookupResponse {
 
     public FoundProductLookup(String barcode, FoundProductSource source, NormalizedProduct product) {
-        this("1.0", "found", barcode, source, product);
+        this("2.0", "found", barcode, source, product);
     }
 }

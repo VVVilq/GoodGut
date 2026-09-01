@@ -118,6 +118,27 @@ public class IngredientCatalogueRepository {
                 (result, row) -> new TaxonomyEdgeRow(result.getString(1), result.getString(2)), releaseId);
     }
 
+    public boolean containsNode(long releaseId, String taxonomyId) {
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM ingredient_taxon WHERE release_id = ? AND taxonomy_id = ?",
+                Integer.class, releaseId, taxonomyId);
+        return count != null && count > 0;
+    }
+
+    public List<String> ancestorIds(long releaseId, String taxonomyId) {
+        return jdbc.queryForList("""
+                WITH RECURSIVE ancestors(node_id) AS (
+                    SELECT parent_id FROM ingredient_parent WHERE release_id = ? AND child_id = ?
+                    UNION
+                    SELECT edge.parent_id
+                    FROM ingredient_parent edge
+                    JOIN ancestors current ON edge.child_id = current.node_id
+                    WHERE edge.release_id = ?
+                )
+                SELECT node_id FROM ancestors ORDER BY node_id
+                """, String.class, releaseId, taxonomyId, releaseId);
+    }
+
     public java.util.Map<String, String> canonicalLabels(long releaseId, String locale) {
         java.util.Map<String, String> labels = new java.util.HashMap<>();
         List<CatalogueSearchRow> rows = jdbc.query("""

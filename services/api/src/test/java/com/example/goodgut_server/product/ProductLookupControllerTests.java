@@ -1,6 +1,8 @@
 package com.example.goodgut_server.product;
 
 import com.example.goodgut_server.product.domain.NotFoundProductLookup;
+import com.example.goodgut_server.product.classification.IngredientClassification;
+import com.example.goodgut_server.product.classification.IngredientClassificationBatch;
 import com.example.goodgut_server.product.source.openfoodfacts.OpenFoodFactsProductMapper;
 import com.example.goodgut_server.product.source.openfoodfacts.OpenFoodFactsResponse;
 import com.example.goodgut_server.product.domain.SourceErrorCategory;
@@ -23,6 +25,9 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Map;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -36,9 +41,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductLookupControllerTests {
 
     private static final String LOOKUP_SCHEMA_ID =
-            "https://goodgut.app/schemas/product-lookup-1.0.schema.json";
+            "https://goodgut.app/schemas/product-lookup-2.0.schema.json";
     private static final String PRODUCT_SCHEMA_ID =
-            "https://goodgut.app/schemas/normalized-product-1.0.schema.json";
+            "https://goodgut.app/schemas/normalized-product-2.0.schema.json";
     private static final Path REPOSITORY_ROOT = findRepositoryRoot();
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final Schema LOOKUP_SCHEMA = loadLookupSchema();
@@ -58,7 +63,7 @@ class ProductLookupControllerTests {
 
         String response = mockMvc.perform(get("/products/0000000001008"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.contractVersion").value("1.0"))
+                .andExpect(jsonPath("$.contractVersion").value("2.0"))
                 .andExpect(jsonPath("$.outcome").value("not_found"))
                 .andExpect(jsonPath("$.barcode").value("0000000001008"))
                 .andExpect(jsonPath("$.source.provider").value("open_food_facts"))
@@ -90,7 +95,11 @@ class ProductLookupControllerTests {
                 "services/api/src/test/resources/fixtures/openfoodfacts/raw/solid-nutella.json");
         JsonNode raw = JSON.readTree(fixture.toFile());
         var mapper = new OpenFoodFactsProductMapper(
-                Clock.fixed(Instant.parse("2026-08-19T13:30:00Z"), ZoneOffset.UTC));
+                Clock.fixed(Instant.parse("2026-08-19T13:30:00Z"), ZoneOffset.UTC),
+                taxonomyIds -> new IngredientClassificationBatch("fixture-2026-08-19",
+                        taxonomyIds.stream().distinct()
+                                .map(id -> new IngredientClassification("fixture-2026-08-19", id, List.of()))
+                                .collect(Collectors.toMap(IngredientClassification::nodeId, Function.identity()))));
         var found = mapper.map("3017620422003",
                 JSON.treeToValue(raw.get("response"), OpenFoodFactsResponse.class));
         when(service.lookup("3017620422003")).thenReturn(found);

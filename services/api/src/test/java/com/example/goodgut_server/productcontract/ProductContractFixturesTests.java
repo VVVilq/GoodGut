@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ProductContractFixturesTests {
 
     private static final String LOOKUP_SCHEMA_ID =
-            "https://goodgut.app/schemas/product-lookup-1.0.schema.json";
+            "https://goodgut.app/schemas/product-lookup-2.0.schema.json";
     private static final String PRODUCT_SCHEMA_ID =
-            "https://goodgut.app/schemas/normalized-product-1.0.schema.json";
+            "https://goodgut.app/schemas/normalized-product-2.0.schema.json";
     private static final Path REPOSITORY_ROOT = findRepositoryRoot();
     private static final Path FIXTURES = REPOSITORY_ROOT.resolve(
             "services/api/src/test/resources/fixtures/openfoodfacts");
@@ -94,7 +94,8 @@ class ProductContractFixturesTests {
                 "source:found", "source:not_found",
                 "basis:per_100g", "basis:per_100ml",
                 "nutrition:complete", "nutrition:partial",
-                "ingredients:available", "ingredients:missing", "ingredients:unparseable",
+                "ingredients:available", "ingredients:complete", "ingredients:partial",
+                "ingredients:missing", "ingredients:unparseable",
                 "nutriscore:available", "nutriscore:missing",
                 "source_error:rate_limited", "source_error:network_error",
                 "source_error:invalid_source_response", "source_error:source_unavailable",
@@ -189,6 +190,9 @@ class ProductContractFixturesTests {
 
         JsonNode product = normalized.get("product");
         capabilities.add("ingredients:" + product.get("ingredients").get("status").asText());
+        if ("available".equals(product.get("ingredients").get("status").asText())) {
+            capabilities.add("ingredients:" + product.get("ingredients").get("completeness").asText());
+        }
         capabilities.add("nutriscore:" + product.get("nutriScore").get("status").asText());
         List<Map.Entry<String, JsonNode>> available = product.get("nutrition").properties().stream()
                 .filter(entry -> "available".equals(entry.getValue().get("status").asText()))

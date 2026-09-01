@@ -1,5 +1,5 @@
 {
-  "contractVersion": "1.0",
+  "contractVersion": "2.0",
   "outcome": "found",
   "barcode": "5449000000996",
   "source": {
@@ -22,13 +22,15 @@
     },
     "ingredients": {
       "status": "available",
-      "names": [
-        "carbonated water",
-        "sugar",
-        "e150d",
-        "phosphoric acid",
-        "natural flavouring",
-        "caffeine flavour"
+      "completeness": "complete",
+      "catalogueVersion": "fixture-2026-08-19",
+      "items": [
+        { "displayName": "carbonated water", "nodeId": "en:carbonated-water", "ancestorNodeIds": [] },
+        { "displayName": "sugar", "nodeId": "en:sugar", "ancestorNodeIds": [] },
+        { "displayName": "e150d", "nodeId": "en:e150d", "ancestorNodeIds": [] },
+        { "displayName": "phosphoric acid", "nodeId": "en:e338", "ancestorNodeIds": [] },
+        { "displayName": "natural flavourings", "nodeId": "en:natural-flavouring", "ancestorNodeIds": [] },
+        { "displayName": "caffeine flavouring", "nodeId": "en:caffeine-flavour", "ancestorNodeIds": [] }
       ]
     },
     "nutrition": {

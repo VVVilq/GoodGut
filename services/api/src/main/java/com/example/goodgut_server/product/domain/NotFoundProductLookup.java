@@ -8,6 +8,6 @@ public record NotFoundProductLookup(
         String reason) implements ProductLookupResponse {
 
     public NotFoundProductLookup(String barcode) {
-        this("1.0", "not_found", barcode, ProductSource.openFoodFacts(), "not_in_source");
+        this("2.0", "not_found", barcode, ProductSource.openFoodFacts(), "not_in_source");
     }
 }

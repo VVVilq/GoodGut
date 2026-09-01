@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { ProductLookupPresentation, ResultAction } from '@/features/product-lookup/presentation';
+import { useTheme } from '@/hooks/use-theme';
 
 export function ProductResult({
   presentation,
@@ -20,7 +21,7 @@ export function ProductResult({
       <SafeAreaView edges={['bottom']} style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content}>
           {presentation.kind === 'found' ? (
-            <FoundProduct presentation={presentation} />
+            <FoundProduct presentation={presentation} onAction={onAction} />
           ) : (
             <ThemedView type="backgroundElement" style={styles.statusCard}>
               {presentation.kind === 'loading' ? (
@@ -47,11 +48,28 @@ export function ProductResult({
   );
 }
 
-function FoundProduct({ presentation }: { presentation: Extract<ProductLookupPresentation, { kind: 'found' }> }) {
+function FoundProduct({
+  presentation,
+  onAction,
+}: {
+  presentation: Extract<ProductLookupPresentation, { kind: 'found' }>;
+  onAction: (action: ResultAction) => void;
+}) {
+  const theme = useTheme();
   const [imageFailed, setImageFailed] = useState(false);
   const imageUrl = imageFailed ? null : presentation.identity.imageUrl;
+  const ingredientItems = presentation.ingredients.available
+    ? presentation.ingredients.items
+    : null;
+  const unavailableIngredientText = presentation.ingredients.available
+    ? null
+    : presentation.ingredients.text;
   return (
     <>
+      <IngredientWarningSummary
+        presentation={presentation.ingredientWarnings}
+        onAction={onAction}
+      />
       <View style={styles.header}>
         {imageUrl ? (
           <Image source={imageUrl} style={styles.image} contentFit="contain" onError={() => setImageFailed(true)} />
@@ -76,9 +94,22 @@ function FoundProduct({ presentation }: { presentation: Extract<ProductLookupPre
         </View>
       </FactSection>
       <FactSection title="Składniki">
-        <ThemedText themeColor={presentation.ingredients.available ? 'text' : 'textSecondary'}>
-          {presentation.ingredients.text}
-        </ThemedText>
+        {ingredientItems ? (
+          <View style={styles.ingredientList}>
+            {ingredientItems.map((item, index) => (
+              <ThemedText
+                key={`${index}:${item.text}`}
+                accessibilityLabel={item.warning ? `Ostrzeżenie: ${item.text}` : item.text}
+                style={item.warning && [styles.warningIngredient, { color: theme.warning }]}
+              >
+                {item.warning ? '⚠ ' : ''}{item.text}
+                {index < ingredientItems.length - 1 ? ', ' : ''}
+              </ThemedText>
+            ))}
+          </View>
+        ) : (
+          <ThemedText themeColor="textSecondary">{unavailableIngredientText}</ThemedText>
+        )}
       </FactSection>
       <FactSection title="Wartości odżywcze">
         {presentation.nutrients.map((row) => (
@@ -100,6 +131,59 @@ function FoundProduct({ presentation }: { presentation: Extract<ProductLookupPre
   );
 }
 
+function IngredientWarningSummary({
+  presentation,
+  onAction,
+}: {
+  presentation: Extract<ProductLookupPresentation, { kind: 'found' }>['ingredientWarnings'];
+  onAction: (action: ResultAction) => void;
+}) {
+  const theme = useTheme();
+  if (presentation.kind === 'none') return null;
+
+  const warning = presentation.kind === 'triggered'
+    || presentation.kind === 'unavailable'
+    || presentation.kind === 'profile_error';
+
+  return (
+    <View
+      accessibilityRole={warning ? 'alert' : undefined}
+      style={[
+        styles.warningSummary,
+        {
+          backgroundColor: warning ? theme.warningBackground : theme.backgroundSelected,
+          borderColor: warning ? theme.warning : theme.textSecondary,
+        },
+      ]}
+    >
+      <View style={styles.warningTitleRow}>
+        {presentation.kind === 'loading' ? (
+          <ActivityIndicator accessibilityLabel="Wczytywanie profilu" color="#1F7A57" />
+        ) : warning ? (
+          <ThemedText accessibilityElementsHidden style={[styles.warningIcon, { color: theme.warning }]}>⚠</ThemedText>
+        ) : null}
+        <ThemedText type="smallBold" style={warning && { color: theme.warning }}>
+          {presentation.title}
+        </ThemedText>
+      </View>
+      <ThemedText type="small">{presentation.detail}</ThemedText>
+      {presentation.kind === 'triggered' && presentation.warnings.map((item) => (
+        <View key={item.ruleId} style={styles.warningRow}>
+          <ThemedText type="smallBold" style={{ color: theme.warning }}>
+            ⚠ {item.ruleLabel}
+          </ThemedText>
+          <ThemedText type="small">
+            Dopasowano: {item.matchedIngredientNames.join(', ')}
+          </ThemedText>
+        </View>
+      ))}
+      {presentation.actions.map((action) => (
+        <Action key={action} action={action} onPress={() => onAction(action)} />
+      ))}
+    </View>
+  );
+}
+
 function FactSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <ThemedView type="backgroundElement" style={styles.card}>
@@ -110,11 +194,17 @@ function FactSection({ title, children }: { title: string; children: React.React
 }
 
 function Action({ action, onPress }: { action: ResultAction; onPress: () => void }) {
-  const secondary = action === 'scan_another';
+  const secondary = action === 'scan_another' || action === 'open_profile';
+  const labels: Record<ResultAction, string> = {
+    retry: 'Spróbuj ponownie',
+    scan_another: 'Skanuj kolejny produkt',
+    retry_profile: 'Wczytaj profil ponownie',
+    open_profile: 'Otwórz profil',
+  };
   return (
     <Pressable onPress={onPress} style={[styles.action, secondary && styles.secondary]} accessibilityRole="button">
       <ThemedText style={[styles.actionText, secondary && styles.secondaryText]}>
-        {action === 'retry' ? 'Spróbuj ponownie' : 'Skanuj kolejny produkt'}
+        {labels[action]}
       </ThemedText>
     </Pressable>
   );
@@ -139,7 +229,13 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: 240, borderRadius: 22 },
   placeholder: { backgroundColor: '#E8E8E8', alignItems: 'center', justifyContent: 'center' },
   section: { gap: Spacing.two },
+  warningSummary: { borderWidth: 1, borderRadius: 20, padding: Spacing.three, gap: 12 },
+  warningTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  warningIcon: { fontSize: 20, fontWeight: '800' },
+  warningRow: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#C86A62', paddingTop: 10, gap: 2 },
   card: { borderRadius: 20, padding: Spacing.three, gap: 12, shadowColor: '#17352D', shadowOpacity: 0.06, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 2 },
+  ingredientList: { flexDirection: 'row', flexWrap: 'wrap' },
+  warningIngredient: { fontWeight: '800' },
   nutrientRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.two, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#DCE6E0', paddingTop: 10 },
   nutrientLabel: { flex: 1 },
   nutriScore: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },

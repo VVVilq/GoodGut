@@ -1,5 +1,5 @@
 {
-  "contractVersion": "1.0",
+  "contractVersion": "2.0",
   "outcome": "found",
   "barcode": "6111242100992",
   "source": {
@@ -21,7 +21,14 @@
       "grade": "a"
     },
     "ingredients": {
-      "status": "unparseable"
+      "status": "available",
+      "completeness": "partial",
+      "catalogueVersion": "fixture-2026-08-19",
+      "items": [
+        { "displayName": "milk cream", "nodeId": "en:cream", "ancestorNodeIds": ["en:milk"] },
+        { "displayName": "sugar", "nodeId": "en:sugar", "ancestorNodeIds": [] },
+        { "displayName": "banana", "nodeId": "en:banana", "ancestorNodeIds": [] }
+      ]
     },
     "nutrition": {
       "energy_kcal": {
