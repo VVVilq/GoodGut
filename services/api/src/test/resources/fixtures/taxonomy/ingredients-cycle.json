@@ -1,0 +1,10 @@
+{
+  "en:first": {
+    "name": { "en": "first" },
+    "parents": ["en:second"]
+  },
+  "en:second": {
+    "name": { "en": "second" },
+    "parents": ["en:first"]
+  }
+}

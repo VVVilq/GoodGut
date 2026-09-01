@@ -1,0 +1,20 @@
+{
+  "en:milk": {
+    "name": { "en": "milk", "pl": "mleko", "de": "Milch" },
+    "synonyms": { "en": ["milk", "dairy"], "pl": ["mleko"], "de": ["Milch"] }
+  },
+  "en:dairy-ingredient": {
+    "name": { "en": "dairy ingredient", "pl": "składnik mleczny" },
+    "synonyms": { "en": ["dairy ingredient"], "pl": ["składnik mleczny"] }
+  },
+  "en:goat-milk": {
+    "name": { "en": "goat milk", "pl": "mleko kozie" },
+    "parents": ["en:milk", "en:dairy-ingredient"],
+    "synonyms": { "en": ["goat's milk", "goat's milk"], "pl": ["kozie mleko"] }
+  },
+  "en:whole-goat-milk": {
+    "name": { "en": "whole goat milk" },
+    "parents": ["en:goat-milk"],
+    "synonyms": { "en": ["raw goat milk"], "pl": ["pełne mleko kozie"] }
+  }
+}

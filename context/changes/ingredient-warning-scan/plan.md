@@ -1,328 +1,342 @@
-# Ingredient Warning Scan Implementation Plan
+# Ingredient Warning Scan — Server Taxonomy Catalogue Plan
 
-## Overview
+## Summary
 
-Deliver roadmap slice S-03, GoodGut's north-star flow: evaluate the last successfully saved avoided-ingredient profile against a found product, show the personalized result before general product facts, highlight every matching ingredient name in red with non-color warning cues, and display one accurate count of triggered rules. Preserve the complete S-01 scan/result experience and the S-02 profile lifecycle without changing the API contract.
+Replace bundled name-and-alias matching with a server-owned, versioned Open Food Facts ingredient catalogue. Users see a small promoted list, can search the wider Polish/English catalogue, and may exclude either one taxonomy node or its complete descendant branch. The Spring API classifies product ingredients against the active OFF release; the anonymous mobile client keeps the personal profile locally and intersects saved selections with server evidence.
 
-## Current State Analysis
+## Confirmed Decisions
 
-The mobile app already has the two required inputs but does not compose them. `ProductLookupProvider` exposes a strict found/not-found/source-error lookup state, while `PersonalProfileProvider` exposes evaluator-ready active ingredient rules derived from the durable profile. Both providers wrap the result route in `apps/mobile/src/app/_layout.tsx`, so S-03 is a mobile result-composition change rather than a backend or navigation redesign.
+| Area | Decision |
+| --- | --- |
+| Evaluation | Server classifies ingredients; mobile applies the local profile. |
+| Catalogue | Full OFF ingredient taxonomy with Polish and English labels/synonyms. |
+| Profile | Local-only and anonymous. |
+| Custom entries | Retained as fallback exact-text rules after catalogue suggestions. |
+| Selection | Explicit `node` or `subtree`; subtree removes redundant descendants. |
+| Family semantics | Only OFF parent/descendant relationships; no GoodGut-derived edges. |
+| Updates | Manual, versioned, validated import with atomic activation and rollback. |
+| Discovery | Promoted starter list plus server-side search. |
+| Migration | Existing profile v1 is intentionally reset with an explicit notice. |
+| Partial parsing | Return certain matches plus incomplete status; never show a trustworthy zero. |
+| Outage | Cached selections and classified products keep scans working. |
 
-`apps/mobile/src/domain/personal-rules.ts` already owns deterministic NFKC, trim, and case-insensitive exact matching. Predefined rules consider reviewed aliases, custom rules consider only their exact configured names, missing or unparseable ingredients make configured rules unavailable, and the total counts triggered rules rather than occurrences. However, the evaluator returns rule IDs and totals only; it does not identify which displayed product ingredient names matched each rule.
+## Current State
 
-`apps/mobile/src/features/product-lookup/presentation.ts` currently converts available ingredients into one comma-joined string. `apps/mobile/src/components/product-facts/product-result.tsx` renders identity first and has no personalized summary or per-ingredient rendering metadata. Profile hydration or load failure is also not represented in the result presentation, so simply treating absent rules as an empty array would create a false zero-warning state.
+- The API is stateless Spring MVC without JDBC, PostgreSQL, or Flyway.
+- OFF responses contain stable taxonomy IDs and nesting, but `OpenFoodFactsProductMapper` discards IDs and returns derived names.
+- Contract `1.0` exposes `ingredients.names`; the strict mobile decoder means structured evidence requires contract `2.0`.
+- Mobile profile v1 stores bundled predefined IDs and custom text; catalogue/search/display labels ship in the app.
+- Phase 1 (`ce0c3b1`) provides deterministic warning evidence and profile-state composition. Its lifecycle and custom exact matching remain useful.
+- Warning-first Phase 2 UI exists in the working tree and must be preserved while its data seam changes.
 
-## Desired End State
+## Target Architecture
 
-For a found product, the result begins with a personalized warning area. It shows evaluation progress while the saved profile hydrates; shows an explicit, recoverable evaluation failure if the profile cannot load; shows a prominent unavailable warning when configured rules cannot be checked because ingredients are missing or unparseable; shows a neutral `0 ostrzeżeń` summary when available ingredients trigger no configured rule; or shows the trigger count and one warning row per triggered rule.
+PostgreSQL stores immutable OFF releases, taxonomy nodes, Polish/English labels and synonyms, and parent edges. Import creates and validates a staged release, then atomically activates it; it never truncates active data.
 
-Each triggered row names the shopper's rule and every exact product ingredient name that matched it. Every matching name in the complete ingredient list is highlighted in red and bold, with warning text/icon semantics so meaning does not rely on color. A rule contributes once to the total even when several product names or aliases match it. All existing identity, image, Nutri-Score, ingredient availability, eight nutrition rows, source attribution, retry, and rescan behavior remains below the personalized area.
+The API retains trusted OFF leaf IDs and resolves their ancestors in the active release. Found products carry ordered ingredient items with display text, taxonomy identity, ancestor evidence, catalogue version, and complete/partial evaluation status. Unknown fragments do not erase certain matches, but prevent a conclusive zero.
 
-### Key Discoveries
+The mobile profile stores stable OFF node IDs, fallback Polish labels, and `node`/`subtree` scope. No selection or custom name is sent to GoodGut or OFF. Counts remain one per saved selection. The editor loads promoted nodes and debounced search results; cached selections remain usable during catalogue outages.
 
-- `apps/mobile/src/app/_layout.tsx:13` already nests the profile and lookup providers above the result route; no provider relocation is required.
-- `apps/mobile/src/features/personal-profile/profile-store.ts:84` distinguishes unavailable profile state (`undefined` rules) from an intentionally empty active profile (`[]`) and keeps the previous active profile during saving or save failure.
-- `apps/mobile/src/domain/personal-rules.ts:80` is the sole matching boundary and must also own match evidence so highlights cannot drift from trigger counts.
-- `apps/mobile/src/features/product-lookup/presentation.ts:93` currently loses ingredient boundaries by joining names into one string; S-03 requires structured ingredient rows or segments.
-- `apps/mobile/src/components/product-facts/product-result.tsx:50` renders found-product identity before facts; the personalized section must move ahead of that content while preserving the existing facts sequence below it.
-- `docs/reference/product-data-contract.md` already exposes all S-03 inputs and explicitly assigns warning evaluation to mobile; no API, schema, fixture, or mapper change is needed.
+## Phase 1: Existing Match Evidence Foundation
 
-## What We're NOT Doing
+Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lifecycle, and exact custom-text matching. Remove predefined alias matching only after taxonomy evidence is integrated.
 
-- Nutrition-threshold configuration or nutrition warnings; those remain S-04 and S-05.
-- API endpoints, source mapping, product-contract/schema changes, backend profile storage, or database work.
-- Fuzzy, substring, stemming, diacritic folding, translation, inferred synonyms, ingredient-family expansion, or automatic alias discovery.
-- Positive/green rules, safety claims, allergen certification, disease analysis, medical scoring, or medical advice.
-- Multiple profiles, authentication, synchronization, sharing, scan history, recommendations, iOS, web, or desktop behavior.
-- Listing every configured rule as a non-match; the zero state is a compact neutral summary.
-- Introducing a React Native component-test framework solely for this slice; framework-independent domain and presentation tests remain the primary automated UI contract.
-
-## Implementation Approach
-
-Keep matching in the domain and presentation in the product-lookup feature. Extend ingredient evaluation with structured per-rule evidence that includes stable rule identity and all matching source ingredient names while retaining the existing aggregate evaluator contract for future nutrition composition. Build a pure result-composition/presentation boundary that accepts lookup state plus the profile lifecycle and produces one exhaustive UI model.
-
-The result route reads both contexts and passes only the derived presentation model to `ProductResult`. The UI renders the warning area first and the existing facts below it. Ingredient facts remain a structured list through presentation so the component can style exact matched entries without re-running matching logic.
-
-## Critical Implementation Details
-
-### State sequencing
-
-`activeIngredientRules === undefined` means hydration or load failure, not an empty profile. The result must branch on the complete profile state: hydration produces a warning-area loading state; `load_error` produces an explicit evaluation failure; ready/recovered/saving/save-error evaluate the last active saved profile. An in-flight or failed profile candidate must never affect warnings.
-
-### Count and evidence consistency
-
-One rule may match multiple product ingredient names or multiple reviewed aliases. Preserve all matching displayed names for highlighting and evidence, but deduplicate the triggered rule ID and increment the total once. Derive warning rows, highlighted ingredient identities, and the total from one domain result rather than parallel UI calculations.
-
-### Unavailable is not zero
-
-When at least one ingredient rule exists and product ingredients are missing or unparseable, show prominent evaluation-unavailable treatment before facts and retain the original missing/unparseable fact message below. Never render `0 ostrzeżeń` for an evaluation that could not run.
-
-## Phase 1: Match Evidence and Result Composition
-
-### Overview
-
-Extend the existing exact-match evaluator with deterministic match evidence and introduce a pure composition boundary that combines product lookup with the active saved-profile lifecycle.
+## Phase 2: Preserve Warning-First Presentation
 
 ### Changes Required
 
-#### 1. Ingredient match evidence
+#### 1. Checkpoint current presentation work
 
-**Files**: `apps/mobile/src/domain/personal-rules.ts`; `apps/mobile/src/domain/__tests__/personal-rules-test.ts`
+**Files**: current modified result route, presentation, product-result component, theme, and presentation tests.
 
-**Intent**: Make the domain return enough evidence for warning rows and per-name highlighting without duplicating matching semantics in presentation code.
+**Intent**: Preserve the completed warning-first UI before changing its data source.
 
-**Contract**: Add a structured ingredient-evaluation result keyed by stable rule ID, containing every source ingredient name that exactly matched that rule. Preserve existing `triggeredRuleIds`, `unavailableRuleIds`, and `triggerCount` behavior for the aggregate evaluator. Predefined canonical names and reviewed aliases share one rule result; custom rules use only their configured name; repeated/canonical/alias matches count once per rule.
-
-#### 2. Rule display metadata adapter
-
-**Files**: `apps/mobile/src/domain/avoided-ingredients/profile.ts`; focused tests under `apps/mobile/src/domain/avoided-ingredients/__tests__/`
-
-**Intent**: Resolve stable evaluator rule IDs to shopper-facing labels without leaking catalogue lookup or profile persistence details into UI components.
-
-**Contract**: Preserve Polish catalogue labels for predefined rules and the saved display name for custom rules alongside evaluator-ready identity and aliases. Unknown IDs remain invalid profile data rather than silently disappearing.
-
-#### 3. Personalized result composition
-
-**Files**: new module under `apps/mobile/src/features/product-lookup/`; `apps/mobile/src/features/product-lookup/__tests__/`
-
-**Intent**: Combine `ProductLookupState` and `PersonalProfileState` into an exhaustive, framework-independent personalization state before ordinary product presentation.
-
-**Contract**: For found products, model `profile_loading`, `profile_error`, `no_rules`, `ingredients_unavailable`, `no_triggers`, and `triggered` branches. Only ready/recovered/saving/save-error states evaluate active saved rules. Non-found lookup branches retain their current actions and copy without profile evaluation.
+**Contract**: Loading, profile error, partial/unavailable, zero, and triggered states remain before product facts. Components consume composition evidence and never independently match names.
 
 ### Success Criteria
 
 #### Automated Verification
 
-- Domain tests prove exact custom matches, reviewed predefined aliases, Unicode/case normalization, no substring matches, and all matched source names per rule.
-- Tests prove one rule matching several canonical/alias names contributes one warning row and one count while exposing every matching displayed name.
-- Composition tests distinguish profile hydration, load failure, empty profile, ingredient missing/unparseable, zero-trigger, and triggered states without false reassurance.
-- Composition tests prove saving and save-error candidates never replace the active saved rules used for evaluation.
-- Mobile lint, type checking, and tests pass: `cd apps/mobile; npm.cmd run lint; npm.cmd run typecheck; npm.cmd test`.
+- Existing Phase 2 presentation tests, lint, type checking, mobile tests, and Expo public config pass.
 
 #### Manual Verification
 
-- Human reviews representative match evidence for predefined aliases and custom exact names and confirms the displayed rule label and source ingredient text are understandable.
+- Android light/dark rendering, long-list wrapping, TalkBack semantics, and recovery actions pass after final taxonomy integration.
 
-**Implementation Note**: Pause after domain/composition verification; warning UI must consume this single evidence model rather than derive matches independently.
-
----
-
-## Phase 2: Warning-First Result Presentation
-
-### Overview
-
-Wire the profile lifecycle into the result route and render accessible personalized states before the complete S-01 product facts.
+## Phase 3: PostgreSQL Catalogue and Safe OFF Import
 
 ### Changes Required
 
-#### 1. Result route integration
+#### 1. Database foundation
 
-**Files**: `apps/mobile/src/app/result.tsx`; `apps/mobile/src/features/product-lookup/presentation.ts`
+**Files**: `services/api/pom.xml`, `application.properties`, Flyway migrations, catalogue persistence packages.
 
-**Intent**: Feed lookup state and saved-profile state into one pure presentation model while keeping the route focused on context composition and navigation actions.
+**Intent**: Add PostgreSQL persistence suitable for Railway and deterministic local tests.
 
-**Contract**: `ResultScreen` reads `useProductLookup()` and `usePersonalProfile()`, composes the personalized result, and retains existing retry and scan-another behavior. Presentation preserves structured ingredient items and marks which exact displayed names are warning matches.
+**Contract**: Environment-backed datasource configuration with no committed secrets. Flyway owns schema evolution. Tests use an isolated database setup without weakening production SQL semantics.
 
-#### 2. Personalized warning summary
+#### 2. Versioned taxonomy schema
 
-**Files**: `apps/mobile/src/components/product-facts/product-result.tsx`; reusable warning components under `apps/mobile/src/components/product-facts/` as warranted
+**Files**: `services/api/src/main/resources/db/migration/`.
 
-**Intent**: Put the shopper's evaluation outcome at the top of every found-product result without blocking access to general facts.
+**Intent**: Store Polish/English discovery data and OFF's DAG without mutating an active release.
 
-**Contract**: Render before identity/image: a loading state during profile hydration; an explicit profile-evaluation failure with retry and profile-navigation recovery; a prominent configured-rule unavailable state for missing/unparseable ingredients; a compact neutral `0 ostrzeżeń` state after a trustworthy zero-trigger evaluation; or a trigger total plus one row per triggered rule with every matched source name.
+**Contract**: Tables represent releases, nodes, localized canonical/synonym terms, parent edges, and one active release. Public node IDs are canonical OFF IDs. Constraints prevent duplicate nodes/terms, missing edge endpoints, and multiple active releases.
 
-#### 3. Accessible ingredient highlighting
+#### 3. Manual import command
 
-**Files**: `apps/mobile/src/components/product-facts/product-result.tsx`; `apps/mobile/src/constants/theme.ts` if reusable warning tokens are needed
+**Files**: new import service/parser/validation report/operator command and documentation.
 
-**Intent**: Make every matching name clear in the complete ingredient list across light/dark themes and for users who cannot rely on color.
+**Intent**: Import a pinned OFF `ingredients.full.json` snapshot outside requests and startup.
 
-**Contract**: Render ingredient names individually with separators, applying red warning color, bold weight, and explicit warning label/icon/accessibility description to matched entries. Non-matching ingredients retain ordinary styling and original order. Missing/unparseable fact copy remains unchanged below the personalized unavailable warning.
-
-#### 4. Pure presentation regression coverage
-
-**Files**: `apps/mobile/src/features/product-lookup/__tests__/presentation-test.ts`; focused new presentation/composition tests
-
-**Intent**: Lock warning order, copy, actions, match metadata, and preservation of all S-01 states without requiring a new native renderer test dependency.
-
-**Contract**: Cover zero, one, and multiple triggered rules; multiple matched names for one rule; no rules; profile loading/error; both ingredient unavailable reasons; warning-first ordering; and all existing found/not-found/source/client-error action sets.
+**Contract**: Operator supplies revision/version and checksum. Import writes a staged release, validates identifiers, references, DAG integrity, label coverage and counts, then requires explicit activation. Failures leave the active release untouched; retain the prior release for rollback and OFF attribution.
 
 ### Success Criteria
 
 #### Automated Verification
 
-- Presentation tests prove warning states precede product facts and preserve exact triggered-rule counts, labels, and matched ingredient names.
-- Tests prove empty profiles show ordinary facts without personalized highlights, while configured zero matches show the compact neutral zero summary.
-- Tests prove profile loading/failure and missing/unparseable ingredients never render a zero-warning conclusion.
-- Existing decoder, client, lookup-state, scan-policy, and complete-product presentation tests remain passing.
-- Mobile lint, type checking, tests, and public Expo config pass: `cd apps/mobile; npm.cmd run lint; npm.cmd run typecheck; npm.cmd test; npx.cmd expo config --type public`.
+- Flyway creates the schema and enforces release/node/label/edge integrity.
+- Fixtures prove Polish/English names and synonyms, multiple parents, normalization, failure isolation, activation, and rollback.
+- API tests pass without live taxonomy access.
 
 #### Manual Verification
 
-- On Android in light and dark themes, triggered warnings appear before identity, every matched ingredient is visibly red/bold with a non-color warning cue, and long ingredient lists wrap and scroll correctly.
-- TalkBack or equivalent accessibility inspection announces the warning total, rule labels, matching ingredient names, loading/failure states, and recovery actions meaningfully.
-- Profile loading and failure leave complete product facts usable, and the retry/profile recovery actions behave correctly.
+- A reviewed OFF snapshot imports locally, reports counts/checksum, activates explicitly, and rolls back.
 
-**Implementation Note**: Pause for physical Android visual and accessibility acceptance before final hardening.
-
----
-
-## Phase 3: Integration Hardening and Android Acceptance
-
-### Overview
-
-Prove the complete saved-profile-to-scan flow, update risk evidence, and close S-03 without regressing S-01 or S-02.
+## Phase 4: Catalogue API and Profile Editor v2
 
 ### Changes Required
 
-#### 1. Cross-boundary saved-profile integration
+#### 1. Promoted and search endpoints
 
-**Files**: focused integration tests under `apps/mobile/src/data/__tests__/` or `apps/mobile/src/features/product-lookup/__tests__/`
+**Files**: new catalogue controller/service/DTOs and tests.
 
-**Intent**: Verify that a persisted profile, provider/store lifecycle, normalized found product, evaluator evidence, and result presentation retain the same semantics across boundaries.
+**Intent**: Provide a small initial selection and discovery across the full catalogue.
 
-**Contract**: Round-trip predefined and custom rules through the repository, hydrate active rules, evaluate representative available/missing/unparseable products, and assert warning labels, all matched names, highlights, unavailable states, and count-by-rule behavior. Deselect/delete and failed-save cases must remove or preserve warnings according to the last durable profile.
+**Contract**: `GET /ingredient-catalogue/promoted?locale=pl` and `GET /ingredient-catalogue/search?q=...&locale=pl` return catalogue version, stable node ID, localized label with English fallback, breadcrumb, selectable/has-children metadata, and supported scopes. Search is normalized, ranked, bounded and paginated; no active release produces an explicit unavailable response.
 
-#### 2. MVP evidence and local verification documentation
+#### 2. Cached mobile catalogue client
 
-**Files**: `context/foundation/test-plan.md`; `apps/mobile/README.md`
+**Files**: mobile API adapter, strict decoders, repository/cache, state module, and tests.
 
-**Intent**: Make the new personalized scan risks and Android acceptance steps reproducible.
+**Intent**: Keep discovery responsive and preserve selection labels during API outages.
 
-**Contract**: Add evidence for warning/evidence drift, false zero during profile or ingredient unavailability, count inflation, warning-first ordering, accessible non-color highlighting, and scan/profile regressions. Document representative local testing with saved predefined/custom rules and incomplete product data.
+**Contract**: Debounced server search and atomic cache replacement by catalogue version. Cached promoted results may display as stale with an honest status. Network failure never deletes saved selections.
 
-#### 3. Final regression and scope checks
+#### 3. Profile schema v2 and intentional reset
 
-**Files**: no production additions unless verification reveals a scoped defect
+**Files**: mobile profile domain, codec, repository/store, and tests.
 
-**Intent**: Close the north-star ingredient-warning slice only after all automated and physical-device behavior is proven.
+**Intent**: Store taxonomy selections while applying the approved reset safely.
 
-**Contract**: Run the complete mobile and API suites; manually exercise no rules, zero matches, aliases, custom exact matches, multiple matches per rule, multiple triggered rules, missing/unparseable ingredients, hydration/load failure, retry, rescan, and profile save/failure isolation. Confirm no S-04/S-05 nutrition rules or out-of-scope medical behavior entered S-03.
+**Contract**: v2 stores `selections[{nodeId,labelPl,scope:'node'|'subtree'}]` plus custom exact-text entries. First v1 load retains the old slot temporarily, initializes empty v2, and exposes a one-time reset notice; it is never reported as corruption. Subtree selection removes covered descendants.
+
+#### 4. Hierarchical selection UX
+
+**Files**: profile screen/editor components, editor state, and tests.
+
+**Intent**: Let users select promoted nodes, search widely, inspect breadcrumbs, and choose node or branch scope.
+
+**Contract**: Suggestions precede custom text creation. Nodes with descendants expose both scopes. Consolidation is explained. Loading/error/stale states and language fallback are accessible.
 
 ### Success Criteria
 
 #### Automated Verification
 
-- Cross-boundary tests prove durable predefined/custom profiles produce deterministic warning rows, highlighted names, unavailable states, and one count per triggered rule.
-- The test-plan matrix maps every S-03 high-risk behavior to an existing passing automated or manual check.
-- Mobile quality gates pass: `cd apps/mobile; npm.cmd run lint; npm.cmd run typecheck; npm.cmd test`.
-- API regression tests pass offline: `cd services/api; .\mvnw.cmd test`.
-- Scope search confirms no product-contract/API changes, nutrition-threshold UI/evaluation, fuzzy/inferred matching, medical claims, auth/sync, history, or recommendations entered the slice.
+- API tests cover locale, synonym, ranking, paging, breadcrumbs, promoted items, and unavailable catalogue.
+- Mobile tests cover decoding, cache fallback, v1 reset notice, v2 round-trip, scope/overlap, custom entries, and failures.
+- API and mobile quality gates pass.
 
 #### Manual Verification
 
-- On a physical Android device, predefined aliases and custom exact names produce warning-first results, all matching ingredient names are highlighted, and the displayed total equals triggered rules rather than occurrences.
-- Empty profiles preserve ordinary S-01 results; configured non-matches show a neutral zero summary; missing/unparseable ingredients and profile failures show prominent unavailable treatment without hiding facts.
-- Light/dark visual contrast, TalkBack semantics, long-list wrapping, retry, scan-another, camera release, and last-saved-profile isolation pass the updated MVP test plan.
+- A user can select promoted `Mleko`, find `mleko kozie` or `goat milk`, choose scope, and understand consolidation.
+- Existing v1 data produces one reset notice and an empty editable v2 profile, not a corruption error.
 
-**Implementation Note**: Pause for final S-03 acceptance before implementation review and archive.
+## Phase 5: Product Contract 2.0 and Server Classification
 
----
+### Changes Required
+
+#### 1. Normative contract 2.0
+
+**Files**: contract Markdown, canonical schemas/examples, fixtures, Java records, mobile types/decoder.
+
+**Intent**: Preserve display evidence and stable taxonomy classification across the API boundary.
+
+**Contract**: Available ingredients become ordered items with display name, canonical OFF node ID when resolved, and ancestor IDs from one declared catalogue version. Evaluation completeness is `complete` or `partial`; missing/unparseable remain explicit. Producer and consumers update together.
+
+#### 2. OFF mapper identity preservation
+
+**Files**: OFF mapper and focused tests.
+
+**Intent**: Stop using an English-looking derived string as the only matching identity.
+
+**Contract**: Trusted nested leaves retain OFF IDs and labels. Resolved leaves receive active-release ancestry. Safe resolved evidence remains available when other fragments are unknown, producing `partial` rather than discarding certain matches.
+
+#### 3. Catalogue classifier
+
+**Files**: new classification domain/service and tests.
+
+**Intent**: Make OFF relationships the sole family authority.
+
+**Contract**: Classification follows stored parent edges transitively, supports multiple parents, adds no GoodGut family edges, and identifies its catalogue version.
+
+### Success Criteria
+
+#### Automated Verification
+
+- Schemas, examples, fixtures, controller tests, mapper tests, and strict mobile decoder implement v2.
+- Goat/sheep milk and egg-yolk behavior occurs only when the imported OFF release supplies ancestry.
+- Multiple parents, nested/localized ingredients, partial certain matches, and no partial zero are covered.
+- API and mobile gates pass offline.
+
+#### Manual Verification
+
+- Representative products expose stable IDs, understandable display names, catalogue version, and honest completeness.
+
+## Phase 6: Taxonomy Warning Integration and Acceptance
+
+### Changes Required
+
+#### 1. Hybrid evaluator
+
+**Files**: mobile rules domain, warning composition, profile adapter, and tests.
+
+**Intent**: Apply local node/subtree selections without transmitting the profile.
+
+**Contract**: `node` matches exact identity; `subtree` matches identity or descendant evidence. One selection contributes one warning. Custom rules keep NFKC/trim/case-insensitive exact names. Partial results show certain warnings plus incompleteness, never neutral zero.
+
+#### 2. Adapt warning-first UI
+
+**Files**: preserved result route, presentation, product-result component, and tests.
+
+**Intent**: Reuse the warning UI with taxonomy evidence.
+
+**Contract**: Rows show saved Polish fallback label and matching product text. Complete non-matches show zero; partial matches/non-matches show incomplete evaluation. Facts remain usable during failures.
+
+#### 3. Operations and acceptance documentation
+
+**Files**: API/mobile READMEs, environment example, `context/foundation/test-plan.md`.
+
+**Intent**: Document local PostgreSQL, Railway variables, import/activation/rollback, attribution, and Android acceptance.
+
+**Contract**: No secrets or startup import. Test plan covers outage, stale cache, partial mapping, overlap, multiple parents, reset, rollback, accessibility, and scan lifecycle.
+
+### Success Criteria
+
+#### Automated Verification
+
+- Cross-boundary tests prove imported taxonomy → classified product → local profile → warning evidence.
+- Complete, partial, missing, and unparseable products never produce misleading results.
+- Full API/mobile lint, type, test, and config gates pass.
+- No auth, server profile persistence, GoodGut family edges, medical claims, nutrition rules, history, or recommendations enter scope.
+
+#### Manual Verification
+
+- Android covers promoted selection, bilingual search, goat/sheep milk, egg yolk, both scopes, custom fallback, partial state, outage, themes, TalkBack, retry, and rescan.
+- Railway PostgreSQL serves search/classification and survives API redeployment.
 
 ## Testing Strategy
 
-### Unit Tests
+- Imports and database behavior use pinned fixtures; CI and startup never download OFF.
+- Contract fixtures change atomically with contract version.
+- Database tests cover constraints, activation/rollback, DAG traversal, multiple parents, and normalized search.
+- Mobile tests cover cache/versioning, reset, scopes, privacy, custom fallback, partial evaluation, counts, and presentation.
+- Real OFF and Android checks supplement deterministic fixtures.
 
-- Exact normalization, predefined aliases, custom-only names, no substring/fuzzy behavior, and every matched source ingredient name.
-- One triggered rule despite multiple canonical/alias occurrences; stable ordering for warning rows and matched names.
-- Rule display metadata for Polish predefined labels and saved custom labels.
-- Exhaustive composition states for lookup outcome, profile lifecycle, active-rule emptiness, ingredient availability, and triggered count.
-- Presentation ordering, warning copy/actions, structured ingredient highlighting metadata, and complete-facts preservation.
+## Performance and Railway
 
-### Integration Tests
+- Search is indexed, bounded, paginated, and server-side; mobile never downloads the full catalogue.
+- Ancestors may be materialized during import or queried recursively after measurement; public behavior stays identical.
+- Import never runs during startup/request handling. PostgreSQL is persistent; deployment filesystem is disposable.
+- Railway Free is development-only. Measure catalogue/index size, memory, and monthly usage after the first import.
 
-- Persist profile → hydrate store → derive active rules → evaluate normalized found product → present warning result.
-- Saving/save-error candidates continue evaluating the old active profile; successful promotion changes subsequent warnings.
-- Deselect/delete removes warnings after durable save; recovered backup profiles remain evaluable.
-- Existing lookup, decoder, API-client, scanner, and S-01 presentation suites remain regression gates.
+## Security, Privacy, Licensing
 
-### Manual Testing Steps
-
-1. Launch with an empty saved profile, scan a found product, and confirm ordinary complete facts with no personalized highlights.
-2. Save a rule that does not match, scan again, and confirm a neutral `0 ostrzeżeń` summary without safety claims.
-3. Save a predefined rule such as sucralose and test canonical plus reviewed alias evidence; confirm all matching names are highlighted but the rule counts once.
-4. Save a custom exact name and confirm case/whitespace normalization matches while a longer substring-containing ingredient does not.
-5. Configure multiple rules and confirm every triggered row appears first and the total equals the number of rules.
-6. Test products with missing and unparseable ingredients; confirm prominent evaluation unavailability plus the original facts message.
-7. Exercise profile hydration and load failure; confirm product facts remain visible and zero is never shown before trustworthy evaluation.
-8. Verify retry, scan another, duplicate capture suppression, camera release, light/dark contrast, long text wrapping, and TalkBack announcements.
-
-## Performance Considerations
-
-- Profiles and ingredient arrays are small and evaluated locally once per relevant lookup/profile state change; no cache, index, pagination, or backend processing is needed.
-- Derive matching evidence in one pass over normalized ingredient keys and avoid re-running evaluation independently during rendering.
-- Preserve structured ingredient items rather than splitting a rendered string, preventing repeated parsing and incorrect separator/highlight boundaries.
-
-## Security and Privacy Considerations
-
-- Evaluation remains entirely on device; profile rules are not added to API requests, logs, analytics, or source queries.
-- Product data and profile storage boundaries remain unchanged.
-- Warning copy describes the shopper's configured avoidance rules, not medical danger, allergy safety, or product suitability.
+- Profiles/custom text stay on-device and out of requests, URLs, logs, analytics, and OFF calls.
+- Datasource credentials and import controls use environment variables.
+- Import validates size, checksum, structure, and identifiers.
+- Preserve OFF/ODbL attribution and exact upstream revision per release.
 
 ## Migration and Rollback
 
-No stored-profile or API migration is required. S-03 consumes the existing profile schema and contract `1.0`. The presentation additions are additive; rollback restores the prior result composition while leaving profile data and lookup behavior intact. Any future evaluator-result extension should retain the aggregate contract needed by S-05 nutrition warnings.
+- Flyway migrations are forward-only; catalogue rollback switches active immutable release.
+- Contract v2 is a coordinated API/mobile development release, not a silent v1 extension.
+- Profile v1 is intentionally reset once, retained temporarily for diagnostics, with an explicit notice.
+- Integration failure falls back to unavailable/partial treatment, never a false complete alias-based result.
 
 ## References
 
-- `context/foundation/prd-v3.md` — US-01 and FR-004 through FR-010
-- `context/foundation/roadmap.md` — S-03 north-star outcome and dependencies
-- `context/foundation/test-plan.md` — S-02/S-03 matching and regression risks
-- `context/archive/2026-08-19-scan-complete-product-facts/plan.md` — S-01 result and lifecycle contracts
-- `context/archive/2026-08-26-avoided-ingredient-profile/plan.md` — active-profile and evaluator handoff contracts
-- `docs/reference/product-data-contract.md` — ingredient availability and downstream ownership
-- `apps/mobile/src/domain/personal-rules.ts` — deterministic evaluator
-- `apps/mobile/src/domain/avoided-ingredients/profile.ts` — saved-profile adapter
-- `apps/mobile/src/features/personal-profile/profile-store.ts` — active saved-profile lifecycle
-- `apps/mobile/src/features/product-lookup/presentation.ts` — current result model
-- `apps/mobile/src/components/product-facts/product-result.tsx` — current facts UI
+- `context/foundation/prd-v3.md`
+- `context/foundation/roadmap.md`
+- `context/foundation/infrastructure.md`
+- `docs/reference/product-data-contract.md`
+- `services/api/src/main/java/com/example/goodgut_server/product/source/openfoodfacts/OpenFoodFactsProductMapper.java`
+- `apps/mobile/src/data/personal-profile-codec.ts`
+- `apps/mobile/src/domain/avoided-ingredients/catalog.ts`
+- [OFF taxonomy structure](https://github.com/openfoodfacts/openfoodfacts-server/blob/main/taxonomies/README.md)
+- [OFF API](https://openfoodfacts.github.io/openfoodfacts-server/api/)
 
 ## Progress
 
-> Convention: `- [ ]` pending, `- [x]` done. Append ` — <commit sha>` when a step lands. Do not rename step titles. See `references/progress-format.md`.
+> `- [ ]` pending, `- [x]` done; append `— <sha>` when committed. Manual rows require human confirmation.
 
-### Phase 1: Match Evidence and Result Composition
-
-#### Automated
-
-- [x] 1.1 Domain tests prove exact/alias matching and expose every matched source name per rule.
-- [x] 1.2 Multiple names for one rule produce one warning row and one count.
-- [x] 1.3 Composition tests cover every profile and ingredient availability state without false zero conclusions.
-- [x] 1.4 Saving and failed-save candidates never replace active saved rules during evaluation.
-- [x] 1.5 Mobile lint, type checking, and tests pass.
-
-#### Manual
-
-- [x] 1.6 Human accepts representative rule labels and match evidence.
-
-### Phase 2: Warning-First Result Presentation
+### Phase 1: Existing Match Evidence Foundation
 
 #### Automated
-
-- [ ] 2.1 Presentation tests prove warning-first order, counts, labels, and matched names.
-- [ ] 2.2 Empty profiles and configured zero matches remain behaviorally distinct.
-- [ ] 2.3 Loading, profile failure, and ingredient unavailability never render a false zero.
-- [ ] 2.4 Existing lookup, decoder, client, scanner, and facts tests remain passing.
-- [ ] 2.5 Mobile lint, type checking, tests, and Expo public config pass.
+- [x] 1.1 Domain evidence and composition foundation completed. — ce0c3b1
 
 #### Manual
+- [x] 1.2 Transitional evidence semantics accepted. — ce0c3b1
 
-- [ ] 2.6 Android light/dark warning visuals and long ingredient wrapping are usable.
-- [ ] 2.7 TalkBack communicates warning totals, evidence, state, and actions without color dependence.
-- [ ] 2.8 Loading/failure recovery preserves usable product facts.
-
-### Phase 3: Integration Hardening and Android Acceptance
+### Phase 2: Preserve Warning-First Presentation
 
 #### Automated
-
-- [ ] 3.1 Cross-boundary tests prove durable profiles produce deterministic warning presentation.
-- [ ] 3.2 The MVP test plan maps every S-03 high-risk behavior to evidence.
-- [ ] 3.3 Mobile lint, type checking, and tests pass.
-- [ ] 3.4 API regression tests pass offline.
-- [ ] 3.5 Scope checks find no contract, nutrition-rule, fuzzy-match, medical, auth/sync, history, or recommendation drift.
+- [x] 2.1 Warning-first implementation and automated gates pass.
 
 #### Manual
+- [ ] 2.2 Final Android visual, accessibility, and recovery acceptance passes.
 
-- [ ] 3.6 Physical Android aliases, custom names, multi-match highlights, and rule counts are correct.
-- [ ] 3.7 Empty, zero, unavailable, and profile-failure states remain honest while preserving facts.
-- [ ] 3.8 Visual, accessibility, scan lifecycle, and last-saved-profile acceptance passes.
+### Phase 3: PostgreSQL Catalogue and Safe OFF Import
+
+#### Automated
+- [x] 3.1 PostgreSQL and Flyway foundation is verified.
+- [x] 3.2 Taxonomy schema enforces release, node, label, and edge integrity.
+- [x] 3.3 Pinned fixture imports, validates, activates, and rolls back safely.
+- [x] 3.4 API tests pass without live taxonomy access.
+
+#### Manual
+- [x] 3.5 A reviewed real OFF snapshot imports and rolls back locally.
+
+### Phase 4: Catalogue API and Profile Editor v2
+
+#### Automated
+- [ ] 4.1 Catalogue APIs cover locale, synonyms, breadcrumbs, ranking, paging, and unavailable state.
+- [ ] 4.2 Mobile cache and decoders cover fresh, stale, and unavailable data.
+- [ ] 4.3 Profile v2 reset, persistence, scope, overlap, and custom fallback pass.
+- [ ] 4.4 Editor coverage and API/mobile quality gates pass.
+
+#### Manual
+- [ ] 4.5 Bilingual discovery, scope, consolidation, and reset notice are usable on Android.
+
+### Phase 5: Product Contract 2.0 and Server Classification
+
+#### Automated
+- [ ] 5.1 Contract schemas, examples, fixtures, API records, and mobile decoder implement v2.
+- [ ] 5.2 OFF mapper preserves identities and partial evidence.
+- [ ] 5.3 Classifier follows only OFF ancestry, including multiple parents.
+- [ ] 5.4 Complete and partial contract regression suites pass.
+
+#### Manual
+- [ ] 5.5 Representative OFF products expose understandable versioned evidence.
+
+### Phase 6: Taxonomy Warning Integration and Acceptance
+
+#### Automated
+- [ ] 6.1 Node/subtree and custom evaluation yields one warning per selection.
+- [ ] 6.2 UI distinguishes complete zero, partial evidence, and unavailable evaluation.
+- [ ] 6.3 Cross-boundary and full quality gates pass.
+- [ ] 6.4 Documentation, privacy, licensing, deployment, and scope checks pass.
+
+#### Manual
+- [ ] 6.5 Physical Android taxonomy, partial/offline, visual, accessibility, and scan acceptance passes.
+- [ ] 6.6 Railway persistence and catalogue behavior survive API redeployment.
