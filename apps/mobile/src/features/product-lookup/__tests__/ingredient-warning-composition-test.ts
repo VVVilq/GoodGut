@@ -1,5 +1,6 @@
 import { AvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
 import { FoundLookup, NormalizedProduct } from '@/domain/product-lookup/types';
+import { decodeProductLookup } from '@/domain/product-lookup/decoder';
 import { PersonalProfileState } from '@/features/personal-profile/profile-store';
 
 import { composeIngredientWarnings } from '../ingredient-warning-composition';
@@ -19,6 +20,28 @@ const CANDIDATE_PROFILE: AvoidedIngredientProfile = {
 };
 
 describe('composeIngredientWarnings', () => {
+  it('triggers from the real imported-taxonomy API boundary fixture', () => {
+    const decoded = decodeProductLookup(fixture(
+      'docs/reference/examples/ingredient-warning-imported-taxonomy.json',
+    ));
+    if (decoded.outcome !== 'found') throw new Error('expected found boundary fixture');
+    const profile: AvoidedIngredientProfile = {
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }],
+      customIngredients: [],
+    };
+
+    const result = composeIngredientWarnings(
+      { status: 'resolved', barcode: decoded.barcode, result: decoded },
+      ready(profile),
+    );
+
+    expect(result).toMatchObject({
+      kind: 'triggered',
+      triggerCount: 1,
+      matchedIngredientNames: ['goat milk'],
+    });
+  });
+
   it('does not evaluate non-found lookup states', () => {
     expect(composeIngredientWarnings({ status: 'idle' }, ready(SAVED_PROFILE))).toEqual({
       kind: 'not_applicable',
@@ -56,8 +79,8 @@ describe('composeIngredientWarnings', () => {
   it('matches node and subtree selections once and keeps saved Polish labels', () => {
     const profile: AvoidedIngredientProfile = {
       selections: [
-        { nodeId: 'en:goat-milk', labelPl: 'Mleko kozie', scope: 'node' },
-        { nodeId: 'en:egg', labelPl: 'Jajko', scope: 'subtree' },
+        { nodeId: 'en:goat-milk', labelPl: 'Mleko kozie', scope: 'node', ancestorNodeIds: ['en:milk'] },
+        { nodeId: 'en:egg', labelPl: 'Jajko', scope: 'subtree', ancestorNodeIds: [] },
       ],
       customIngredients: [],
     };
@@ -76,7 +99,7 @@ describe('composeIngredientWarnings', () => {
 
   it('never reports a neutral zero for partial taxonomy evidence', () => {
     const profile: AvoidedIngredientProfile = {
-      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'node' }],
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'node', ancestorNodeIds: [] }],
       customIngredients: [],
     };
     expect(composeIngredientWarnings(found({ ingredients: evidenceIngredients('partial') }), ready(profile))).toEqual({
@@ -194,4 +217,11 @@ function evidenceIngredients(completeness: 'complete' | 'partial'): NormalizedPr
     { displayName: 'egg yolk', nodeId: 'en:egg-yolk', ancestorNodeIds: ['en:egg'] },
   ];
   return { status: 'available', completeness, catalogueVersion: 'fixture', items, names: items.map(({ displayName }) => displayName) };
+}
+
+function fixture(repositoryPath: string): object {
+  const path = jest.requireActual<{ resolve: (...segments: string[]) => string }>('path');
+  const fs = jest.requireActual<{ readFileSync: (file: string, encoding: 'utf8') => string }>('fs');
+  const file = path.resolve(process.cwd(), '..', '..', repositoryPath);
+  return JSON.parse(fs.readFileSync(file, 'utf8')) as object;
 }

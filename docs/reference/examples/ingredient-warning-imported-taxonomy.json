@@ -1,0 +1,41 @@
+{
+  "contractVersion": "2.0",
+  "outcome": "found",
+  "barcode": "12345678",
+  "source": {
+    "provider": "open_food_facts",
+    "providerProductUrl": "https://world.openfoodfacts.org/product/12345678",
+    "fetchedAt": "2026-09-02T00:00:00Z"
+  },
+  "product": {
+    "identity": {
+      "displayName": "Goat milk test product",
+      "brands": [],
+      "quantity": null,
+      "imageUrl": null
+    },
+    "nutriScore": { "status": "missing" },
+    "ingredients": {
+      "status": "available",
+      "completeness": "complete",
+      "catalogueVersion": "warning-boundary-v1",
+      "items": [
+        {
+          "displayName": "goat milk",
+          "nodeId": "en:goat-milk",
+          "ancestorNodeIds": ["en:dairy-ingredient", "en:milk"]
+        }
+      ]
+    },
+    "nutrition": {
+      "energy_kcal": { "status": "unavailable", "reason": "missing_source" },
+      "carbohydrates": { "status": "unavailable", "reason": "missing_source" },
+      "sugars": { "status": "unavailable", "reason": "missing_source" },
+      "fat": { "status": "unavailable", "reason": "missing_source" },
+      "saturated_fat": { "status": "unavailable", "reason": "missing_source" },
+      "fiber": { "status": "unavailable", "reason": "missing_source" },
+      "protein": { "status": "unavailable", "reason": "missing_source" },
+      "salt": { "status": "unavailable", "reason": "missing_source" }
+    }
+  }
+}

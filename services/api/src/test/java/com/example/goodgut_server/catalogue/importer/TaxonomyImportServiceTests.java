@@ -5,15 +5,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.HexFormat;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
@@ -24,6 +29,9 @@ class TaxonomyImportServiceTests {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @MockitoSpyBean
+    private OffTaxonomyParser parser;
 
     @Test
     void importsPolishAndEnglishLabelsMultipleParentsAndActivatesRelease() throws Exception {
@@ -82,6 +90,47 @@ class TaxonomyImportServiceTests {
                 "SELECT status FROM taxonomy_release WHERE id = ?",
                 String.class,
                 second.releaseId())).isEqualTo("retired");
+    }
+
+    @Test
+    void missingEnglishCanonicalCoverageFailsWithoutReplacingActiveRelease() throws Exception {
+        TaxonomyImportReport active = service.importRelease(
+                request(fixture("ingredients-small.json"), "coverage-active", true));
+        Path incomplete = fixture("ingredients-missing-english-label.json");
+
+        assertThatThrownBy(() -> service.importRelease(request(incomplete, "missing-english", true)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("English canonical label");
+
+        assertThat(jdbc.queryForObject(
+                "SELECT release_id FROM active_taxonomy_release WHERE singleton_key = 1",
+                Long.class)).isEqualTo(active.releaseId());
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM taxonomy_release WHERE version = 'missing-english' AND status = 'failed'",
+                Integer.class)).isEqualTo(1);
+    }
+
+    @Test
+    void importsVerifiedSnapshotWhenOriginalSourceChangesAndDeletesSnapshot() throws Exception {
+        Path source = Files.createTempFile("goodgut-taxonomy-mutable-", ".json");
+        source.toFile().deleteOnExit();
+        Files.copy(fixture("ingredients-small.json"), source, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        List<Path> parsedSources = new ArrayList<>();
+        doAnswer(invocation -> {
+            Path parsedSource = invocation.getArgument(0);
+            parsedSources.add(parsedSource);
+            if (parsedSources.size() == 1) {
+                Files.writeString(source, "{}");
+            }
+            return invocation.callRealMethod();
+        }).when(parser).forEach(any(Path.class), any());
+
+        TaxonomyImportReport report = service.importRelease(request(source, "snapshot-bound", false));
+
+        assertThat(report.entryCount()).isEqualTo(4);
+        assertThat(parsedSources).hasSize(3).allMatch(path -> path.equals(parsedSources.getFirst()));
+        assertThat(parsedSources.getFirst()).isNotEqualTo(source);
+        assertThat(parsedSources.getFirst()).doesNotExist();
     }
 
     private TaxonomyImportRequest request(Path source, String version, boolean activate) throws Exception {

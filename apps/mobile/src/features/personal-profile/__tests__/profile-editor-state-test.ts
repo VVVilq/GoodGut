@@ -14,7 +14,16 @@ describe('profile editor state v2', () => {
     expect(chooseCatalogueItem(withMilk,goat,'node').consolidationMessage).toBeDefined();
     const withGoat=chooseCatalogueItem(createProfileEditorState({selections:[],customIngredients:[]}),goat,'node');
     const consolidated=chooseCatalogueItem(withGoat,MILK,'subtree');
-    expect(consolidated.draft.selections).toEqual([{nodeId:'en:milk',labelPl:'Mleko',scope:'subtree'}]);
+    expect(consolidated.draft.selections).toEqual([{nodeId:'en:milk',labelPl:'Mleko',scope:'subtree',ancestorNodeIds:[]}]);
     expect(catalogueItemSelectionState(withMilk,goat)).toEqual({nodeChecked:true,subtreeChecked:true,coveredByAncestor:true});
+  });
+  it('consolidates a persisted descendant after reopening the editor',()=>{
+    const reopened=createProfileEditorState({
+      selections:[{nodeId:'en:goat-milk',labelPl:'Mleko kozie',scope:'node',ancestorNodeIds:['en:milk']}],
+      customIngredients:[],
+    });
+    const consolidated=chooseCatalogueItem(reopened,MILK,'subtree');
+    expect(consolidated.draft.selections).toEqual([{nodeId:'en:milk',labelPl:'Mleko',scope:'subtree',ancestorNodeIds:[]}]);
+    expect(consolidated.consolidationMessage).toBeDefined();
   });
 });

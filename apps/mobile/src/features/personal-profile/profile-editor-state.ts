@@ -6,7 +6,7 @@ export function createProfileEditorState(active: AvoidedIngredientProfile): Prof
 export function isProfileDraftDirty(state: ProfileEditorState) { return JSON.stringify(state.active) !== JSON.stringify(state.draft); }
 export function chooseCatalogueItem(state: ProfileEditorState, item: CatalogueItem, scope: SelectionScope): ProfileEditorState {
   const result = selectTaxonomyIngredient(state.draft, { nodeId: item.nodeId, labelPl: item.label, scope }, item.breadcrumb.map(({ nodeId }) => nodeId));
-  const descendants = scope === 'subtree' ? result.profile.selections.filter((saved) => state.ancestryByNode[saved.nodeId]?.includes(item.nodeId)).map((saved) => saved.nodeId) : [];
+  const descendants = scope === 'subtree' ? result.profile.selections.filter((saved) => saved.ancestorNodeIds.includes(item.nodeId)).map((saved) => saved.nodeId) : [];
   const draft = descendants.reduce(removeTaxonomySelection, result.profile);
   const consolidated = [...result.consolidated, ...descendants];
   return { ...state, draft, ancestryByNode: { ...state.ancestryByNode, [item.nodeId]: item.breadcrumb.map(({ nodeId }) => nodeId) }, consolidationMessage: consolidated.length ? 'Ten wybór zastępuje bardziej szczegółowy wpis.' : undefined };

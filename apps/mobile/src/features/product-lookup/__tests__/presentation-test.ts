@@ -154,7 +154,7 @@ describe('product lookup presentation', () => {
 
   it('shows certain warnings and an explicit incomplete state for partial evidence', () => {
     const configured = ready({
-      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree' }],
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }],
       customIngredients: [],
     });
     const matching = foundPresentation(product({ ingredients: taxonomyIngredients('partial') }), configured);
@@ -166,7 +166,7 @@ describe('product lookup presentation', () => {
     expect(matching.ingredientWarnings.detail).toContain('niepełna');
 
     const exactOnly = ready({
-      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'node' }],
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'node', ancestorNodeIds: [] }],
       customIngredients: [],
     });
     expect(foundPresentation(product({ ingredients: taxonomyIngredients('partial') }), exactOnly).ingredientWarnings).toMatchObject({

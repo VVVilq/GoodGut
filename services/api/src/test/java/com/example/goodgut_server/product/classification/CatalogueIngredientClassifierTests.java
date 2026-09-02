@@ -8,6 +8,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CatalogueIngredientClassifierTests {
@@ -17,17 +18,16 @@ class CatalogueIngredientClassifierTests {
         IngredientCatalogueRepository repository = mock(IngredientCatalogueRepository.class);
         when(repository.activeRelease()).thenReturn(
                 new IngredientCatalogueRepository.ActiveRelease(7L, "off-fixture"));
-        when(repository.containsNode(7L, "en:goat-milk")).thenReturn(true);
-        when(repository.ancestorIds(7L, "en:goat-milk"))
-                .thenReturn(List.of("en:dairy-ingredient", "en:milk"));
-        when(repository.containsNode(7L, "en:sheep-milk")).thenReturn(true);
-        when(repository.ancestorIds(7L, "en:sheep-milk")).thenReturn(List.of("en:milk"));
-        when(repository.containsNode(7L, "en:egg-yolk")).thenReturn(true);
-        when(repository.ancestorIds(7L, "en:egg-yolk")).thenReturn(List.of("en:egg"));
+        List<String> requested = List.of("en:goat-milk", "en:sheep-milk", "en:egg-yolk", "en:goat-milk");
+        when(repository.classificationEvidence(7L, requested)).thenReturn(List.of(
+                new IngredientCatalogueRepository.ClassificationEvidenceRow("en:egg-yolk", "en:egg"),
+                new IngredientCatalogueRepository.ClassificationEvidenceRow("en:goat-milk", "en:dairy-ingredient"),
+                new IngredientCatalogueRepository.ClassificationEvidenceRow("en:goat-milk", "en:milk"),
+                new IngredientCatalogueRepository.ClassificationEvidenceRow("en:sheep-milk", "en:milk")));
 
         CatalogueIngredientClassifier classifier = new CatalogueIngredientClassifier(repository);
         IngredientClassificationBatch batch = classifier.classify(
-                List.of("en:goat-milk", "en:sheep-milk", "en:egg-yolk"));
+                requested);
         IngredientClassification result = batch.classifications().get("en:goat-milk");
 
         assertEquals("off-fixture", result.catalogueVersion());
@@ -37,6 +37,7 @@ class CatalogueIngredientClassifierTests {
                 batch.classifications().get("en:sheep-milk").ancestorNodeIds());
         assertEquals(List.of("en:egg"),
                 batch.classifications().get("en:egg-yolk").ancestorNodeIds());
+        verify(repository).classificationEvidence(7L, requested);
     }
 
     @Test
@@ -44,9 +45,25 @@ class CatalogueIngredientClassifierTests {
         IngredientCatalogueRepository repository = mock(IngredientCatalogueRepository.class);
         when(repository.activeRelease()).thenReturn(
                 new IngredientCatalogueRepository.ActiveRelease(7L, "off-fixture"));
+        when(repository.classificationEvidence(7L, List.of("en:goodgut-invented-family")))
+                .thenReturn(List.of());
 
         CatalogueIngredientClassifier classifier = new CatalogueIngredientClassifier(repository);
 
         assertTrue(classifier.classify(List.of("en:goodgut-invented-family")).classifications().isEmpty());
+    }
+
+    @Test
+    void keepsExistingRootNodesWithEmptyAncestry() {
+        IngredientCatalogueRepository repository = mock(IngredientCatalogueRepository.class);
+        when(repository.activeRelease()).thenReturn(
+                new IngredientCatalogueRepository.ActiveRelease(7L, "off-fixture"));
+        when(repository.classificationEvidence(7L, List.of("en:milk"))).thenReturn(List.of(
+                new IngredientCatalogueRepository.ClassificationEvidenceRow("en:milk", null)));
+
+        IngredientClassification result = new CatalogueIngredientClassifier(repository)
+                .classify(List.of("en:milk")).classifications().get("en:milk");
+
+        assertEquals(List.of(), result.ancestorNodeIds());
     }
 }

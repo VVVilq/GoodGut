@@ -1,0 +1,9 @@
+{
+  "en:milk": {
+    "name": { "en": "milk", "pl": "mleko" }
+  },
+  "en:goat-milk": {
+    "name": { "pl": "mleko kozie" },
+    "parents": ["en:milk"]
+  }
+}

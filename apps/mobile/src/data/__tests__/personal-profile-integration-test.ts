@@ -23,7 +23,7 @@ describe('persisted profile evaluator handoff', () => {
     const storage = new MemoryStorage();
     const repository = new TwoSlotPersonalProfileRepository(storage);
     const profile = {
-      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree' }],
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }],
       customIngredients: [{ id: 'custom-1', name: 'Inulina' }],
     } as const;
     await repository.save(profile);

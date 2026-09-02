@@ -2,7 +2,12 @@ import { SelectionScope } from '../ingredient-catalogue';
 import { IngredientRule, ingredientComparisonKey } from '../personal-rules';
 
 export const MAX_CUSTOM_INGREDIENT_LENGTH = 80;
-export type TaxonomySelection = { nodeId: string; labelPl: string; scope: SelectionScope };
+export type TaxonomySelection = {
+  nodeId: string;
+  labelPl: string;
+  scope: SelectionScope;
+  ancestorNodeIds: readonly string[];
+};
 export type CustomIngredient = { id: string; name: string };
 export type AvoidedIngredientProfile = { selections: readonly TaxonomySelection[]; customIngredients: readonly CustomIngredient[] };
 export type IngredientRuleDescriptor = { rule: IngredientRule; label: string };
@@ -29,11 +34,20 @@ export function validateAvoidedIngredientProfile(profile: AvoidedIngredientProfi
   return null;
 }
 
-export function selectTaxonomyIngredient(profile: AvoidedIngredientProfile, selection: TaxonomySelection, ancestorIds: readonly string[] = []) {
+export function selectTaxonomyIngredient(profile: AvoidedIngredientProfile, selection: Omit<TaxonomySelection, 'ancestorNodeIds'>, ancestorIds: readonly string[] = []) {
   const covering = profile.selections.find((saved) => saved.scope === 'subtree' && ancestorIds.includes(saved.nodeId));
   if (covering) return { profile, consolidated: [selection.nodeId] as readonly string[] };
   const same = profile.selections.filter((saved) => saved.nodeId === selection.nodeId).map((saved) => saved.nodeId);
-  return { profile: { ...profile, selections: [...profile.selections.filter((saved) => !same.includes(saved.nodeId)), { ...selection, labelPl: selection.labelPl.trim() }] }, consolidated: same.filter((id) => id !== selection.nodeId) };
+  return {
+    profile: {
+      ...profile,
+      selections: [
+        ...profile.selections.filter((saved) => !same.includes(saved.nodeId)),
+        { ...selection, labelPl: selection.labelPl.trim(), ancestorNodeIds: [...ancestorIds] },
+      ],
+    },
+    consolidated: same.filter((id) => id !== selection.nodeId),
+  };
 }
 export function removeTaxonomySelection(profile: AvoidedIngredientProfile, nodeId: string): AvoidedIngredientProfile { return { ...profile, selections: profile.selections.filter((item) => item.nodeId !== nodeId) }; }
 export function addCustomIngredient(profile: AvoidedIngredientProfile, ingredient: CustomIngredient): ProfileMutationResult {

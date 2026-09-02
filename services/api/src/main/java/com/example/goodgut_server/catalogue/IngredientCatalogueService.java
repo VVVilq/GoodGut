@@ -1,6 +1,5 @@
 package com.example.goodgut_server.catalogue;
 
-import com.example.goodgut_server.catalogue.persistence.TaxonomyEdgeRow;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -56,17 +55,24 @@ public class IngredientCatalogueService {
     }
 
     private List<CatalogueItem> enrich(long releaseId, String locale, List<CatalogueSearchRow> rows) {
-        List<TaxonomyEdgeRow> edges = repository.edges(releaseId);
-        Map<String, List<String>> parents = new HashMap<>();
+        List<IngredientCatalogueRepository.EnrichmentRow> enrichment = repository.enrichment(
+                releaseId, rows.stream().map(CatalogueSearchRow::nodeId).toList(), locale);
+        Map<String, Map<String, List<String>>> parentsByRoot = new HashMap<>();
+        Map<String, String> labels = new HashMap<>();
         Set<String> withChildren = new HashSet<>();
-        for (TaxonomyEdgeRow edge : edges) {
-            parents.computeIfAbsent(edge.childId(), ignored -> new ArrayList<>()).add(edge.parentId());
-            withChildren.add(edge.parentId());
+        for (IngredientCatalogueRepository.EnrichmentRow item : enrichment) {
+            if (item.rootHasChildren()) withChildren.add(item.rootId());
+            if (item.childId() == null) continue;
+            parentsByRoot.computeIfAbsent(item.rootId(), ignored -> new HashMap<>())
+                    .computeIfAbsent(item.childId(), ignored -> new ArrayList<>())
+                    .add(item.parentId());
+            labels.put(item.parentId(), item.parentLabel());
         }
-        parents.values().forEach(values -> values.sort(String::compareTo));
-        Map<String, String> labels = repository.canonicalLabels(releaseId, locale);
+        parentsByRoot.values().forEach(parents ->
+                parents.values().forEach(values -> values.sort(String::compareTo)));
         return rows.stream().map(row -> new CatalogueItem(
-                row.nodeId(), row.label(), row.locale(), breadcrumb(row.nodeId(), parents, labels), true,
+                row.nodeId(), row.label(), row.locale(),
+                breadcrumb(row.nodeId(), parentsByRoot.getOrDefault(row.nodeId(), Map.of()), labels), true,
                 withChildren.contains(row.nodeId()),
                 withChildren.contains(row.nodeId()) ? List.of("node", "subtree") : List.of("node"))).toList();
     }

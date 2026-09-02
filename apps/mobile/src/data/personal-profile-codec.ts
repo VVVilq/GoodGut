@@ -13,8 +13,13 @@ export function decodePersonalProfile(value: string): ProfileDecodeResult {
 export function isV1PersonalProfile(value:string):boolean { try { const parsed:unknown=JSON.parse(value); return record(parsed)&&parsed.schemaVersion===1&&record(parsed.profile); } catch{return false;} }
 function decodeProfile(value:unknown):AvoidedIngredientProfile|null {
   if(!record(value)||!keys(value,['selections','customIngredients'])||!Array.isArray(value.selections)||!Array.isArray(value.customIngredients)) return null;
-  const selections:{nodeId:string;labelPl:string;scope:'node'|'subtree'}[]=[];
-  for(const item of value.selections){if(!record(item)||!keys(item,['nodeId','labelPl','scope'])||typeof item.nodeId!=='string'||typeof item.labelPl!=='string'||(item.scope!=='node'&&item.scope!=='subtree')) return null; selections.push({nodeId:item.nodeId,labelPl:item.labelPl,scope:item.scope});}
+  const selections:{nodeId:string;labelPl:string;scope:'node'|'subtree';ancestorNodeIds:string[]}[]=[];
+  for(const item of value.selections){
+    if(!record(item)||(!keys(item,['nodeId','labelPl','scope'])&&!keys(item,['nodeId','labelPl','scope','ancestorNodeIds']))||typeof item.nodeId!=='string'||typeof item.labelPl!=='string'||(item.scope!=='node'&&item.scope!=='subtree')) return null;
+    const ancestorNodeIds=item.ancestorNodeIds===undefined?[]:item.ancestorNodeIds;
+    if(!Array.isArray(ancestorNodeIds)||ancestorNodeIds.some((id)=>typeof id!=='string')) return null;
+    selections.push({nodeId:item.nodeId,labelPl:item.labelPl,scope:item.scope,ancestorNodeIds:[...new Set(ancestorNodeIds)]});
+  }
   const customIngredients:{id:string;name:string}[]=[];
   for(const item of value.customIngredients){if(!record(item)||!keys(item,['id','name'])||typeof item.id!=='string'||typeof item.name!=='string') return null; customIngredients.push({id:item.id,name:item.name});}
   return {selections,customIngredients};

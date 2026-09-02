@@ -18,7 +18,7 @@ Replace bundled name-and-alias matching with a server-owned, versioned Open Food
 | Discovery | Promoted starter list plus server-side search. |
 | Migration | Existing profile v1 is intentionally reset with an explicit notice. |
 | Partial parsing | Return certain matches plus incomplete status; never show a trustworthy zero. |
-| Outage | Cached selections and classified products keep scans working. |
+| Outage | Cached catalogue/profile data keeps rule editing usable; product scans still require a successful API lookup. |
 
 ## Current State
 
@@ -187,7 +187,7 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 - Schemas, examples, fixtures, controller tests, mapper tests, and strict mobile decoder implement v2.
 - Goat/sheep milk and egg-yolk behavior occurs only when the imported OFF release supplies ancestry.
 - Multiple parents, nested/localized ingredients, partial certain matches, and no partial zero are covered.
-- API and mobile gates pass offline.
+- Deterministic API and mobile gates pass without live OFF access.
 
 #### Manual Verification
 
@@ -294,7 +294,7 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 - [x] 2.1 Warning-first implementation and automated gates pass.
 
 #### Manual
-- [x] 2.2 Final Android visual, accessibility, and recovery acceptance passes. — 3859f9d
+- [x] 2.2 Final Android visual, accessibility, and recovery acceptance passes. — user-confirmed 2026-09-02
 
 ### Phase 3: PostgreSQL Catalogue and Safe OFF Import
 
@@ -305,7 +305,7 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 - [x] 3.4 API tests pass without live taxonomy access. — 83f256f
 
 #### Manual
-- [x] 3.5 A reviewed real OFF snapshot imports and rolls back locally. — 83f256f
+- [x] 3.5 A reviewed real OFF snapshot imports and rolls back locally. — user-confirmed 2026-09-02
 
 ### Phase 4: Catalogue API and Profile Editor v2
 
@@ -316,7 +316,7 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 - [x] 4.4 Editor coverage and API/mobile quality gates pass. — b2e5e26
 
 #### Manual
-- [x] 4.5 Bilingual discovery, scope, consolidation, and reset notice are usable on Android. — b2e5e26
+- [x] 4.5 Bilingual discovery, scope, consolidation, and reset notice are usable on Android. — user-confirmed 2026-09-02
 
 ### Phase 5: Product Contract 2.0 and Server Classification
 
@@ -327,7 +327,7 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 - [x] 5.4 Complete and partial contract regression suites pass. — 454a702
 
 #### Manual
-- [x] 5.5 Representative OFF products expose understandable versioned evidence. — 454a702
+- [x] 5.5 Representative OFF products expose understandable versioned evidence. — user-confirmed 2026-09-02
 
 ### Phase 6: Taxonomy Warning Integration and Acceptance
 
@@ -338,5 +338,5 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 - [x] 6.4 Documentation, privacy, licensing, deployment, and scope checks pass. — 3859f9d
 
 #### Manual
-- [x] 6.5 Physical Android taxonomy, partial/offline, visual, accessibility, and scan acceptance passes. — 3859f9d
-- [x] 6.6 Railway persistence and catalogue behavior survive API redeployment. — 3859f9d
+- [x] 6.5 Physical Android taxonomy, partial/offline, visual, accessibility, and scan acceptance passes. — user-confirmed 2026-09-02
+- [x] 6.6 Railway persistence and catalogue behavior survive API redeployment. — user-confirmed 2026-09-02

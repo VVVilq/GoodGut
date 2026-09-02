@@ -4,7 +4,7 @@ describe('avoided ingredient profile v2', () => {
   it('stores stable taxonomy selections and supports scope replacement', () => {
     const empty = emptyAvoidedIngredientProfile();
     const selected = selectTaxonomyIngredient(empty, { nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree' });
-    expect(selected.profile.selections).toEqual([{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree' }]);
+    expect(selected.profile.selections).toEqual([{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }]);
     expect(removeTaxonomySelection(selected.profile, 'en:milk')).toEqual(empty);
   });
   it('does not add a descendant already covered by a subtree', () => {
@@ -13,7 +13,7 @@ describe('avoided ingredient profile v2', () => {
     expect(result.profile).toBe(parent); expect(result.consolidated).toEqual(['en:goat-milk']);
   });
   it('validates selections and custom exact-text entries', () => {
-    expect(validateAvoidedIngredientProfile({ selections: [{ nodeId: 'bad', labelPl: '', scope: 'node' }], customIngredients: [] })).toMatchObject({ code: 'invalid_selection' });
+    expect(validateAvoidedIngredientProfile({ selections: [{ nodeId: 'bad', labelPl: '', scope: 'node', ancestorNodeIds: [] }], customIngredients: [] })).toMatchObject({ code: 'invalid_selection' });
     const added = addCustomIngredient(emptyAvoidedIngredientProfile(), { id: 'one', name: ' Inulina ' });
     if (!added.ok) throw new Error('expected success');
     expect(added.profile.customIngredients).toEqual([{ id: 'one', name: 'Inulina' }]);
@@ -21,7 +21,7 @@ describe('avoided ingredient profile v2', () => {
   });
   it('adapts taxonomy selections and custom entries without losing saved labels or scope', () => {
     const rules = profileToIngredientRules({
-      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree' }],
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }],
       customIngredients: [{ id: 'one', name: 'Inulina' }],
     });
     expect(rules).toEqual([

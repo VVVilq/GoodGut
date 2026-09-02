@@ -86,6 +86,30 @@ public class TaxonomyCatalogueRepository {
                 releaseId);
     }
 
+    public ReleaseCounts releaseCounts(long releaseId) {
+        Integer nodes = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM ingredient_taxon WHERE release_id = ?", Integer.class, releaseId);
+        Integer labels = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM ingredient_label WHERE release_id = ?", Integer.class, releaseId);
+        Integer edges = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM ingredient_parent WHERE release_id = ?", Integer.class, releaseId);
+        Integer missingEnglishCanonicalLabels = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM ingredient_taxon taxon
+                WHERE taxon.release_id = ?
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM ingredient_label label
+                    WHERE label.release_id = taxon.release_id
+                      AND label.taxonomy_id = taxon.taxonomy_id
+                      AND label.locale = 'en'
+                      AND label.kind = 'canonical'
+                      AND TRIM(label.label) <> ''
+                  )
+                """, Integer.class, releaseId);
+        return new ReleaseCounts(nodes, labels, edges, missingEnglishCanonicalLabels);
+    }
+
     public void completeRelease(long releaseId, int entries, int labels, int edges) {
         jdbcTemplate.update("""
                 UPDATE taxonomy_release
@@ -124,5 +148,12 @@ public class TaxonomyCatalogueRepository {
     public String releaseStatus(long releaseId) {
         return jdbcTemplate.queryForObject(
                 "SELECT status FROM taxonomy_release WHERE id = ?", String.class, releaseId);
+    }
+
+    public record ReleaseCounts(
+            int nodes,
+            int labels,
+            int edges,
+            int missingEnglishCanonicalLabels) {
     }
 }

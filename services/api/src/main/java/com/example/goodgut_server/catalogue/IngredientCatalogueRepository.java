@@ -1,6 +1,5 @@
 package com.example.goodgut_server.catalogue;
 
-import com.example.goodgut_server.catalogue.persistence.TaxonomyEdgeRow;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -26,21 +25,22 @@ public class IngredientCatalogueRepository {
     }
 
     public List<CatalogueSearchRow> search(long releaseId, String query, String locale, int limit, int offset) {
+        String escapedQuery = escapeLike(query);
         return jdbc.query("""
                 WITH matched AS (
                     SELECT l.taxonomy_id,
                            MIN(CASE
                                WHEN l.locale = ? AND l.kind = 'canonical' AND l.normalized_label = ? THEN 0
                                WHEN l.locale = ? AND l.normalized_label = ? THEN 1
-                               WHEN l.locale = ? AND l.normalized_label LIKE ? THEN 2
-                               WHEN l.locale = ? AND l.normalized_label LIKE ? THEN 3
+                               WHEN l.locale = ? AND l.normalized_label LIKE ? ESCAPE '\\' THEN 2
+                               WHEN l.locale = ? AND l.normalized_label LIKE ? ESCAPE '\\' THEN 3
                                WHEN l.locale = 'en' AND l.normalized_label = ? THEN 4
-                               WHEN l.locale = 'en' AND l.normalized_label LIKE ? THEN 5
+                               WHEN l.locale = 'en' AND l.normalized_label LIKE ? ESCAPE '\\' THEN 5
                                ELSE 6 END) AS rank
                     FROM ingredient_label l
                     WHERE l.release_id = ?
                       AND l.locale IN (?, 'en')
-                      AND l.normalized_label LIKE ?
+                      AND l.normalized_label LIKE ? ESCAPE '\\'
                     GROUP BY l.taxonomy_id
                 )
                 SELECT m.taxonomy_id,
@@ -58,17 +58,21 @@ public class IngredientCatalogueRepository {
                 LIMIT ? OFFSET ?
                 """, (result, row) -> new CatalogueSearchRow(
                         result.getString(1), result.getString(2), result.getString(3)),
-                locale, query, locale, query, locale, query + "%", locale, "%" + query + "%",
-                query, query + "%", releaseId, locale, "%" + query + "%", locale,
+                locale, query, locale, query, locale, escapedQuery + "%", locale, "%" + escapedQuery + "%",
+                query, escapedQuery + "%", releaseId, locale, "%" + escapedQuery + "%", locale,
                 releaseId, locale, releaseId, limit, offset);
     }
 
     public long searchCount(long releaseId, String query, String locale) {
         Long count = jdbc.queryForObject("""
                 SELECT COUNT(DISTINCT taxonomy_id) FROM ingredient_label
-                WHERE release_id = ? AND locale IN (?, 'en') AND normalized_label LIKE ?
-                """, Long.class, releaseId, locale, "%" + query + "%");
+                WHERE release_id = ? AND locale IN (?, 'en') AND normalized_label LIKE ? ESCAPE '\\'
+                """, Long.class, releaseId, locale, "%" + escapeLike(query) + "%");
         return count == null ? 0 : count;
+    }
+
+    private String escapeLike(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     public List<CatalogueSearchRow> nodes(long releaseId, List<String> ids, String locale) {
@@ -108,53 +112,103 @@ public class IngredientCatalogueRepository {
                 locale, locale, releaseId, parentId);
     }
 
+    public List<EnrichmentRow> enrichment(long releaseId, List<String> nodeIds, String locale) {
+        if (nodeIds.isEmpty()) return List.of();
+        String selectedValues = String.join(",", java.util.Collections.nCopies(nodeIds.size(), "(?)"));
+        List<Object> parameters = new java.util.ArrayList<>(nodeIds);
+        parameters.add(releaseId);
+        parameters.add(releaseId);
+        parameters.add(releaseId);
+        parameters.add(releaseId);
+        parameters.add(locale);
+        parameters.add(releaseId);
+        return jdbc.query("""
+                WITH RECURSIVE selected(node_id) AS (VALUES %s),
+                ancestors(root_id, child_id, parent_id) AS (
+                    SELECT selected.node_id, edge.child_id, edge.parent_id
+                    FROM selected
+                    JOIN ingredient_parent edge
+                      ON edge.release_id = ? AND edge.child_id = selected.node_id
+                    UNION
+                    SELECT ancestors.root_id, edge.child_id, edge.parent_id
+                    FROM ancestors
+                    JOIN ingredient_parent edge
+                      ON edge.release_id = ? AND edge.child_id = ancestors.parent_id
+                )
+                SELECT selected.node_id, ancestors.child_id, ancestors.parent_id,
+                       COALESCE(local_label.label, english_label.label, ancestors.parent_id),
+                       EXISTS (
+                           SELECT 1 FROM ingredient_parent child
+                           WHERE child.release_id = ? AND child.parent_id = selected.node_id
+                       )
+                FROM selected
+                LEFT JOIN ancestors ON ancestors.root_id = selected.node_id
+                LEFT JOIN ingredient_label local_label
+                  ON local_label.release_id = ? AND local_label.taxonomy_id = ancestors.parent_id
+                 AND local_label.locale = ? AND local_label.kind = 'canonical'
+                LEFT JOIN ingredient_label english_label
+                  ON english_label.release_id = ? AND english_label.taxonomy_id = ancestors.parent_id
+                 AND english_label.locale = 'en' AND english_label.kind = 'canonical'
+                ORDER BY selected.node_id, ancestors.child_id, ancestors.parent_id
+                """.formatted(selectedValues),
+                (result, row) -> new EnrichmentRow(
+                        result.getString(1), result.getString(2), result.getString(3),
+                        result.getString(4), result.getBoolean(5)),
+                parameters.toArray());
+    }
+
     private Object[] withRepeatedLocale(List<Object> parameters, String locale) {
         parameters.add(1, locale);
         return parameters.toArray();
     }
 
-    public List<TaxonomyEdgeRow> edges(long releaseId) {
-        return jdbc.query("SELECT child_id, parent_id FROM ingredient_parent WHERE release_id = ?",
-                (result, row) -> new TaxonomyEdgeRow(result.getString(1), result.getString(2)), releaseId);
-    }
-
-    public boolean containsNode(long releaseId, String taxonomyId) {
-        Integer count = jdbc.queryForObject(
-                "SELECT COUNT(*) FROM ingredient_taxon WHERE release_id = ? AND taxonomy_id = ?",
-                Integer.class, releaseId, taxonomyId);
-        return count != null && count > 0;
-    }
-
-    public List<String> ancestorIds(long releaseId, String taxonomyId) {
-        return jdbc.queryForList("""
-                WITH RECURSIVE ancestors(node_id) AS (
-                    SELECT parent_id FROM ingredient_parent WHERE release_id = ? AND child_id = ?
+    public List<ClassificationEvidenceRow> classificationEvidence(long releaseId, List<String> nodeIds) {
+        if (nodeIds.isEmpty()) return List.of();
+        List<String> distinctIds = nodeIds.stream().distinct().toList();
+        String requestedValues = String.join(",", java.util.Collections.nCopies(distinctIds.size(), "(?)"));
+        List<Object> parameters = new java.util.ArrayList<>(distinctIds);
+        parameters.add(releaseId);
+        parameters.add(releaseId);
+        parameters.add(releaseId);
+        return jdbc.query("""
+                WITH RECURSIVE requested(node_id) AS (VALUES %s),
+                existing(node_id) AS (
+                    SELECT requested.node_id
+                    FROM requested
+                    JOIN ingredient_taxon taxon
+                      ON taxon.release_id = ? AND taxon.taxonomy_id = requested.node_id
+                ),
+                ancestors(root_id, ancestor_id) AS (
+                    SELECT existing.node_id, edge.parent_id
+                    FROM existing
+                    JOIN ingredient_parent edge
+                      ON edge.release_id = ? AND edge.child_id = existing.node_id
                     UNION
-                    SELECT edge.parent_id
-                    FROM ingredient_parent edge
-                    JOIN ancestors current ON edge.child_id = current.node_id
-                    WHERE edge.release_id = ?
+                    SELECT ancestors.root_id, edge.parent_id
+                    FROM ancestors
+                    JOIN ingredient_parent edge
+                      ON edge.release_id = ? AND edge.child_id = ancestors.ancestor_id
                 )
-                SELECT node_id FROM ancestors ORDER BY node_id
-                """, String.class, releaseId, taxonomyId, releaseId);
-    }
-
-    public java.util.Map<String, String> canonicalLabels(long releaseId, String locale) {
-        java.util.Map<String, String> labels = new java.util.HashMap<>();
-        List<CatalogueSearchRow> rows = jdbc.query("""
-                SELECT t.taxonomy_id, COALESCE(local_label.label, english_label.label, t.taxonomy_id)
-                FROM ingredient_taxon t
-                LEFT JOIN ingredient_label local_label ON local_label.release_id=t.release_id
-                  AND local_label.taxonomy_id=t.taxonomy_id AND local_label.locale=? AND local_label.kind='canonical'
-                LEFT JOIN ingredient_label english_label ON english_label.release_id=t.release_id
-                  AND english_label.taxonomy_id=t.taxonomy_id AND english_label.locale='en' AND english_label.kind='canonical'
-                WHERE t.release_id=?
-                """, (result, row) -> new CatalogueSearchRow(result.getString(1), result.getString(2), locale),
-                locale, releaseId);
-        rows.forEach(row -> labels.put(row.nodeId(), row.label()));
-        return labels;
+                SELECT existing.node_id, ancestors.ancestor_id
+                FROM existing
+                LEFT JOIN ancestors ON ancestors.root_id = existing.node_id
+                ORDER BY existing.node_id, ancestors.ancestor_id
+                """.formatted(requestedValues),
+                (result, row) -> new ClassificationEvidenceRow(result.getString(1), result.getString(2)),
+                parameters.toArray());
     }
 
     public record ActiveRelease(long id, String version) {
+    }
+
+    public record EnrichmentRow(
+            String rootId,
+            String childId,
+            String parentId,
+            String parentLabel,
+            boolean rootHasChildren) {
+    }
+
+    public record ClassificationEvidenceRow(String nodeId, String ancestorId) {
     }
 }

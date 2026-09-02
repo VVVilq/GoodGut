@@ -10,6 +10,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayDeque;
@@ -41,38 +42,39 @@ public class TaxonomyImportService {
 
     public TaxonomyImportReport importRelease(TaxonomyImportRequest request) throws IOException {
         validateRequest(request);
-        String checksum = checksum(request);
-        long releaseId = transactions.execute(status -> repository.createRelease(
-                request.version().trim(),
-                request.sourceRevision().trim(),
-                TaxonomyImportRequest.OFF_INGREDIENTS_SOURCE,
-                checksum));
-
-        try {
-            ImportCounts counts = transactions.execute(status -> {
-                try {
-                    return importContent(releaseId, request);
-                } catch (IOException error) {
-                    throw new TaxonomySourceException(error);
-                }
-            });
-            if (request.activate()) {
-                activate(releaseId);
-            }
-            return new TaxonomyImportReport(
-                    releaseId,
+        try (TaxonomySnapshot snapshot = snapshot(request)) {
+            long releaseId = transactions.execute(status -> repository.createRelease(
                     request.version().trim(),
-                    checksum,
-                    counts.entries(),
-                    counts.labels(),
-                    counts.edges(),
-                    request.activate());
-        } catch (RuntimeException error) {
-            transactions.executeWithoutResult(status -> repository.markFailed(releaseId));
-            if (error instanceof TaxonomySourceException sourceError) {
-                throw sourceError.ioException();
+                    request.sourceRevision().trim(),
+                    TaxonomyImportRequest.OFF_INGREDIENTS_SOURCE,
+                    snapshot.checksum()));
+
+            try {
+                ImportCounts counts = transactions.execute(status -> {
+                    try {
+                        return importContent(releaseId, snapshot.path());
+                    } catch (IOException error) {
+                        throw new TaxonomySourceException(error);
+                    }
+                });
+                if (request.activate()) {
+                    activate(releaseId);
+                }
+                return new TaxonomyImportReport(
+                        releaseId,
+                        request.version().trim(),
+                        snapshot.checksum(),
+                        counts.entries(),
+                        counts.labels(),
+                        counts.edges(),
+                        request.activate());
+            } catch (RuntimeException error) {
+                transactions.executeWithoutResult(status -> repository.markFailed(releaseId));
+                if (error instanceof TaxonomySourceException sourceError) {
+                    throw sourceError.ioException();
+                }
+                throw error;
             }
-            throw error;
         }
     }
 
@@ -88,19 +90,20 @@ public class TaxonomyImportService {
         });
     }
 
-    private ImportCounts importContent(long releaseId, TaxonomyImportRequest request) throws IOException {
-        int entries = importNodes(releaseId, request);
-        int labels = importLabels(releaseId, request);
-        int edges = importEdges(releaseId, request);
+    private ImportCounts importContent(long releaseId, Path source) throws IOException {
+        int entries = importNodes(releaseId, source);
+        int labels = importLabels(releaseId, source);
+        int edges = importEdges(releaseId, source);
         validateAcyclic(repository.findEdges(releaseId));
+        validateRelease(releaseId, entries, labels, edges);
         repository.completeRelease(releaseId, entries, labels, edges);
         return new ImportCounts(entries, labels, edges);
     }
 
-    private int importNodes(long releaseId, TaxonomyImportRequest request) throws IOException {
+    private int importNodes(long releaseId, Path source) throws IOException {
         List<String> batch = new ArrayList<>(BATCH_SIZE);
         int[] count = {0};
-        parser.forEach(request.source(), entry -> {
+        parser.forEach(source, entry -> {
             requireTaxonomyId(entry.taxonomyId());
             batch.add(entry.taxonomyId());
             count[0]++;
@@ -113,10 +116,24 @@ public class TaxonomyImportService {
         return count[0];
     }
 
-    private int importLabels(long releaseId, TaxonomyImportRequest request) throws IOException {
+    private void validateRelease(long releaseId, int entries, int labels, int edges) {
+        TaxonomyCatalogueRepository.ReleaseCounts stored = repository.releaseCounts(releaseId);
+        if (entries < 1 || labels < 1) {
+            throw new IllegalArgumentException("OFF taxonomy must contain nodes and discovery labels.");
+        }
+        if (stored.nodes() != entries || stored.labels() != labels || stored.edges() != edges) {
+            throw new IllegalArgumentException("Stored taxonomy counts do not match parsed source counts.");
+        }
+        if (stored.missingEnglishCanonicalLabels() != 0) {
+            throw new IllegalArgumentException(
+                    "Every OFF taxonomy node must have a nonblank English canonical label.");
+        }
+    }
+
+    private int importLabels(long releaseId, Path source) throws IOException {
         List<TaxonomyLabelRow> batch = new ArrayList<>(BATCH_SIZE);
         int[] count = {0};
-        parser.forEach(request.source(), entry -> {
+        parser.forEach(source, entry -> {
             for (Map.Entry<String, String> name : entry.names().entrySet()) {
                 addLabel(batch, entry.taxonomyId(), name.getKey(), "canonical", name.getValue(), count);
             }
@@ -135,10 +152,10 @@ public class TaxonomyImportService {
         return count[0];
     }
 
-    private int importEdges(long releaseId, TaxonomyImportRequest request) throws IOException {
+    private int importEdges(long releaseId, Path source) throws IOException {
         List<TaxonomyEdgeRow> batch = new ArrayList<>(BATCH_SIZE);
         int[] count = {0};
-        parser.forEach(request.source(), entry -> {
+        parser.forEach(source, entry -> {
             Set<String> uniqueParents = new HashSet<>(entry.parents());
             for (String parent : uniqueParents) {
                 requireTaxonomyId(parent);
@@ -220,23 +237,32 @@ public class TaxonomyImportService {
         }
     }
 
-    private String checksum(TaxonomyImportRequest request) throws IOException {
+    private TaxonomySnapshot snapshot(TaxonomyImportRequest request) throws IOException {
         String expected = request.expectedChecksumSha256().trim().toLowerCase();
         if (!expected.matches("[0-9a-f]{64}")) {
             throw new IllegalArgumentException("Expected checksum must be 64 lowercase hexadecimal characters.");
         }
+        Path snapshot = Files.createTempFile("goodgut-taxonomy-snapshot-", ".json");
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            try (InputStream input = Files.newInputStream(request.source())) {
-                input.transferTo(new java.security.DigestOutputStream(java.io.OutputStream.nullOutputStream(), digest));
+            try (InputStream input = Files.newInputStream(request.source());
+                    var output = new java.security.DigestOutputStream(Files.newOutputStream(snapshot), digest)) {
+                input.transferTo(output);
             }
             String actual = java.util.HexFormat.of().formatHex(digest.digest());
             if (!actual.equals(expected)) {
                 throw new IllegalArgumentException("OFF taxonomy checksum does not match the expected value.");
             }
-            return actual;
+            return new TaxonomySnapshot(snapshot, actual);
         } catch (NoSuchAlgorithmException impossible) {
             throw new IllegalStateException("SHA-256 is unavailable.", impossible);
+        } catch (IOException | RuntimeException error) {
+            try {
+                Files.deleteIfExists(snapshot);
+            } catch (IOException cleanupError) {
+                error.addSuppressed(cleanupError);
+            }
+            throw error;
         }
     }
 
@@ -258,6 +284,14 @@ public class TaxonomyImportService {
     }
 
     private record ImportCounts(int entries, int labels, int edges) {
+    }
+
+    private record TaxonomySnapshot(Path path, String checksum) implements AutoCloseable {
+
+        @Override
+        public void close() throws IOException {
+            Files.deleteIfExists(path);
+        }
     }
 
     private static final class TaxonomySourceException extends RuntimeException {

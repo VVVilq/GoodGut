@@ -2,7 +2,7 @@ import { PersonalProfileLoadResult, PersonalProfileRepository } from '@/data/per
 import { AvoidedIngredientProfile, emptyAvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
 import { activeIngredientRulesFromState, PersonalProfileStore } from '@/features/personal-profile/profile-store';
 
-const SAVED: AvoidedIngredientProfile = { selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree' }], customIngredients: [] };
+const SAVED: AvoidedIngredientProfile = { selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }], customIngredients: [] };
 const CANDIDATE: AvoidedIngredientProfile = { selections: [], customIngredients: [{ id: 'custom-1', name: 'Inulina' }] };
 
 class FakeRepository implements PersonalProfileRepository {

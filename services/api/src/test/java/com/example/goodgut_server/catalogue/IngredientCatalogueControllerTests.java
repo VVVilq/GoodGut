@@ -1,6 +1,7 @@
 package com.example.goodgut_server.catalogue;
 
 import com.example.goodgut_server.catalogue.importer.TaxonomyImportRequest;
+import com.example.goodgut_server.catalogue.importer.TaxonomyImportReport;
 import com.example.goodgut_server.catalogue.importer.TaxonomyImportService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -27,6 +31,7 @@ class IngredientCatalogueControllerTests {
 
     @Autowired WebApplicationContext context;
     @Autowired TaxonomyImportService importer;
+    @Autowired IngredientCatalogueRepository repository;
     private MockMvc mvc;
 
     @BeforeEach
@@ -89,6 +94,20 @@ class IngredientCatalogueControllerTests {
     }
 
     @Test
+    void treatsSqlLikeWildcardsAsLiteralSearchCharacters() throws Exception {
+        activateFixture();
+
+        mvc.perform(get("/ingredient-catalogue/search").param("q", "%%").param("locale", "en"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty())
+                .andExpect(jsonPath("$.total").value(0));
+        mvc.perform(get("/ingredient-catalogue/search").param("q", "m_lk").param("locale", "en"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items").isEmpty())
+                .andExpect(jsonPath("$.total").value(0));
+    }
+
+    @Test
     void exposesDirectChildrenForExpandableBranches() throws Exception {
         activateFixture();
         mvc.perform(get("/ingredient-catalogue/children").param("nodeId", "en:milk").param("locale", "pl"))
@@ -97,9 +116,43 @@ class IngredientCatalogueControllerTests {
                 .andExpect(jsonPath("$.items[0].breadcrumb[0].nodeId").value("en:dairy-ingredient"));
     }
 
-    private void activateFixture() throws Exception {
+    @Test
+    void enrichmentIsBoundedToRequestedNodesAndTheirAncestors() throws Exception {
+        TaxonomyImportReport release = activateFixture();
+
+        List<IngredientCatalogueRepository.EnrichmentRow> rows = repository.enrichment(
+                release.releaseId(), List.of("en:goat-milk"), "pl");
+
+        assertThat(rows).extracting(IngredientCatalogueRepository.EnrichmentRow::rootId)
+                .containsOnly("en:goat-milk");
+        assertThat(rows).extracting(IngredientCatalogueRepository.EnrichmentRow::parentId)
+                .containsExactlyInAnyOrder("en:dairy-ingredient", "en:milk")
+                .doesNotContain("en:whole-goat-milk");
+    }
+
+    @Test
+    void classificationEvidenceBatchesRootsAncestorsMissingAndDuplicateIds() throws Exception {
+        TaxonomyImportReport release = activateFixture();
+
+        List<IngredientCatalogueRepository.ClassificationEvidenceRow> rows = repository.classificationEvidence(
+                release.releaseId(),
+                List.of("en:goat-milk", "en:milk", "en:missing", "en:goat-milk"));
+
+        assertThat(rows).extracting(IngredientCatalogueRepository.ClassificationEvidenceRow::nodeId)
+                .containsOnly("en:goat-milk", "en:milk");
+        assertThat(rows.stream()
+                .filter(row -> row.nodeId().equals("en:goat-milk"))
+                .map(IngredientCatalogueRepository.ClassificationEvidenceRow::ancestorId))
+                .containsExactly("en:dairy-ingredient", "en:milk");
+        assertThat(rows.stream()
+                .filter(row -> row.nodeId().equals("en:milk"))
+                .map(IngredientCatalogueRepository.ClassificationEvidenceRow::ancestorId))
+                .containsExactly((String) null);
+    }
+
+    private TaxonomyImportReport activateFixture() throws Exception {
         Path source = Path.of(getClass().getResource("/fixtures/taxonomy/ingredients-small.json").toURI());
-        importer.importRelease(new TaxonomyImportRequest(
+        return importer.importRelease(new TaxonomyImportRequest(
                 source, "catalogue-test", "fixture", checksum(source), true));
     }
 

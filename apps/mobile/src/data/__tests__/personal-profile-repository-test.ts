@@ -2,7 +2,7 @@ import { AsyncKeyValueStore, PERSONAL_PROFILE_KEYS, TwoSlotPersonalProfileReposi
 import { decodePersonalProfile, encodePersonalProfile } from '../personal-profile-codec';
 import { AvoidedIngredientProfile, emptyAvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
 
-const PROFILE:AvoidedIngredientProfile={selections:[{nodeId:'en:milk',labelPl:'Mleko',scope:'subtree'}],customIngredients:[{id:'one',name:'Inulina'}]};
+const PROFILE:AvoidedIngredientProfile={selections:[{nodeId:'en:milk',labelPl:'Mleko',scope:'subtree',ancestorNodeIds:[]}],customIngredients:[{id:'one',name:'Inulina'}]};
 class MemoryStore implements AsyncKeyValueStore{values=new Map<string,string>();async getItem(key:string){return this.values.get(key)??null;}async setItem(key:string,value:string){this.values.set(key,value);}}
 describe('personal profile v2 persistence',()=>{
  it('strictly round-trips schema v2',()=>expect(decodePersonalProfile(encodePersonalProfile(PROFILE))).toEqual({ok:true,document:{schemaVersion:2,profile:PROFILE}}));
