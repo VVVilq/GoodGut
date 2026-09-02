@@ -21,11 +21,13 @@ export type IngredientWarningComposition =
   | { kind: 'profile_error'; error: 'corrupt' | 'storage' }
   | { kind: 'no_rules' }
   | { kind: 'ingredients_unavailable'; reason: 'missing' | 'unparseable'; ruleCount: number }
+  | { kind: 'incomplete'; ruleCount: number }
   | { kind: 'no_triggers'; ruleCount: number }
   | {
       kind: 'triggered';
       ruleCount: number;
       triggerCount: number;
+      incomplete: boolean;
       warnings: readonly TriggeredIngredientWarning[];
       matchedIngredientNames: readonly string[];
     };
@@ -63,10 +65,17 @@ export function composeIngredientWarnings(
 
   const evaluation = evaluateIngredientRules(
     descriptors.map(({ rule }) => rule),
-    ingredients,
+    {
+      status: 'available',
+      names: ingredients.names,
+      completeness: ingredients.completeness,
+      items: ingredients.items,
+    },
   );
   if (evaluation.triggerCount === 0) {
-    return { kind: 'no_triggers', ruleCount: descriptors.length };
+    return evaluation.incomplete
+      ? { kind: 'incomplete', ruleCount: descriptors.length }
+      : { kind: 'no_triggers', ruleCount: descriptors.length };
   }
 
   const labelsByRuleId = new Map(
@@ -81,6 +90,7 @@ export function composeIngredientWarnings(
     kind: 'triggered',
     ruleCount: descriptors.length,
     triggerCount: evaluation.triggerCount,
+    incomplete: evaluation.incomplete,
     warnings,
     matchedIngredientNames: [
       ...new Set(warnings.flatMap(({ matchedIngredientNames }) => matchedIngredientNames)),

@@ -27,6 +27,11 @@ Flyway applies database migrations during API startup. Railway may provide `PGHO
 JDBC URL in `SPRING_DATASOURCE_URL`. Keep all database credentials in local environment variables or
 Railway variables.
 
+For Railway, attach a PostgreSQL service and keep its volume/database when redeploying the API.
+Set the service root directory to `services/api`; an API redeploy must not recreate the database.
+After deployment, verify both `/ingredient-catalogue/promoted?locale=pl` and a product lookup return
+the same active `catalogueVersion` as before the redeploy.
+
 Check the service and a representative product:
 
 ```powershell
@@ -76,3 +81,15 @@ retained so ancestry remains complete.
 
 Open Food Facts is the catalogue source. Preserve its ODbL attribution and record the source revision,
 source URL, and checksum for every imported release.
+
+Catalogue discovery is available through bounded, server-side endpoints:
+
+```text
+GET /ingredient-catalogue/promoted?locale=pl
+GET /ingredient-catalogue/search?q=goat%20milk&locale=pl&page=0&size=20
+GET /ingredient-catalogue/children?nodeId=en%3Amilk&locale=pl&page=0&size=20
+```
+
+The import command is the only catalogue write path. Never run it during startup or request
+handling. Activation switches between immutable releases, so rollback is performed by explicitly
+activating the retained previous release.

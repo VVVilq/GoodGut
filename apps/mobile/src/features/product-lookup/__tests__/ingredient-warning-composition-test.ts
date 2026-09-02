@@ -53,6 +53,38 @@ describe('composeIngredientWarnings', () => {
     ).toEqual({ kind: 'no_triggers', ruleCount: 2 });
   });
 
+  it('matches node and subtree selections once and keeps saved Polish labels', () => {
+    const profile: AvoidedIngredientProfile = {
+      selections: [
+        { nodeId: 'en:goat-milk', labelPl: 'Mleko kozie', scope: 'node' },
+        { nodeId: 'en:egg', labelPl: 'Jajko', scope: 'subtree' },
+      ],
+      customIngredients: [],
+    };
+    expect(composeIngredientWarnings(found({ ingredients: evidenceIngredients('complete') }), ready(profile))).toEqual({
+      kind: 'triggered',
+      ruleCount: 2,
+      triggerCount: 2,
+      incomplete: false,
+      warnings: [
+        { ruleId: 'taxonomy:en:goat-milk', ruleLabel: 'Mleko kozie', matchedIngredientNames: ['goat milk'] },
+        { ruleId: 'taxonomy:en:egg', ruleLabel: 'Jajko', matchedIngredientNames: ['egg yolk'] },
+      ],
+      matchedIngredientNames: ['goat milk', 'egg yolk'],
+    });
+  });
+
+  it('never reports a neutral zero for partial taxonomy evidence', () => {
+    const profile: AvoidedIngredientProfile = {
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'node' }],
+      customIngredients: [],
+    };
+    expect(composeIngredientWarnings(found({ ingredients: evidenceIngredients('partial') }), ready(profile))).toEqual({
+      kind: 'incomplete',
+      ruleCount: 1,
+    });
+  });
+
   it('returns Polish/custom labels and every match while counting each rule once', () => {
     expect(
       composeIngredientWarnings(
@@ -65,6 +97,7 @@ describe('composeIngredientWarnings', () => {
       kind: 'triggered',
       ruleCount: 2,
       triggerCount: 2,
+      incomplete: false,
       warnings: [
         {
           ruleId: 'custom:sucralose',
@@ -153,4 +186,12 @@ function availableIngredients(names: readonly string[]): NormalizedProduct['ingr
     })),
     names,
   };
+}
+
+function evidenceIngredients(completeness: 'complete' | 'partial'): NormalizedProduct['ingredients'] {
+  const items = [
+    { displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
+    { displayName: 'egg yolk', nodeId: 'en:egg-yolk', ancestorNodeIds: ['en:egg'] },
+  ];
+  return { status: 'available', completeness, catalogueVersion: 'fixture', items, names: items.map(({ displayName }) => displayName) };
 }

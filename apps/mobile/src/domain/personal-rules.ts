@@ -14,9 +14,13 @@ export type IngredientRule = {
   id: string;
   kind: 'ingredient';
   name: string;
-  source: 'predefined' | 'custom';
-  aliases?: readonly string[];
-};
+} & ({
+  source: 'taxonomy';
+  nodeId: string;
+  scope: 'node' | 'subtree';
+} | {
+  source: 'custom';
+});
 
 export type NutritionRule = {
   id: string;
@@ -30,8 +34,19 @@ export type NutritionRule = {
 export type PersonalRule = IngredientRule | NutritionRule;
 
 export type IngredientFacts =
-  | { status: 'available'; names: readonly string[] }
+  | {
+      status: 'available';
+      names: readonly string[];
+      completeness?: 'complete' | 'partial';
+      items?: readonly IngredientEvidenceItem[];
+    }
   | { status: 'missing' | 'unparseable' };
+
+export type IngredientEvidenceItem = {
+  displayName: string;
+  nodeId: string;
+  ancestorNodeIds: readonly string[];
+};
 
 export type NutritionFact =
   | { status: 'available'; value: number; basis: NutritionBasis }
@@ -69,6 +84,7 @@ export type IngredientRuleEvaluation = {
   matches: readonly IngredientRuleMatch[];
   unavailableRuleIds: readonly string[];
   triggerCount: number;
+  incomplete: boolean;
 };
 
 export const ingredientComparisonKey = (value: string) =>
@@ -90,14 +106,21 @@ export function productFactsFromContract(product: NormalizedProductFacts): Produ
 
 function matchingIngredientNames(
   rule: IngredientRule,
-  ingredients: readonly string[],
+  ingredients: Extract<IngredientFacts, { status: 'available' }>,
 ): string[] {
-  const candidates =
-    rule.source === 'predefined' ? [rule.name, ...(rule.aliases ?? [])] : [rule.name];
-  const candidateKeys = new Set(candidates.map(ingredientComparisonKey));
+  if (rule.source === 'taxonomy') {
+    return [...new Set(
+      (ingredients.items ?? [])
+        .filter((item) => rule.scope === 'node'
+          ? item.nodeId === rule.nodeId
+          : item.nodeId === rule.nodeId || item.ancestorNodeIds.includes(rule.nodeId))
+        .map((item) => item.displayName),
+    )];
+  }
+  const candidateKey = ingredientComparisonKey(rule.name);
 
   return [...new Set(
-    ingredients.filter((ingredient) => candidateKeys.has(ingredientComparisonKey(ingredient))),
+    ingredients.names.filter((ingredient) => candidateKey === ingredientComparisonKey(ingredient)),
   )];
 }
 
@@ -110,15 +133,25 @@ export function evaluateIngredientRules(
       matches: [],
       unavailableRuleIds: rules.map((rule) => rule.id),
       triggerCount: 0,
+      incomplete: true,
     };
   }
 
   const matches = rules.flatMap((rule): IngredientRuleMatch[] => {
-    const matchedIngredientNames = matchingIngredientNames(rule, ingredients.names);
+    const matchedIngredientNames = matchingIngredientNames(rule, ingredients);
     return matchedIngredientNames.length > 0 ? [{ ruleId: rule.id, matchedIngredientNames }] : [];
   });
 
-  return { matches, unavailableRuleIds: [], triggerCount: matches.length };
+  const incomplete = ingredients.completeness === 'partial';
+  const matchedRuleIds = new Set(matches.map(({ ruleId }) => ruleId));
+  return {
+    matches,
+    unavailableRuleIds: incomplete
+      ? rules.filter(({ id }) => !matchedRuleIds.has(id)).map(({ id }) => id)
+      : [],
+    triggerCount: matches.length,
+    incomplete,
+  };
 }
 
 export function evaluatePersonalRules(
@@ -132,8 +165,10 @@ export function evaluatePersonalRules(
     if (rule.kind === 'ingredient') {
       if (product.ingredients.status !== 'available') {
         unavailableRuleIds.push(rule.id);
-      } else if (matchingIngredientNames(rule, product.ingredients.names).length > 0) {
+      } else if (matchingIngredientNames(rule, product.ingredients).length > 0) {
         triggeredRuleIds.push(rule.id);
+      } else if (product.ingredients.completeness === 'partial') {
+        unavailableRuleIds.push(rule.id);
       }
       continue;
     }

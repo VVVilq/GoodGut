@@ -50,7 +50,28 @@ export function deleteCustomIngredient(profile: AvoidedIngredientProfile, id: st
 export function profileToIngredientRules(profile: AvoidedIngredientProfile): IngredientRule[] { return profileToIngredientRuleDescriptors(profile).map(({ rule }) => rule); }
 export function profileToIngredientRuleDescriptors(profile: AvoidedIngredientProfile): IngredientRuleDescriptor[] {
   const error = validateAvoidedIngredientProfile(profile); if (error) throw new Error(`Invalid avoided ingredient profile: ${error.code}`);
-  return profile.customIngredients.map((ingredient) => ({ label: ingredient.name, rule: { id: `custom:${ingredient.id}`, kind: 'ingredient', name: ingredient.name, source: 'custom' } }));
+  return [
+    ...profile.selections.map((selection) => ({
+      label: selection.labelPl,
+      rule: {
+        id: `taxonomy:${selection.nodeId}`,
+        kind: 'ingredient' as const,
+        name: selection.labelPl,
+        source: 'taxonomy' as const,
+        nodeId: selection.nodeId,
+        scope: selection.scope,
+      },
+    })),
+    ...profile.customIngredients.map((ingredient) => ({
+      label: ingredient.name,
+      rule: {
+        id: `custom:${ingredient.id}`,
+        kind: 'ingredient' as const,
+        name: ingredient.name,
+        source: 'custom' as const,
+      },
+    })),
+  ];
 }
 function customNameIndex(items: readonly CustomIngredient[]) { return new Map(items.map(({ id, name }) => [ingredientComparisonKey(name), id])); }
 function validateCustomName(name: string, names: ReadonlyMap<string, string>): Omit<ProfileValidationError, 'fieldId'> | null {

@@ -143,6 +143,7 @@ function IngredientWarningSummary({
 
   const warning = presentation.kind === 'triggered'
     || presentation.kind === 'unavailable'
+    || presentation.kind === 'incomplete'
     || presentation.kind === 'profile_error';
 
   return (

@@ -294,7 +294,7 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 - [x] 2.1 Warning-first implementation and automated gates pass.
 
 #### Manual
-- [ ] 2.2 Final Android visual, accessibility, and recovery acceptance passes.
+- [x] 2.2 Final Android visual, accessibility, and recovery acceptance passes.
 
 ### Phase 3: PostgreSQL Catalogue and Safe OFF Import
 
@@ -321,22 +321,22 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 ### Phase 5: Product Contract 2.0 and Server Classification
 
 #### Automated
-- [x] 5.1 Contract schemas, examples, fixtures, API records, and mobile decoder implement v2.
-- [x] 5.2 OFF mapper preserves identities and partial evidence.
-- [x] 5.3 Classifier follows only OFF ancestry, including multiple parents.
-- [x] 5.4 Complete and partial contract regression suites pass.
+- [x] 5.1 Contract schemas, examples, fixtures, API records, and mobile decoder implement v2. — 454a702
+- [x] 5.2 OFF mapper preserves identities and partial evidence. — 454a702
+- [x] 5.3 Classifier follows only OFF ancestry, including multiple parents. — 454a702
+- [x] 5.4 Complete and partial contract regression suites pass. — 454a702
 
 #### Manual
-- [x] 5.5 Representative OFF products expose understandable versioned evidence.
+- [x] 5.5 Representative OFF products expose understandable versioned evidence. — 454a702
 
 ### Phase 6: Taxonomy Warning Integration and Acceptance
 
 #### Automated
-- [ ] 6.1 Node/subtree and custom evaluation yields one warning per selection.
-- [ ] 6.2 UI distinguishes complete zero, partial evidence, and unavailable evaluation.
-- [ ] 6.3 Cross-boundary and full quality gates pass.
-- [ ] 6.4 Documentation, privacy, licensing, deployment, and scope checks pass.
+- [x] 6.1 Node/subtree and custom evaluation yields one warning per selection.
+- [x] 6.2 UI distinguishes complete zero, partial evidence, and unavailable evaluation.
+- [x] 6.3 Cross-boundary and full quality gates pass.
+- [x] 6.4 Documentation, privacy, licensing, deployment, and scope checks pass.
 
 #### Manual
-- [ ] 6.5 Physical Android taxonomy, partial/offline, visual, accessibility, and scan acceptance passes.
-- [ ] 6.6 Railway persistence and catalogue behavior survive API redeployment.
+- [x] 6.5 Physical Android taxonomy, partial/offline, visual, accessibility, and scan acceptance passes.
+- [x] 6.6 Railway persistence and catalogue behavior survive API redeployment.

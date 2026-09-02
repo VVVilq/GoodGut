@@ -35,8 +35,9 @@ On Android, verify camera allow/deny recovery, a complete and incomplete product
 source/client errors, retry, scan-another, duplicate suppression, and camera release on exit.
 
 The avoided-ingredient profile is stored locally in AsyncStorage under two rotating slots; it is
-not sent to the API and is lost if app data is cleared or the app is uninstalled. Use the profile
-editor from Home to select reviewed ingredients or add exact-name custom entries. Save is explicit;
+not sent to the API, Open Food Facts, URLs, or logs, and is lost if app data is cleared or the app is
+uninstalled. Use the profile editor from Home to select a taxonomy node or its OFF descendant branch,
+or add an exact-name custom entry. Save is explicit;
 failed saves keep the previous active profile and the draft available for retry. Corrupt storage is
 reported or recovered from the other valid slot and is never silently overwritten.
 
@@ -47,3 +48,9 @@ Profile evidence: `src/data/__tests__/personal-profile-repository-test.ts`,
 Product facts are sourced from Open Food Facts contributors. Database content is available under
 ODbL and product images may be licensed under CC BY-SA; the result screen preserves attribution and
 links to the provider record when available.
+
+The API classifies product ingredients; the phone intersects that evidence with the saved profile.
+An exact-node selection matches only the returned node ID, while a branch selection also matches an
+ingredient whose returned ancestors contain that ID. Each saved selection contributes at most one
+warning. Custom entries use NFKC, trimmed, case-insensitive exact matching. Partial ingredient data
+may show certain warnings, but it never produces a reassuring zero-result message.

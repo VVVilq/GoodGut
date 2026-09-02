@@ -21,6 +21,10 @@ This plan ties GoodGut’s highest MVP risks to concrete automated and manual ev
 | R-P05 | The persisted profile cannot feed the warning evaluator deterministically. | `apps/mobile/src/data/__tests__/personal-profile-integration-test.ts` proves round-trip aliases, custom exact names, stable IDs, and deselection/deletion. | Inspect active saved selections after relaunch before S-03 integration. | S-02 / S-03 |
 | R-P06 | The broad catalogue is difficult to navigate on a phone. | `apps/mobile/src/features/personal-profile/__tests__/profile-editor-state-test.ts` preserves category order and search metadata. | Browse/search all categories and complete custom CRUD on Android. | S-02 |
 | R-REG01 | Profile work regresses scan/product facts. | Existing mobile lookup/decoder/scanner/presentation suites and API tests remain required gates. | Confirm Home profile entry and scanner are both reachable and S-01 behavior is unchanged. | S-02 |
+| R-TAX01 | Node and subtree scope are confused or a selection is counted more than once. | `personal-rules-test.ts` and `ingredient-warning-composition-test.ts` cover exact nodes, descendants, multiple matches, and one warning per saved selection. | Select goat/sheep milk and egg yolk using both scopes on Android. | S-03 |
+| R-TAX02 | Partial or unavailable classification is presented as a trustworthy zero. | Composition and presentation tests cover complete zero, certain partial matches, partial non-matches, missing, and unparseable evidence. | Exercise partial products and an API/catalogue outage; facts, retry, and rescan remain usable. | S-03 |
+| R-TAX03 | A catalogue deployment loses its active release. | Import/repository tests cover validation, atomic activation, and rollback. | Record the active version, redeploy the Railway API, and verify promoted/search/product classification still use it. | S-03 |
+| R-PRIV01 | Local selections or custom ingredient text leave the device. | Product and catalogue clients expose only barcode/search/catalogue parameters; evaluator integration runs against the hydrated local profile. | Inspect requests during profile editing and scanning; confirm no profile/custom text is transmitted except an intentional catalogue search query. | S-03 |
 
 ## Exit Criteria
 
@@ -28,6 +32,9 @@ This plan ties GoodGut’s highest MVP risks to concrete automated and manual ev
 - R-P01 through R-P05 have passing automated evidence before S-02 closes.
 - Android save/relaunch and profile CRUD acceptance pass.
 - No unresolved critical/high risk remains in the implementation review.
+- S-03 acceptance covers light/dark themes, long labels, TalkBack order/roles, retry, rescan,
+  stale catalogue cache, overlap consolidation, multiple-parent evidence, profile reset notice,
+  catalogue rollback, and Railway redeployment persistence.
 
 ## Deferred Risks
 

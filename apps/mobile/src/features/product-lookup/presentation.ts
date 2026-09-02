@@ -26,6 +26,7 @@ export type IngredientWarningPresentation =
   | { kind: 'loading'; title: string; detail: string; actions: readonly ResultAction[] }
   | { kind: 'profile_error'; title: string; detail: string; actions: readonly ResultAction[] }
   | { kind: 'unavailable'; title: string; detail: string; actions: readonly ResultAction[] }
+  | { kind: 'incomplete'; title: string; detail: string; actions: readonly ResultAction[] }
   | { kind: 'no_triggers'; title: string; detail: string; actions: readonly ResultAction[] }
   | {
       kind: 'triggered';
@@ -226,11 +227,20 @@ function ingredientWarningPresentation(
         detail: `Żadna z ${composition.ruleCount} skonfigurowanych reguł nie pasuje do dostępnych składników.`,
         actions: [],
       };
+    case 'incomplete':
+      return {
+        kind: 'incomplete',
+        title: 'Ocena składników jest niepełna',
+        detail: `Nie znaleziono pewnego dopasowania, ale nie udało się sprawdzić wszystkich ${composition.ruleCount} reguł.`,
+        actions: [],
+      };
     case 'triggered':
       return {
         kind: 'triggered',
         title: `${composition.triggerCount} ${warningCountLabel(composition.triggerCount)}`,
-        detail: 'Produkt zawiera składniki pasujące do Twoich reguł.',
+        detail: composition.incomplete
+          ? 'Znaleziono pewne dopasowania, ale ocena pozostałych składników jest niepełna.'
+          : 'Produkt zawiera składniki pasujące do Twoich reguł.',
         warnings: composition.warnings,
         actions: [],
       };

@@ -41,7 +41,9 @@ describe('PersonalProfileStore', () => {
     const store = new PersonalProfileStore(repository); await store.hydrate();
     await expect(store.save(CANDIDATE)).resolves.toBe(false);
     expect(store.getState()).toEqual({ status: 'save_error', activeProfile: SAVED, candidate: CANDIDATE, error: 'storage' });
-    expect(activeIngredientRulesFromState(store.getState())).toEqual([]);
+    expect(activeIngredientRulesFromState(store.getState())).toEqual([
+      { id: 'taxonomy:en:milk', kind: 'ingredient', source: 'taxonomy', name: 'Mleko', nodeId: 'en:milk', scope: 'subtree' },
+    ]);
     repository.saveError = false;
     await expect(store.retrySave()).resolves.toBe(true);
     expect(store.getState()).toEqual({ status: 'ready', activeProfile: CANDIDATE });

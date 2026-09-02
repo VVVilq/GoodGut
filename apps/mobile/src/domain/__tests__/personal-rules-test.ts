@@ -1,6 +1,7 @@
 import {
   evaluateIngredientRules,
   evaluatePersonalRules,
+  IngredientRule,
   ingredientComparisonKey,
   NutrientId,
   NutritionFact,
@@ -43,46 +44,6 @@ describe('evaluatePersonalRules', () => {
     expect(ingredientComparisonKey('CAFE\u0301')).toBe(ingredientComparisonKey('café'));
   });
 
-  it('matches a predefined ingredient by a known alias', () => {
-    const rules: PersonalRule[] = [
-      {
-        id: 'avoid-sucralose',
-        kind: 'ingredient',
-        name: 'sucralose',
-        source: 'predefined',
-        aliases: ['E955', 'E 955'],
-      },
-    ];
-
-    expect(evaluatePersonalRules(rules, product()).triggeredRuleIds).toEqual([
-      'avoid-sucralose',
-    ]);
-  });
-
-  it('exposes every distinct matching source name while counting the rule once', () => {
-    const rules = [{
-      id: 'avoid-sucralose',
-      kind: 'ingredient' as const,
-      name: 'sucralose',
-      source: 'predefined' as const,
-      aliases: ['E955', 'E 955'],
-    }];
-
-    expect(
-      evaluateIngredientRules(rules, {
-        status: 'available',
-        names: ['sucralose', 'E 955', 'E 955', 'water'],
-      }),
-    ).toEqual({
-      matches: [{
-        ruleId: 'avoid-sucralose',
-        matchedIngredientNames: ['sucralose', 'E 955'],
-      }],
-      unavailableRuleIds: [],
-      triggerCount: 1,
-    });
-  });
-
   it.each(['missing', 'unparseable'] as const)(
     'exposes unavailable ingredient rule IDs for %s facts',
     (status) => {
@@ -91,9 +52,54 @@ describe('evaluatePersonalRules', () => {
           [{ id: 'custom', kind: 'ingredient', name: 'Apple', source: 'custom' }],
           { status },
         ),
-      ).toEqual({ matches: [], unavailableRuleIds: ['custom'], triggerCount: 0 });
+      ).toEqual({ matches: [], unavailableRuleIds: ['custom'], triggerCount: 0, incomplete: true });
     },
   );
+
+  it('matches taxonomy node and subtree selections by stable OFF evidence', () => {
+    const ingredients = {
+      status: 'available' as const,
+      completeness: 'complete' as const,
+      names: ['goat milk', 'egg yolk'],
+      items: [
+        { displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
+        { displayName: 'egg yolk', nodeId: 'en:egg-yolk', ancestorNodeIds: ['en:egg'] },
+      ],
+    };
+    const rules: IngredientRule[] = [
+      { id: 'milk-node', kind: 'ingredient', source: 'taxonomy', name: 'Mleko', nodeId: 'en:milk', scope: 'node' },
+      { id: 'milk-tree', kind: 'ingredient', source: 'taxonomy', name: 'Mleko', nodeId: 'en:milk', scope: 'subtree' },
+      { id: 'yolk-node', kind: 'ingredient', source: 'taxonomy', name: 'Żółtko', nodeId: 'en:egg-yolk', scope: 'node' },
+    ];
+
+    expect(evaluateIngredientRules(rules, ingredients)).toEqual({
+      matches: [
+        { ruleId: 'milk-tree', matchedIngredientNames: ['goat milk'] },
+        { ruleId: 'yolk-node', matchedIngredientNames: ['egg yolk'] },
+      ],
+      unavailableRuleIds: [],
+      triggerCount: 2,
+      incomplete: false,
+    });
+  });
+
+  it('keeps certain taxonomy matches while marking partial non-matches unavailable', () => {
+    const rules: IngredientRule[] = [
+      { id: 'milk', kind: 'ingredient', source: 'taxonomy', name: 'Mleko', nodeId: 'en:milk', scope: 'subtree' },
+      { id: 'egg', kind: 'ingredient', source: 'taxonomy', name: 'Jajko', nodeId: 'en:egg', scope: 'subtree' },
+    ];
+    expect(evaluateIngredientRules(rules, {
+      status: 'available',
+      completeness: 'partial',
+      names: ['goat milk'],
+      items: [{ displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] }],
+    })).toEqual({
+      matches: [{ ruleId: 'milk', matchedIngredientNames: ['goat milk'] }],
+      unavailableRuleIds: ['egg'],
+      triggerCount: 1,
+      incomplete: true,
+    });
+  });
 
   it('matches a custom ingredient only by case-insensitive exact name', () => {
     const rules: PersonalRule[] = [
@@ -191,11 +197,12 @@ describe('evaluatePersonalRules', () => {
   it('counts triggered rules rather than ingredient occurrences', () => {
     const rules: PersonalRule[] = [
       {
-        id: 'avoid-sucralose',
+        id: 'avoid-milk',
         kind: 'ingredient',
-        name: 'sucralose',
-        source: 'predefined',
-        aliases: ['E 955'],
+        name: 'Mleko',
+        source: 'taxonomy',
+        nodeId: 'en:milk',
+        scope: 'subtree',
       },
       {
         id: 'high-carbs',
@@ -211,10 +218,17 @@ describe('evaluatePersonalRules', () => {
       evaluatePersonalRules(
         rules,
         product({
-          ingredients: { status: 'available', names: ['sucralose', 'E 955', 'E 955'] },
+          ingredients: {
+            status: 'available',
+            names: ['goat milk', 'sheep milk'],
+            items: [
+              { displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
+              { displayName: 'sheep milk', nodeId: 'en:sheep-milk', ancestorNodeIds: ['en:milk'] },
+            ],
+          },
         }),
       ),
-    ).toMatchObject({ triggerCount: 2, triggeredRuleIds: ['avoid-sucralose', 'high-carbs'] });
+    ).toMatchObject({ triggerCount: 2, triggeredRuleIds: ['avoid-milk', 'high-carbs'] });
   });
 
   it('evaluates schema-shaped facts without changing availability or per-value bases', () => {

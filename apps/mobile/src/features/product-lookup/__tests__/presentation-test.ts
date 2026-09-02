@@ -151,6 +151,28 @@ describe('product lookup presentation', () => {
       kind: 'unavailable',
     });
   });
+
+  it('shows certain warnings and an explicit incomplete state for partial evidence', () => {
+    const configured = ready({
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree' }],
+      customIngredients: [],
+    });
+    const matching = foundPresentation(product({ ingredients: taxonomyIngredients('partial') }), configured);
+    expect(matching.ingredientWarnings).toMatchObject({
+      kind: 'triggered',
+      title: '1 ostrzeżenie',
+    });
+    if (matching.ingredientWarnings.kind !== 'triggered') throw new Error('expected triggered');
+    expect(matching.ingredientWarnings.detail).toContain('niepełna');
+
+    const exactOnly = ready({
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'node' }],
+      customIngredients: [],
+    });
+    expect(foundPresentation(product({ ingredients: taxonomyIngredients('partial') }), exactOnly).ingredientWarnings).toMatchObject({
+      kind: 'incomplete',
+    });
+  });
 });
 
 function foundPresentation(
@@ -182,5 +204,15 @@ function availableIngredients(names: readonly string[]): NormalizedProduct['ingr
       ancestorNodeIds: [],
     })),
     names,
+  };
+}
+
+function taxonomyIngredients(completeness: 'complete' | 'partial'): NormalizedProduct['ingredients'] {
+  return {
+    status: 'available',
+    completeness,
+    catalogueVersion: 'fixture',
+    items: [{ displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] }],
+    names: ['goat milk'],
   };
 }

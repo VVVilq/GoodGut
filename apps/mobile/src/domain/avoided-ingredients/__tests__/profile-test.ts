@@ -19,4 +19,14 @@ describe('avoided ingredient profile v2', () => {
     expect(added.profile.customIngredients).toEqual([{ id: 'one', name: 'Inulina' }]);
     expect(profileToIngredientRules(added.profile)[0]).toMatchObject({ id: 'custom:one', name: 'Inulina' });
   });
+  it('adapts taxonomy selections and custom entries without losing saved labels or scope', () => {
+    const rules = profileToIngredientRules({
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree' }],
+      customIngredients: [{ id: 'one', name: 'Inulina' }],
+    });
+    expect(rules).toEqual([
+      { id: 'taxonomy:en:milk', kind: 'ingredient', name: 'Mleko', source: 'taxonomy', nodeId: 'en:milk', scope: 'subtree' },
+      { id: 'custom:one', kind: 'ingredient', name: 'Inulina', source: 'custom' },
+    ]);
+  });
 });
