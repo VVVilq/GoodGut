@@ -1,7 +1,7 @@
 ---
 change_id: ingredient-warning-scan
 title: Ingredient warning scan
-status: implementing
+status: implemented
 created: 2026-08-31
 updated: 2026-09-02
 archived_at: null

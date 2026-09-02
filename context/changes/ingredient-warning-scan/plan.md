@@ -294,7 +294,7 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 - [x] 2.1 Warning-first implementation and automated gates pass.
 
 #### Manual
-- [x] 2.2 Final Android visual, accessibility, and recovery acceptance passes.
+- [x] 2.2 Final Android visual, accessibility, and recovery acceptance passes. — 3859f9d
 
 ### Phase 3: PostgreSQL Catalogue and Safe OFF Import
 
@@ -332,11 +332,11 @@ Completed in `ce0c3b1`. Retain evidence, count-by-rule, last-durable-profile lif
 ### Phase 6: Taxonomy Warning Integration and Acceptance
 
 #### Automated
-- [x] 6.1 Node/subtree and custom evaluation yields one warning per selection.
-- [x] 6.2 UI distinguishes complete zero, partial evidence, and unavailable evaluation.
-- [x] 6.3 Cross-boundary and full quality gates pass.
-- [x] 6.4 Documentation, privacy, licensing, deployment, and scope checks pass.
+- [x] 6.1 Node/subtree and custom evaluation yields one warning per selection. — 3859f9d
+- [x] 6.2 UI distinguishes complete zero, partial evidence, and unavailable evaluation. — 3859f9d
+- [x] 6.3 Cross-boundary and full quality gates pass. — 3859f9d
+- [x] 6.4 Documentation, privacy, licensing, deployment, and scope checks pass. — 3859f9d
 
 #### Manual
-- [x] 6.5 Physical Android taxonomy, partial/offline, visual, accessibility, and scan acceptance passes.
-- [x] 6.6 Railway persistence and catalogue behavior survive API redeployment.
+- [x] 6.5 Physical Android taxonomy, partial/offline, visual, accessibility, and scan acceptance passes. — 3859f9d
+- [x] 6.6 Railway persistence and catalogue behavior survive API redeployment. — 3859f9d
