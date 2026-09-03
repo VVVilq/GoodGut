@@ -1,14 +1,6 @@
-export type NutritionBasis = 'per_100g' | 'per_100ml';
+import { NutrientId, NutritionBasis, NutritionDirection } from './nutrition';
 
-export type NutrientId =
-  | 'energy_kcal'
-  | 'carbohydrates'
-  | 'sugars'
-  | 'fat'
-  | 'saturated_fat'
-  | 'fiber'
-  | 'protein'
-  | 'salt';
+export type { NutrientId, NutritionBasis, NutritionDirection } from './nutrition';
 
 export type IngredientRule = {
   id: string;
@@ -26,7 +18,7 @@ export type NutritionRule = {
   id: string;
   kind: 'nutrition';
   nutrient: NutrientId;
-  direction: 'above' | 'below';
+  direction: NutritionDirection;
   threshold: number;
   basis: NutritionBasis;
 };

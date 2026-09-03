@@ -1,16 +1,7 @@
-export const nutrientIds = [
-  'energy_kcal',
-  'carbohydrates',
-  'sugars',
-  'fat',
-  'saturated_fat',
-  'fiber',
-  'protein',
-  'salt',
-] as const;
+import type { NutrientId, NutritionBasis } from '../nutrition';
 
-export type NutrientId = (typeof nutrientIds)[number];
-export type NutritionBasis = 'per_100g' | 'per_100ml';
+export { nutrientIds } from '../nutrition';
+export type { NutrientId, NutritionBasis } from '../nutrition';
 export type NutritionUnavailableReason =
   | 'missing_source'
   | 'unknown_basis'
