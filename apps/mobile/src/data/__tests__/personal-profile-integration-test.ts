@@ -1,5 +1,6 @@
 import { TwoSlotPersonalProfileRepository, AsyncKeyValueStore } from '@/data/personal-profile-repository';
 import { profileToIngredientRules } from '@/domain/avoided-ingredients/profile';
+import { profileToPersonalRules } from '@/domain/personal-profile';
 import { evaluateIngredientRules } from '@/domain/personal-rules';
 
 class MemoryStorage implements AsyncKeyValueStore {
@@ -25,6 +26,7 @@ describe('persisted profile evaluator handoff', () => {
     const profile = {
       selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }],
       customIngredients: [{ id: 'custom-1', name: 'Inulina' }],
+      nutritionThresholds: [],
     } as const;
     await repository.save(profile);
     const loaded = await repository.load();
@@ -43,10 +45,34 @@ describe('persisted profile evaluator handoff', () => {
   it('removes deselected and deleted rules after a subsequent save', async () => {
     const storage = new MemoryStorage();
     const repository = new TwoSlotPersonalProfileRepository(storage);
-    await repository.save({ selections: [], customIngredients: [{ id: 'custom-1', name: 'Inulina' }] });
-    await repository.save({ selections: [], customIngredients: [] });
+    await repository.save({ selections: [], customIngredients: [{ id: 'custom-1', name: 'Inulina' }], nutritionThresholds: [] });
+    await repository.save({ selections: [], customIngredients: [], nutritionThresholds: [] });
     const loaded = await repository.load();
     if (loaded.kind !== 'loaded') throw new Error(`Unexpected load result: ${loaded.kind}`);
     expect(profileToIngredientRules(loaded.profile)).toEqual([]);
+  });
+
+  it('round-trips a mixed profile and preserves each rule family across edits', async () => {
+    const storage = new MemoryStorage();
+    const repository = new TwoSlotPersonalProfileRepository(storage);
+    await repository.save({
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'node', ancestorNodeIds: [] }],
+      customIngredients: [],
+      nutritionThresholds: [{ id: 'nutrition:sugars', nutrient: 'sugars', direction: 'above', threshold: 5.5, basis: 'per_100g' }],
+    });
+    const first = await repository.load();
+    if (first.kind !== 'loaded') throw new Error(`Unexpected load result: ${first.kind}`);
+    await repository.save({ ...first.profile, customIngredients: [{ id: 'one', name: 'Inulina' }] });
+    const second = await repository.load();
+    if (second.kind !== 'loaded') throw new Error(`Unexpected load result: ${second.kind}`);
+    expect(profileToPersonalRules(second.profile).map(({ id }) => id)).toEqual([
+      'taxonomy:en:milk', 'custom:one', 'nutrition:sugars',
+    ]);
+    await repository.save({ ...second.profile, nutritionThresholds: [] });
+    const third = await repository.load();
+    if (third.kind !== 'loaded') throw new Error(`Unexpected load result: ${third.kind}`);
+    expect(profileToIngredientRules(third.profile).map(({ id }) => id)).toEqual([
+      'taxonomy:en:milk', 'custom:one',
+    ]);
   });
 });

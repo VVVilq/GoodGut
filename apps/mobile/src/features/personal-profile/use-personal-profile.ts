@@ -1,7 +1,7 @@
 import { asyncStorageKeyValueStore } from '@/data/async-storage-key-value-store';
 import { TwoSlotPersonalProfileRepository } from '@/data/personal-profile-repository';
 import { createContext, createElement, ReactNode, useContext, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { activeIngredientRulesFromState, PersonalProfileStore } from './profile-store';
+import { activeIngredientRulesFromState, activePersonalRulesFromState, PersonalProfileStore } from './profile-store';
 
 type PersonalProfileContextValue = ReturnType<typeof usePersonalProfileValue>;
 const PersonalProfileContext = createContext<PersonalProfileContextValue | null>(null);
@@ -19,7 +19,7 @@ function usePersonalProfileValue() {
     retryLoad: store.hydrate.bind(store),
     replaceCorruptWithEmptyProfile: store.replaceCorruptWithEmptyProfile.bind(store),
   }), [store]);
-  return { state, activeIngredientRules: activeIngredientRulesFromState(state), ...actions };
+  return { state, activeIngredientRules: activeIngredientRulesFromState(state), activePersonalRules: activePersonalRulesFromState(state), ...actions };
 }
 
 export function PersonalProfileProvider({ children }: { children: ReactNode }) {

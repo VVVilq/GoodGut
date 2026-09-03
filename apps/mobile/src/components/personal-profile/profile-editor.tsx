@@ -1,12 +1,12 @@
 import { Dispatch, SetStateAction, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text'; import { ThemedView } from '@/components/themed-view'; import { Spacing } from '@/constants/theme';
-import { AvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile'; import { CatalogueItem, SelectionScope } from '@/domain/ingredient-catalogue';
+import { CatalogueItem, SelectionScope } from '@/domain/ingredient-catalogue'; import { PersonalProfile } from '@/domain/personal-profile';
 import { acceptSavedDraft, addCustom, catalogueItemSelectionState, chooseCatalogueItem, clearFieldError, createProfileEditorState, isProfileDraftDirty, profileErrorMessage, removeCustom, removeSelection, renameCustom, resetDraft } from '@/features/personal-profile/profile-editor-state';
 import { useIngredientCatalogue } from '@/features/personal-profile/use-ingredient-catalogue';
 import { useTheme } from '@/hooks/use-theme';
 
-type Props={activeProfile:AvoidedIngredientProfile;saving:boolean;recovered:boolean;resetNotice:boolean;saveFailed:boolean;onSave(profile:AvoidedIngredientProfile):Promise<boolean>;onRestore():void;registerDirtyGuard(isDirty:()=>boolean):void};
+type Props={activeProfile:PersonalProfile;saving:boolean;recovered:boolean;resetNotice:boolean;saveFailed:boolean;onSave(profile:PersonalProfile):Promise<boolean>;onRestore():void;registerDirtyGuard(isDirty:()=>boolean):void};
 export function ProfileEditor({activeProfile,saving,recovered,resetNotice,saveFailed,onSave,onRestore,registerDirtyGuard}:Props){
  const [editor,setEditor]=useState(()=>createProfileEditorState(activeProfile));const [query,setQuery]=useState('');const [newName,setNewName]=useState('');const catalogue=useIngredientCatalogue(query);const dirty=isProfileDraftDirty(editor);registerDirtyGuard(()=>dirty);
  const [expanded,setExpanded]=useState<ReadonlySet<string>>(()=>new Set());

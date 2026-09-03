@@ -13,7 +13,7 @@ export type AvoidedIngredientProfile = { selections: readonly TaxonomySelection[
 export type IngredientRuleDescriptor = { rule: IngredientRule; label: string };
 export type ProfileValidationErrorCode = 'blank_name' | 'name_too_long' | 'duplicate_name' | 'duplicate_id' | 'invalid_selection';
 export type ProfileValidationError = { code: ProfileValidationErrorCode; fieldId?: string; conflictingId?: string };
-export type ProfileMutationResult = { ok: true; profile: AvoidedIngredientProfile } | { ok: false; error: ProfileValidationError };
+export type ProfileMutationResult<T extends AvoidedIngredientProfile = AvoidedIngredientProfile> = { ok: true; profile: T } | { ok: false; error: ProfileValidationError };
 
 export const emptyAvoidedIngredientProfile = (): AvoidedIngredientProfile => ({ selections: [], customIngredients: [] });
 
@@ -34,7 +34,7 @@ export function validateAvoidedIngredientProfile(profile: AvoidedIngredientProfi
   return null;
 }
 
-export function selectTaxonomyIngredient(profile: AvoidedIngredientProfile, selection: Omit<TaxonomySelection, 'ancestorNodeIds'>, ancestorIds: readonly string[] = []) {
+export function selectTaxonomyIngredient<T extends AvoidedIngredientProfile>(profile: T, selection: Omit<TaxonomySelection, 'ancestorNodeIds'>, ancestorIds: readonly string[] = []) {
   const covering = profile.selections.find((saved) => saved.scope === 'subtree' && ancestorIds.includes(saved.nodeId));
   if (covering) return { profile, consolidated: [selection.nodeId] as readonly string[] };
   const same = profile.selections.filter((saved) => saved.nodeId === selection.nodeId).map((saved) => saved.nodeId);
@@ -45,22 +45,22 @@ export function selectTaxonomyIngredient(profile: AvoidedIngredientProfile, sele
         ...profile.selections.filter((saved) => !same.includes(saved.nodeId)),
         { ...selection, labelPl: selection.labelPl.trim(), ancestorNodeIds: [...ancestorIds] },
       ],
-    },
+    } as T,
     consolidated: same.filter((id) => id !== selection.nodeId),
   };
 }
-export function removeTaxonomySelection(profile: AvoidedIngredientProfile, nodeId: string): AvoidedIngredientProfile { return { ...profile, selections: profile.selections.filter((item) => item.nodeId !== nodeId) }; }
-export function addCustomIngredient(profile: AvoidedIngredientProfile, ingredient: CustomIngredient): ProfileMutationResult {
+export function removeTaxonomySelection<T extends AvoidedIngredientProfile>(profile: T, nodeId: string): T { return { ...profile, selections: profile.selections.filter((item) => item.nodeId !== nodeId) }; }
+export function addCustomIngredient<T extends AvoidedIngredientProfile>(profile: T, ingredient: CustomIngredient): ProfileMutationResult<T> {
   if (!ingredient.id || profile.customIngredients.some(({ id }) => id === ingredient.id)) return { ok: false, error: { code: 'duplicate_id', fieldId: ingredient.id } };
   const error = validateCustomName(ingredient.name, customNameIndex(profile.customIngredients)); if (error) return { ok: false, error: { ...error, fieldId: ingredient.id } };
   return { ok: true, profile: { ...profile, customIngredients: [...profile.customIngredients, { ...ingredient, name: ingredient.name.trim() }] } };
 }
-export function renameCustomIngredient(profile: AvoidedIngredientProfile, id: string, name: string): ProfileMutationResult {
+export function renameCustomIngredient<T extends AvoidedIngredientProfile>(profile: T, id: string, name: string): ProfileMutationResult<T> {
   if (!profile.customIngredients.some((item) => item.id === id)) return { ok: true, profile };
   const error = validateCustomName(name, customNameIndex(profile.customIngredients.filter((item) => item.id !== id))); if (error) return { ok: false, error: { ...error, fieldId: id } };
   return { ok: true, profile: { ...profile, customIngredients: profile.customIngredients.map((item) => item.id === id ? { ...item, name: name.trim() } : item) } };
 }
-export function deleteCustomIngredient(profile: AvoidedIngredientProfile, id: string): AvoidedIngredientProfile { return { ...profile, customIngredients: profile.customIngredients.filter((item) => item.id !== id) }; }
+export function deleteCustomIngredient<T extends AvoidedIngredientProfile>(profile: T, id: string): T { return { ...profile, customIngredients: profile.customIngredients.filter((item) => item.id !== id) }; }
 export function profileToIngredientRules(profile: AvoidedIngredientProfile): IngredientRule[] { return profileToIngredientRuleDescriptors(profile).map(({ rule }) => rule); }
 export function profileToIngredientRuleDescriptors(profile: AvoidedIngredientProfile): IngredientRuleDescriptor[] {
   const error = validateAvoidedIngredientProfile(profile); if (error) throw new Error(`Invalid avoided ingredient profile: ${error.code}`);

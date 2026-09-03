@@ -1,4 +1,5 @@
 import { AvoidedIngredientProfile } from '@/domain/avoided-ingredients/profile';
+import { PersonalProfile } from '@/domain/personal-profile';
 import { FoundLookup, NormalizedProduct } from '@/domain/product-lookup/types';
 import { decodeProductLookup } from '@/domain/product-lookup/decoder';
 import { PersonalProfileState } from '@/features/personal-profile/profile-store';
@@ -6,17 +7,20 @@ import { PersonalProfileState } from '@/features/personal-profile/profile-store'
 import { composeIngredientWarnings } from '../ingredient-warning-composition';
 import { ProductLookupState } from '../lookup-state-machine';
 
-const EMPTY_PROFILE: AvoidedIngredientProfile = {
+const EMPTY_PROFILE: PersonalProfile = {
   selections: [],
   customIngredients: [],
+  nutritionThresholds: [],
 };
-const SAVED_PROFILE: AvoidedIngredientProfile = {
+const SAVED_PROFILE: PersonalProfile = {
   selections: [],
   customIngredients: [{ id: 'sucralose', name: 'Sucralose' }, { id: 'apple', name: 'Apple' }],
+  nutritionThresholds: [],
 };
-const CANDIDATE_PROFILE: AvoidedIngredientProfile = {
+const CANDIDATE_PROFILE: PersonalProfile = {
   selections: [],
   customIngredients: [{ id: 'water', name: 'Water' }],
+  nutritionThresholds: [],
 };
 
 describe('composeIngredientWarnings', () => {
@@ -159,7 +163,7 @@ describe('composeIngredientWarnings', () => {
 });
 
 function ready(profile: AvoidedIngredientProfile): PersonalProfileState {
-  return { status: 'ready', activeProfile: profile };
+  return { status: 'ready', activeProfile: { ...profile, nutritionThresholds: [] } };
 }
 
 function found(overrides: Partial<NormalizedProduct> = {}): ProductLookupState {

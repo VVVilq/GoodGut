@@ -352,25 +352,25 @@ Schema v2 is a valid migration source, not a reset condition. Decode it strictly
 
 #### Automated
 
-- [x] 1.1 Catalogue tests prove the exact eight nutrient IDs, labels, units, and canonical shared vocabulary.
-- [x] 1.2 Domain tests prove nutrition CRUD, uniqueness, stable identity/order, directions, bases, and whole-profile validation.
-- [x] 1.3 Parser tests accept finite non-negative comma/point decimals and reject every malformed input class.
-- [x] 1.4 Projection tests emit unchanged ingredient rules and evaluator-compatible nutrition rules.
-- [x] 1.5 Mobile lint, type checking, and tests pass.
+- [x] 1.1 Catalogue tests prove the exact eight nutrient IDs, labels, units, and canonical shared vocabulary. — c09f1c1
+- [x] 1.2 Domain tests prove nutrition CRUD, uniqueness, stable identity/order, directions, bases, and whole-profile validation. — c09f1c1
+- [x] 1.3 Parser tests accept finite non-negative comma/point decimals and reject every malformed input class. — c09f1c1
+- [x] 1.4 Projection tests emit unchanged ingredient rules and evaluator-compatible nutrition rules. — c09f1c1
+- [x] 1.5 Mobile lint, type checking, and tests pass. — c09f1c1
 
 #### Manual
 
-- [x] 1.6 Human approves Polish labels, units, directions, bases, equality guidance, and non-medical wording.
+- [x] 1.6 Human approves Polish labels, units, directions, bases, equality guidance, and non-medical wording. — c09f1c1
 
 ### Phase 2: Lossless Persistence Migration and Profile State
 
 #### Automated
 
-- [ ] 2.1 Codec tests prove strict v3 round-trip, deterministic v2 migration, preservation, and rejection behavior.
-- [ ] 2.2 Repository tests prove v3 pointer-last saves, v2 preservation, backup recovery, and failure safety.
-- [ ] 2.3 Store tests prove unified hydration, snapshot promotion, in-flight edit isolation, retry/restore, and active-rule exposure.
-- [ ] 2.4 Mixed-profile integration tests prove each editor preserves the other rule family.
-- [ ] 2.5 Mobile lint, type checking, and tests pass.
+- [x] 2.1 Codec tests prove strict v3 round-trip, deterministic v2 migration, preservation, and rejection behavior.
+- [x] 2.2 Repository tests prove v3 pointer-last saves, v2 preservation, backup recovery, and failure safety.
+- [x] 2.3 Store tests prove unified hydration, snapshot promotion, in-flight edit isolation, retry/restore, and active-rule exposure.
+- [x] 2.4 Mixed-profile integration tests prove each editor preserves the other rule family.
+- [x] 2.5 Mobile lint, type checking, and tests pass.
 
 #### Manual
 

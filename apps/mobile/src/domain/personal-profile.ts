@@ -60,6 +60,12 @@ export const emptyPersonalProfile = (): PersonalProfile => ({
   nutritionThresholds: [],
 });
 
+export const clonePersonalProfile = (profile: PersonalProfile): PersonalProfile => ({
+  selections: profile.selections.map((item) => ({ ...item, ancestorNodeIds: [...item.ancestorNodeIds] })),
+  customIngredients: profile.customIngredients.map((item) => ({ ...item })),
+  nutritionThresholds: profile.nutritionThresholds.map((item) => ({ ...item })),
+});
+
 export const nutritionRuleId = (nutrient: NutrientId) => `nutrition:${nutrient}`;
 
 export function parseNutritionThresholdInput(

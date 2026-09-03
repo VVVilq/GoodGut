@@ -35,7 +35,7 @@ const EMPTY_PROFILE: AvoidedIngredientProfile = {
 };
 const ready = (profile: AvoidedIngredientProfile = EMPTY_PROFILE): PersonalProfileState => ({
   status: 'ready',
-  activeProfile: profile,
+  activeProfile: { ...profile, nutritionThresholds: [] },
 });
 
 describe('product lookup presentation', () => {
