@@ -1,10 +1,10 @@
 ---
 change_id: ingredient-warning-scan
 title: Ingredient warning scan
-status: impl_reviewed
+status: archived
 created: 2026-08-31
-updated: 2026-09-02
-archived_at: null
+updated: 2026-09-03
+archived_at: 2026-09-03T07:28:07Z
 ---
 
 ## Notes
