@@ -366,26 +366,26 @@ Schema v2 is a valid migration source, not a reset condition. Decode it strictly
 
 #### Automated
 
-- [x] 2.1 Codec tests prove strict v3 round-trip, deterministic v2 migration, preservation, and rejection behavior.
-- [x] 2.2 Repository tests prove v3 pointer-last saves, v2 preservation, backup recovery, and failure safety.
-- [x] 2.3 Store tests prove unified hydration, snapshot promotion, in-flight edit isolation, retry/restore, and active-rule exposure.
-- [x] 2.4 Mixed-profile integration tests prove each editor preserves the other rule family.
-- [x] 2.5 Mobile lint, type checking, and tests pass.
+- [x] 2.1 Codec tests prove strict v3 round-trip, deterministic v2 migration, preservation, and rejection behavior. — a917aa5
+- [x] 2.2 Repository tests prove v3 pointer-last saves, v2 preservation, backup recovery, and failure safety. — a917aa5
+- [x] 2.3 Store tests prove unified hydration, snapshot promotion, in-flight edit isolation, retry/restore, and active-rule exposure. — a917aa5
+- [x] 2.4 Mixed-profile integration tests prove each editor preserves the other rule family. — a917aa5
+- [x] 2.5 Mobile lint, type checking, and tests pass. — a917aa5
 
 #### Manual
 
-- [ ] 2.6 Android v2-to-v3 migration preserves ingredients through explicit save and restart.
-- [ ] 2.7 Simulated save failure preserves the active mixed profile and retryable draft.
+- [x] 2.6 Android v2-to-v3 migration preserves ingredients through explicit save and restart.
+- [x] 2.7 Simulated save failure preserves the active mixed profile and retryable draft.
 
 ### Phase 3: Nutrition Threshold Editor
 
 #### Automated
 
-- [ ] 3.1 Editor-state tests prove add/edit/remove, filtering, parsing, validation, dirty/reset, and submitted-snapshot behavior.
-- [ ] 3.2 Async-save regression tests keep post-submit edits dirty after save success.
-- [ ] 3.3 Presentation tests prove nutrient labels, units, directions, localized values, and bases.
-- [ ] 3.4 Existing profile, warning, lookup, scanner, decoder, and presentation suites remain passing.
-- [ ] 3.5 Mobile lint, type checking, and tests pass.
+- [x] 3.1 Editor-state tests prove add/edit/remove, filtering, parsing, validation, dirty/reset, and submitted-snapshot behavior.
+- [x] 3.2 Async-save regression tests keep post-submit edits dirty after save success.
+- [x] 3.3 Presentation tests prove nutrient labels, units, directions, localized values, and bases.
+- [x] 3.4 Existing profile, warning, lookup, scanner, decoder, and presentation suites remain passing.
+- [x] 3.5 Mobile lint, type checking, and tests pass.
 
 #### Manual
 
