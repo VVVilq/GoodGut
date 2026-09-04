@@ -39,7 +39,7 @@ describe('personal profile v3 persistence', () => {
   it('writes verified v3 slots before flipping the pointer and alternates slots', async () => {
     const storage = new MemoryStore(); const repository = new TwoSlotPersonalProfileRepository(storage);
     await repository.save(PROFILE);
-    expect(storage.calls.slice(-4)).toEqual([`get:${PERSONAL_PROFILE_KEYS.active}`, `set:${PERSONAL_PROFILE_KEYS.a}`, `get:${PERSONAL_PROFILE_KEYS.a}`, `set:${PERSONAL_PROFILE_KEYS.active}`]);
+    expect(storage.calls.slice(-3)).toEqual([`set:${PERSONAL_PROFILE_KEYS.a}`, `get:${PERSONAL_PROFILE_KEYS.a}`, `set:${PERSONAL_PROFILE_KEYS.active}`]);
     expect(storage.values.get(PERSONAL_PROFILE_KEYS.active)).toBe('a');
     await repository.save(emptyPersonalProfile());
     expect(storage.values.get(PERSONAL_PROFILE_KEYS.active)).toBe('b');
@@ -63,6 +63,20 @@ describe('personal profile v3 persistence', () => {
     await expect(repository.load()).resolves.toEqual({ kind: 'recovered', profile: PROFILE });
     storage.values.set(PERSONAL_PROFILE_KEYS.b, '{also bad');
     await expect(repository.load()).resolves.toEqual({ kind: 'corrupt' });
+  });
+
+  it('preserves the recovered slot when the next save fails', async () => {
+    const storage = new MemoryStore();
+    storage.values.set(PERSONAL_PROFILE_KEYS.active, 'a');
+    storage.values.set(PERSONAL_PROFILE_KEYS.a, '{bad');
+    storage.values.set(PERSONAL_PROFILE_KEYS.b, encodePersonalProfile(PROFILE));
+    const repository = new TwoSlotPersonalProfileRepository(storage);
+
+    await expect(repository.load()).resolves.toEqual({ kind: 'recovered', profile: PROFILE });
+    storage.failSetKey = PERSONAL_PROFILE_KEYS.a;
+    await expect(repository.save(emptyPersonalProfile())).rejects.toThrow('injected failure');
+    await expect(repository.load()).resolves.toEqual({ kind: 'recovered', profile: PROFILE });
+    expect(storage.values.get(PERSONAL_PROFILE_KEYS.b)).toBe(encodePersonalProfile(PROFILE));
   });
 
   it('retains v1 and creates an empty v3 with a one-time reset result', async () => {

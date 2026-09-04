@@ -14,7 +14,7 @@ The domain evaluator already defines nutrition-rule identity and comparison sema
 
 ## Desired End State
 
-From the profile overview, a shopper can open a dedicated nutrition editor, add any unused supported nutrient, explicitly choose direction and basis, enter a non-negative decimal threshold using a comma or point, edit or remove rule cards in a draft, and save the complete profile atomically. One rule is allowed per nutrient.
+From the profile overview, a shopper can open a dedicated nutrition editor, add any unused supported nutrient, explicitly choose direction and basis, select a non-negative threshold on a bounded slider, edit or remove rule cards in a draft, and save the complete profile atomically. One rule is allowed per nutrient.
 
 Existing v2 profiles migrate losslessly to v3 with their ingredient choices preserved and an empty nutrition-rule list. Saved nutrition rules survive restart and project into the existing `PersonalRule[]` evaluator contract with stable identities. Failed saves preserve both the last active profile and the retryable draft.
 
@@ -31,7 +31,7 @@ Existing v2 profiles migrate losslessly to v3 with their ingredient choices pres
 ## What We're NOT Doing
 
 - Nutrition warning cards, highlighted nutrition facts, unavailable-rule presentation, or combined trigger counts on product results; those belong to S-05.
-- More than one rule for the same nutrient, bounded-range rules, cross-basis conversion, serving-based thresholds, percentages, or inferred bases.
+- More than one rule for the same nutrient, thresholds outside the product-approved slider ranges, cross-basis conversion, serving-based thresholds, percentages, or inferred bases.
 - Nutrient-specific medical recommendations, suggested thresholds, disease profiles, positive/green rules, or suitability judgments.
 - Backend profile storage, authentication, synchronization, sharing, multiple profiles, or transmitting threshold values to the API.
 - Adding nutrients beyond the eight fields in product contract 2.0 or changing the API/product-data contract.
@@ -53,7 +53,7 @@ Each editor submits an immutable full-profile snapshot. If the user changes the 
 
 ### User experience spec
 
-Parse both Polish comma and point decimal separators, but store a finite non-negative number and render a stable localized value. Every rule card must state the nutrient, `powyżej` or `poniżej`, the correct unit (`kcal` for energy and `g` otherwise), and `na 100 g` or `na 100 ml`; a short editor note states that equality does not trigger.
+Use a bounded slider for clarity: energy ranges from 0 to 1000 kcal in steps of 1, while other nutrients range from 0 to 100 g in steps of 0.1. Store a finite non-negative number and render a stable localized value. Every rule card must state the nutrient, `powyżej` or `poniżej`, the correct unit (`kcal` for energy and `g` otherwise), and `na 100 g` or `na 100 ml`; a short editor note states that equality does not trigger.
 
 ## Phase 1: Unified Profile Domain and Nutrition Validation
 
@@ -194,7 +194,7 @@ Deliver the complete shopper-facing threshold CRUD flow using the established pr
 
 **Intent**: Isolate draft mutations and validation from rendering.
 
-**Contract**: State contains active snapshot, full-profile draft, raw threshold inputs, selection state, and field errors. Helpers add an unused nutrient, update direction/basis/value, remove immediately from the draft, reset to active, accept exactly a submitted snapshot, and compute dirty state deterministically. No direction or basis is silently defaulted.
+**Contract**: State contains active snapshot, full-profile draft, bounded numeric threshold values, selection state, and field errors. Helpers add an unused nutrient, update direction/basis/value, remove immediately from the draft, reset to active, accept exactly a submitted snapshot, and compute dirty state deterministically. No direction or basis is silently defaulted.
 
 #### 3. Add flow and editable rule cards
 
@@ -202,7 +202,7 @@ Deliver the complete shopper-facing threshold CRUD flow using the established pr
 
 **Intent**: Let shoppers configure rules efficiently without exposing contradictory or ambiguous settings.
 
-**Contract**: Add flow lists only unused nutrients. Each card provides labeled direction and basis radio groups, a decimal numeric input, inline `kcal`/`g`, an equality note, field-level errors, and immediate draft removal. Controls expose appropriate accessibility roles, selected/disabled state, labels/hints, and minimum touch targets.
+**Contract**: Add flow lists only unused nutrients. Each card provides labeled direction and basis radio groups, an accessible bounded slider, inline `kcal`/`g`, an equality note, field-level selection errors, and immediate draft removal. Energy uses 0–1000 kcal with step 1; other nutrients use 0–100 g with step 0.1. Controls expose appropriate accessibility roles, values, selected/disabled state, labels/hints, and minimum touch targets.
 
 #### 4. Save, restore, and navigation lifecycle
 
@@ -216,7 +216,7 @@ Deliver the complete shopper-facing threshold CRUD flow using the established pr
 
 #### Automated Verification
 
-- Editor-state tests prove add/edit/remove, unused-nutrient filtering, raw decimal handling, explicit direction/basis requirements, errors, dirty tracking, reset, and submitted-snapshot acceptance.
+- Editor-state tests prove add/edit/remove, unused-nutrient filtering, bounded numeric handling, explicit direction/basis requirements, errors, dirty tracking, reset, and submitted-snapshot acceptance.
 - Async-save regression tests prove changes made during an in-flight save remain dirty after the submitted snapshot succeeds.
 - Presentation tests prove all eight labels, correct units, direction text, localized threshold formatting, and both basis summaries.
 - Existing profile-store, ingredient-editor, ingredient-warning, lookup, scanner, decoder, and presentation suites remain passing.
@@ -224,7 +224,7 @@ Deliver the complete shopper-facing threshold CRUD flow using the established pr
 
 #### Manual Verification
 
-- On Android, a shopper can add each nutrient, choose both directions and bases, enter comma/point decimals including zero, edit values, and remove rules without ambiguity.
+- On Android, a shopper can add each nutrient, choose both directions and bases, select slider values including zero and decimal gram values, edit values, and remove rules without ambiguity.
 - Save/reopen, dirty-back cancel/discard, restore, failed-save retry, keyboard/scroll behavior, long Polish labels, and empty/all-eight-rule states are usable.
 - TalkBack announces nutrient, input purpose, unit, direction, basis, selection state, errors, removal, and save status in a sensible order; light and dark themes retain readable contrast.
 
@@ -254,7 +254,7 @@ Prove the persisted configuration is durable, private, evaluator-ready, and regr
 
 **Intent**: Make S-04 risks, profile schema behavior, privacy, and verification reproducible.
 
-**Contract**: Add risk rows for threshold validation/duplicates, lossless migration, cross-section preservation, active/draft isolation, and evaluator projection. Document v3 local storage, loss on uninstall/clear data, no sync/API transmission, decimal input behavior, units/bases, and standard verification commands.
+**Contract**: Add risk rows for threshold validation/duplicates, lossless migration, cross-section preservation, active/draft isolation, and evaluator projection. Document v3 local storage, loss on uninstall/clear data, no sync/API transmission, slider ranges and steps, units/bases, and standard verification commands.
 
 #### 3. Final regression and physical-device acceptance
 
@@ -277,7 +277,7 @@ Prove the persisted configuration is durable, private, evaluator-ready, and regr
 
 #### Manual Verification
 
-- Physical Android acceptance confirms migration, mixed-rule persistence, add/edit/remove, both directions/bases, decimal entry, restart, save failure/retry, corrupt recovery, dirty discard, and ingredient-editor preservation.
+- Physical Android acceptance confirms migration, mixed-rule persistence, add/edit/remove, both directions/bases, slider range/step behavior, restart, save failure/retry, corrupt recovery, dirty discard, and ingredient-editor preservation.
 - TalkBack order/roles/error announcements and light/dark contrast pass for the nutrition editor and updated profile summary.
 - Network inspection confirms profile ingredients and nutrition thresholds remain local, and existing barcode lookup/scanning remains usable.
 
@@ -291,7 +291,7 @@ Prove the persisted configuration is durable, private, evaluator-ready, and regr
 
 - Canonical nutrient metadata, unique IDs, labels, units, directions, and bases.
 - Whole-profile validation and one-rule-per-nutrient invariant.
-- Locale-aware decimal parsing and deterministic formatting.
+- Bounded slider values and deterministic localized formatting.
 - Pure editor state, dirty tracking, validation errors, removal, reset, and save-snapshot behavior.
 - Strict v3 codec and deterministic v2 migration.
 - Store active/draft isolation and failure recovery.
@@ -308,8 +308,8 @@ Prove the persisted configuration is durable, private, evaluator-ready, and regr
 
 1. Upgrade a device containing a non-empty v2 ingredient profile and confirm every ingredient selection remains.
 2. Open nutrition settings from the profile overview and verify the empty state and all eight Add choices.
-3. Add rules using both directions, both bases, energy and gram units, zero, comma decimals, and point decimals.
-4. Attempt blank, negative, non-finite, mixed-separator, grouped, and trailing-junk values and verify specific errors.
+3. Add rules using both directions, both bases, energy and gram units, zero, range endpoints, and intermediate slider steps.
+4. Verify energy moves in whole-kcal steps from 0 to 1000 and other nutrients move in 0.1-g steps from 0 to 100.
 5. Edit and remove rules, cancel/confirm dirty navigation, restore saved values, and verify immediate removal remains draft-only.
 6. Save, terminate, relaunch, and confirm the same mixed ingredient/nutrition profile.
 7. Simulate save failure and corruption/recovery; confirm the old active profile remains authoritative and retry succeeds.
@@ -381,7 +381,7 @@ Schema v2 is a valid migration source, not a reset condition. Decode it strictly
 
 #### Automated
 
-- [x] 3.1 Editor-state tests prove add/edit/remove, filtering, parsing, validation, dirty/reset, and submitted-snapshot behavior. — 46da12a
+- [x] 3.1 Editor-state tests prove add/edit/remove, filtering, bounded values, validation, dirty/reset, and submitted-snapshot behavior. — 46da12a
 - [x] 3.2 Async-save regression tests keep post-submit edits dirty after save success. — 46da12a
 - [x] 3.3 Presentation tests prove nutrient labels, units, directions, localized values, and bases. — 46da12a
 - [x] 3.4 Existing profile, warning, lookup, scanner, decoder, and presentation suites remain passing. — 46da12a
@@ -389,7 +389,7 @@ Schema v2 is a valid migration source, not a reset condition. Decode it strictly
 
 #### Manual
 
-- [x] 3.6 Android threshold CRUD works for all nutrients, directions, bases, and accepted decimal formats. — 46da12a
+- [x] 3.6 Android threshold CRUD works for all nutrients, directions, bases, and approved slider ranges/steps. — 46da12a
 - [x] 3.7 Save/reopen, dirty discard, restore, retry, keyboard, scrolling, and empty/full states are usable. — 46da12a
 - [x] 3.8 TalkBack semantics/order and light/dark contrast are acceptable. — 46da12a
 

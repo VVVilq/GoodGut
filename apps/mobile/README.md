@@ -43,7 +43,8 @@ writes a verified schema-v3 slot.
 Use the ingredient editor from Home to select a taxonomy node or its OFF descendant branch, or add
 an exact-name custom entry. The nutrition editor supports one above-or-below threshold for each of
 the eight normalized nutrients. Every threshold explicitly selects `per 100 g` or `per 100 ml`;
-comma and point decimal separators are accepted, zero is valid, and equality does not trigger a
+energy uses a 0–1000 kcal slider with step 1, other nutrients use a 0–100 g slider with step 0.1,
+zero is valid, and equality does not trigger a
 rule. Save is explicit. Failed saves keep the previous active profile and the submitted draft
 available for retry. Corrupt storage is reported or recovered from the other valid slot and is never
 silently overwritten.

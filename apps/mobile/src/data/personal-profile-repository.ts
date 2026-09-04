@@ -40,8 +40,17 @@ export class TwoSlotPersonalProfileRepository implements PersonalProfileReposito
   }
   async save(profile: PersonalProfile): Promise<void> {
     const serialized = encodePersonalProfile(profile);
-    const pointer = await this.storage.getItem(PERSONAL_PROFILE_KEYS.active);
-    const target: Slot = pointer === 'a' ? 'b' : 'a';
+    const slots = await this.readSlots(
+      PERSONAL_PROFILE_KEYS.active,
+      PERSONAL_PROFILE_KEYS.a,
+      PERSONAL_PROFILE_KEYS.b,
+    );
+    const effectiveActiveSlot = resolveSlots(slots)?.slot;
+    const target: Slot = effectiveActiveSlot === 'a'
+      ? 'b'
+      : effectiveActiveSlot === 'b'
+        ? 'a'
+        : slots.pointer === 'a' ? 'b' : 'a';
     const targetKey = PERSONAL_PROFILE_KEYS[target];
     await this.storage.setItem(targetKey, serialized);
     const written = await this.storage.getItem(targetKey);
@@ -55,12 +64,20 @@ export class TwoSlotPersonalProfileRepository implements PersonalProfileReposito
   }
 }
 
-function resolveSlots(slots: { pointer: string | null; a: string | null; b: string | null }, requiredSourceVersion?: 2): { profile: PersonalProfile; recovered: boolean } | null {
+function resolveSlots(slots: { pointer: string | null; a: string | null; b: string | null }, requiredSourceVersion?: 2): { profile: PersonalProfile; recovered: boolean; slot: Slot } | null {
   const activeSlot = slots.pointer === 'a' || slots.pointer === 'b' ? slots.pointer : null;
   const active = activeSlot ? decodeSlot(activeSlot === 'a' ? slots.a : slots.b, requiredSourceVersion) : null;
-  if (active) return { profile: active, recovered: false };
-  const backup = activeSlot === 'a' ? decodeSlot(slots.b, requiredSourceVersion) : activeSlot === 'b' ? decodeSlot(slots.a, requiredSourceVersion) : decodeSlot(slots.a, requiredSourceVersion) ?? decodeSlot(slots.b, requiredSourceVersion);
-  return backup ? { profile: backup, recovered: true } : null;
+  if (active && activeSlot) return { profile: active, recovered: false, slot: activeSlot };
+  const backupSlot: Slot = activeSlot === 'a' ? 'b' : 'a';
+  const backup = activeSlot
+    ? decodeSlot(backupSlot === 'a' ? slots.a : slots.b, requiredSourceVersion)
+    : decodeSlot(slots.a, requiredSourceVersion) ?? decodeSlot(slots.b, requiredSourceVersion);
+  if (!backup) return null;
+  return {
+    profile: backup,
+    recovered: true,
+    slot: activeSlot ? backupSlot : decodeSlot(slots.a, requiredSourceVersion) ? 'a' : 'b',
+  };
 }
 function decodeSlot(value: string | null, requiredSourceVersion?: 2): PersonalProfile | null {
   if (value === null) return null; const decoded = decodePersonalProfile(value);
