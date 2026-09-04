@@ -15,8 +15,9 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="scan" options={{ title: 'Skanuj produkt', headerShadowVisible: false }} />
-            <Stack.Screen name="profile" options={{ title: 'Unikane składniki', headerShadowVisible: false }} />
+            <Stack.Screen name="profile" options={{ title: 'Twój profil', headerShadowVisible: false }} />
             <Stack.Screen name="profile-ingredients" options={{ title: 'Wybierz składniki', headerShadowVisible: false }} />
+            <Stack.Screen name="profile-nutrition" options={{ title: 'Progi odżywcze', headerShadowVisible: false }} />
             <Stack.Screen name="result" options={{ title: 'Szczegóły produktu', headerShadowVisible: false }} />
           </Stack>
         </ProductLookupProvider>

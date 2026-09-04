@@ -374,8 +374,8 @@ Schema v2 is a valid migration source, not a reset condition. Decode it strictly
 
 #### Manual
 
-- [x] 2.6 Android v2-to-v3 migration preserves ingredients through explicit save and restart.
-- [x] 2.7 Simulated save failure preserves the active mixed profile and retryable draft.
+- [x] 2.6 Android v2-to-v3 migration preserves ingredients through explicit save and restart. — d6cea8b
+- [x] 2.7 Simulated save failure preserves the active mixed profile and retryable draft. — d6cea8b
 
 ### Phase 3: Nutrition Threshold Editor
 
@@ -389,9 +389,9 @@ Schema v2 is a valid migration source, not a reset condition. Decode it strictly
 
 #### Manual
 
-- [ ] 3.6 Android threshold CRUD works for all nutrients, directions, bases, and accepted decimal formats.
-- [ ] 3.7 Save/reopen, dirty discard, restore, retry, keyboard, scrolling, and empty/full states are usable.
-- [ ] 3.8 TalkBack semantics/order and light/dark contrast are acceptable.
+- [x] 3.6 Android threshold CRUD works for all nutrients, directions, bases, and accepted decimal formats.
+- [x] 3.7 Save/reopen, dirty discard, restore, retry, keyboard, scrolling, and empty/full states are usable.
+- [x] 3.8 TalkBack semantics/order and light/dark contrast are acceptable.
 
 ### Phase 4: Cross-Boundary Verification and S-05 Handoff
 

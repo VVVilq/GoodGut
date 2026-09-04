@@ -50,3 +50,9 @@ export const isNutritionDirection = (value: unknown): value is NutritionDirectio
   typeof value === 'string' && nutritionDirectionSet.has(value);
 
 export const nutrientOrder = (nutrient: NutrientId) => nutrientIds.indexOf(nutrient);
+
+export const nutrientSliderMaximum = (nutrient: NutrientId) =>
+  nutrient === 'energy_kcal' ? 1000 : 100;
+
+export const nutrientSliderStep = (nutrient: NutrientId) =>
+  nutrient === 'energy_kcal' ? 1 : 0.1;
