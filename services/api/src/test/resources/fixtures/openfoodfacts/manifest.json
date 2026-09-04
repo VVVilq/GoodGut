@@ -1,6 +1,6 @@
 {
   "manifestVersion": 1,
-  "contractVersion": "2.0",
+  "contractVersion": "3.0",
   "source": "Open Food Facts",
   "license": "Open Database License (ODbL); product images under CC BY-SA where applicable",
   "entries": [

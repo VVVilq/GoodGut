@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://goodgut.app/schemas/product-lookup-2.0.schema.json",
-  "title": "GoodGut product lookup response 2.0",
+  "$id": "https://goodgut.app/schemas/product-lookup-3.0.schema.json",
+  "title": "GoodGut product lookup response 3.0",
   "oneOf": [
     { "$ref": "#/$defs/found" },
     { "$ref": "#/$defs/notFound" },
@@ -29,11 +29,11 @@
       "additionalProperties": false,
       "required": ["contractVersion", "outcome", "barcode", "source", "product"],
       "properties": {
-        "contractVersion": { "const": "2.0" },
+        "contractVersion": { "const": "3.0" },
         "outcome": { "const": "found" },
         "barcode": { "type": "string", "pattern": "^[0-9]+$" },
         "source": { "$ref": "#/$defs/foundSource" },
-        "product": { "$ref": "https://goodgut.app/schemas/normalized-product-2.0.schema.json" }
+        "product": { "$ref": "https://goodgut.app/schemas/normalized-product-3.0.schema.json" }
       }
     },
     "notFound": {
@@ -41,7 +41,7 @@
       "additionalProperties": false,
       "required": ["contractVersion", "outcome", "barcode", "source", "reason"],
       "properties": {
-        "contractVersion": { "const": "2.0" },
+        "contractVersion": { "const": "3.0" },
         "outcome": { "const": "not_found" },
         "barcode": { "type": "string", "pattern": "^[0-9]+$" },
         "source": { "$ref": "#/$defs/commonSource" },
@@ -53,7 +53,7 @@
       "additionalProperties": false,
       "required": ["contractVersion", "outcome", "barcode", "source", "errorCategory"],
       "properties": {
-        "contractVersion": { "const": "2.0" },
+        "contractVersion": { "const": "3.0" },
         "outcome": { "const": "source_error" },
         "barcode": { "type": "string", "pattern": "^[0-9]+$" },
         "source": { "$ref": "#/$defs/commonSource" },

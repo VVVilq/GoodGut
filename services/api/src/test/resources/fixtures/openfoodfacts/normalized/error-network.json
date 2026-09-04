@@ -1,1 +1,1 @@
-{"contractVersion":"2.0","outcome":"source_error","barcode":"9900000000002","source":{"provider":"open_food_facts"},"errorCategory":"network_error"}
+{"contractVersion":"3.0","outcome":"source_error","barcode":"9900000000002","source":{"provider":"open_food_facts"},"errorCategory":"network_error"}

@@ -41,9 +41,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductLookupControllerTests {
 
     private static final String LOOKUP_SCHEMA_ID =
-            "https://goodgut.app/schemas/product-lookup-2.0.schema.json";
+            "https://goodgut.app/schemas/product-lookup-3.0.schema.json";
     private static final String PRODUCT_SCHEMA_ID =
-            "https://goodgut.app/schemas/normalized-product-2.0.schema.json";
+            "https://goodgut.app/schemas/normalized-product-3.0.schema.json";
     private static final Path REPOSITORY_ROOT = findRepositoryRoot();
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final Schema LOOKUP_SCHEMA = loadLookupSchema();
@@ -63,7 +63,7 @@ class ProductLookupControllerTests {
 
         String response = mockMvc.perform(get("/products/0000000001008"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.contractVersion").value("2.0"))
+                .andExpect(jsonPath("$.contractVersion").value("3.0"))
                 .andExpect(jsonPath("$.outcome").value("not_found"))
                 .andExpect(jsonPath("$.barcode").value("0000000001008"))
                 .andExpect(jsonPath("$.source.provider").value("open_food_facts"))

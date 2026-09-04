@@ -1,5 +1,5 @@
 {
-  "contractVersion": "2.0",
+  "contractVersion": "3.0",
   "outcome": "found",
   "barcode": "12345678",
   "source": {
@@ -21,7 +21,8 @@
       "catalogueVersion": "warning-boundary-v1",
       "items": [
         {
-          "displayName": "goat milk",
+          "recognition": "recognized", "displayName": "goat milk",
+          "recognition": "recognized",
           "nodeId": "en:goat-milk",
           "ancestorNodeIds": ["en:dairy-ingredient", "en:milk"]
         }

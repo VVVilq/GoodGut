@@ -1,7 +1,7 @@
 # GoodGut Product Data Contract
 
 Status: normative for MVP implementation
-Contract version: `2.0`
+Contract version: `3.0`
 
 This document defines the normalized product lookup boundary used by GoodGut's personal shopping rules. The machine-readable authority is split between `schemas/product-lookup.schema.json` and `schemas/normalized-product.schema.json`; this document defines their semantics and the Open Food Facts mapping policy.
 
@@ -15,7 +15,7 @@ This contract covers barcode lookup, product identity, source metadata, Nutri-Sc
 
 ## Versioning
 
-Every response carries `contractVersion: "2.0"`. Adding an optional source mapping may be compatible, but changing lookup branches, normalized identifiers, units, bases, required fields, or availability meaning requires a reviewed contract-version change and corresponding schema and fixture updates.
+Every response carries `contractVersion: "3.0"`. Adding an optional source mapping may be compatible, but changing lookup branches, normalized identifiers, units, bases, required fields, or availability meaning requires a reviewed contract-version change and corresponding schema and fixture updates.
 
 Consumers ignore unknown raw Open Food Facts fields. They must not ignore unknown GoodGut contract versions.
 
@@ -57,18 +57,18 @@ Nutri-Score availability is independent from every other fact group.
 
 Ingredient status is one of:
 
-- `available`: `items` contains one or more ordered ingredient items, with `completeness` equal to `complete` or `partial` and a non-empty `catalogueVersion`.
+- `available`: `items` contains one or more ordered ingredient items, with `completeness` equal to `complete` or `partial`. `catalogueVersion` is non-null when at least one item is recognized and may be null when every item is unrecognized.
 - `missing`: the source supplies no ingredient evidence that GoodGut can normalize.
 - `unparseable`: ingredient evidence exists, but no structured fragment can be classified safely.
 
-Each available item contains the understandable source `displayName`, its canonical OFF `nodeId`, and all transitive `ancestorNodeIds` resolved from the declared immutable catalogue release. Item order follows trusted OFF leaf order. Multiple parents are retained. OFF edges are the only ancestry authority.
+Each available item is either `recognized` (with the understandable source `displayName`, canonical OFF `nodeId`, and all transitive `ancestorNodeIds`) or `unrecognized` (with `displayName` only). Item order follows trusted OFF leaf order and duplicate leaves are retained. OFF edges are the only ancestry authority.
 
 For Open Food Facts, use this trust order:
 
 1. Prefer the structured nested `ingredients` result and canonical ingredient tags returned by the selected v3 product schema.
 2. Check parsing metadata, including known/unknown ingredient counts and ingredient language where supplied.
 3. Emit `available/complete` when every structured leaf is trusted and resolved in one active catalogue release.
-4. Emit `available/partial` when at least one leaf is trusted and resolved but other fragments are unknown, untrusted, or unresolved. Preserve the certain items and never interpret their absence as a trustworthy zero.
+4. Emit `available/complete` when every displayable leaf is recognized; emit `available/partial` when any displayable leaf is unrecognized, including when the active catalogue is unavailable. Preserve every displayable leaf and never interpret uncertainty as a trustworthy zero.
 5. Emit `unparseable` when raw ingredient text exists but no structured leaf can be classified safely.
 6. Emit `missing` when ingredient evidence is absent.
 

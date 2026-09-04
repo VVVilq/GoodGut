@@ -8,6 +8,6 @@ public record SourceErrorProductLookup(
         String errorCategory) implements ProductLookupResponse {
 
     public SourceErrorProductLookup(String barcode, SourceErrorCategory category) {
-        this("2.0", "source_error", barcode, ProductSource.openFoodFacts(), category.wireValue());
+        this("3.0", "source_error", barcode, ProductSource.openFoodFacts(), category.wireValue());
     }
 }

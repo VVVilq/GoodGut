@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://goodgut.app/schemas/normalized-product-2.0.schema.json",
-  "title": "GoodGut normalized product 2.0",
+  "$id": "https://goodgut.app/schemas/normalized-product-3.0.schema.json",
+  "title": "GoodGut normalized product 3.0",
   "type": "object",
   "additionalProperties": false,
   "required": ["identity", "nutriScore", "ingredients", "nutrition"],
@@ -61,7 +61,7 @@
           "properties": {
             "status": { "const": "available" },
             "completeness": { "enum": ["complete", "partial"] },
-            "catalogueVersion": { "type": "string", "minLength": 1 },
+            "catalogueVersion": { "type": ["string", "null"], "minLength": 1 },
             "items": {
               "type": "array",
               "minItems": 1,
@@ -78,18 +78,32 @@
       ]
     },
     "ingredientItem": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["displayName", "nodeId", "ancestorNodeIds"],
-      "properties": {
-        "displayName": { "type": "string", "minLength": 1 },
-        "nodeId": { "type": "string", "pattern": "^[a-z]{2}:[^\\s:]+$" },
-        "ancestorNodeIds": {
-          "type": "array",
-          "items": { "type": "string", "pattern": "^[a-z]{2}:[^\\s:]+$" },
-          "uniqueItems": true
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["recognition", "displayName", "nodeId", "ancestorNodeIds"],
+          "properties": {
+            "recognition": { "const": "recognized" },
+            "displayName": { "type": "string", "minLength": 1 },
+            "nodeId": { "type": "string", "pattern": "^[a-z]{2}:[^\\s:]+$" },
+            "ancestorNodeIds": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^[a-z]{2}:[^\\s:]+$" },
+              "uniqueItems": true
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["recognition", "displayName"],
+          "properties": {
+            "recognition": { "const": "unrecognized" },
+            "displayName": { "type": "string", "minLength": 1 }
+          }
         }
-      }
+      ]
     },
     "unavailableFact": {
       "type": "object",

@@ -1,5 +1,5 @@
 {
-  "contractVersion": "2.0",
+  "contractVersion": "3.0",
   "outcome": "found",
   "barcode": "3017620422003",
   "source": {
@@ -27,14 +27,14 @@
       "completeness": "complete",
       "catalogueVersion": "fixture-2026-08-19",
       "items": [
-        { "displayName": "Sucre", "nodeId": "en:sugar", "ancestorNodeIds": [] },
-        { "displayName": "huile de palme", "nodeId": "en:palm-oil", "ancestorNodeIds": [] },
-        { "displayName": "NOISETTES", "nodeId": "en:hazelnut", "ancestorNodeIds": [] },
-        { "displayName": "cacao maigre", "nodeId": "en:fat-reduced-cocoa", "ancestorNodeIds": [] },
-        { "displayName": "LAIT écrémé en poudre", "nodeId": "en:skimmed-milk-powder", "ancestorNodeIds": ["en:milk"] },
-        { "displayName": "LACTOSERUM en poudre", "nodeId": "en:whey-powder", "ancestorNodeIds": ["en:milk"] },
-        { "displayName": "lécithines de SOJA", "nodeId": "en:soya-lecithin", "ancestorNodeIds": [] },
-        { "displayName": "vanilline", "nodeId": "en:vanillin", "ancestorNodeIds": [] }
+        { "recognition": "recognized", "displayName": "Sucre", "nodeId": "en:sugar", "ancestorNodeIds": [] },
+        { "recognition": "recognized", "displayName": "huile de palme", "nodeId": "en:palm-oil", "ancestorNodeIds": [] },
+        { "recognition": "recognized", "displayName": "NOISETTES", "nodeId": "en:hazelnut", "ancestorNodeIds": [] },
+        { "recognition": "recognized", "displayName": "cacao maigre", "nodeId": "en:fat-reduced-cocoa", "ancestorNodeIds": [] },
+        { "recognition": "recognized", "displayName": "LAIT écrémé en poudre", "nodeId": "en:skimmed-milk-powder", "ancestorNodeIds": ["en:milk"] },
+        { "recognition": "recognized", "displayName": "LACTOSERUM en poudre", "nodeId": "en:whey-powder", "ancestorNodeIds": ["en:milk"] },
+        { "recognition": "recognized", "displayName": "lécithines de SOJA", "nodeId": "en:soya-lecithin", "ancestorNodeIds": [] },
+        { "recognition": "recognized", "displayName": "vanilline", "nodeId": "en:vanillin", "ancestorNodeIds": [] }
       ]
     },
     "nutrition": {

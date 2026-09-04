@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ProductContractFixturesTests {
 
     private static final String LOOKUP_SCHEMA_ID =
-            "https://goodgut.app/schemas/product-lookup-2.0.schema.json";
+            "https://goodgut.app/schemas/product-lookup-3.0.schema.json";
     private static final String PRODUCT_SCHEMA_ID =
-            "https://goodgut.app/schemas/normalized-product-2.0.schema.json";
+            "https://goodgut.app/schemas/normalized-product-3.0.schema.json";
     private static final Path REPOSITORY_ROOT = findRepositoryRoot();
     private static final Path FIXTURES = REPOSITORY_ROOT.resolve(
             "services/api/src/test/resources/fixtures/openfoodfacts");
