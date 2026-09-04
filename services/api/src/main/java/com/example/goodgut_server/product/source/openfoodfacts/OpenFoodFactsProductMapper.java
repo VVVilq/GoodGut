@@ -158,7 +158,11 @@ public final class OpenFoodFactsProductMapper {
 
     private String displayIngredientName(String taxonomyId, String sourceText) {
         String text = usable(sourceText);
-        return text == null ? taxonomyId.replace('-', ' ') : text;
+        if (text == null) {
+            return taxonomyId.replace('-', ' ');
+        }
+        String displayText = usable(text.replace("_", ""));
+        return displayText == null ? taxonomyId.replace('-', ' ') : displayText;
     }
 
     private ProductNutrition mapNutrition(OpenFoodFactsProduct source) {

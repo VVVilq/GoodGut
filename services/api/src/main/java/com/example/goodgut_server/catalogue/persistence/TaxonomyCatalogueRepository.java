@@ -97,6 +97,7 @@ public class TaxonomyCatalogueRepository {
                 SELECT COUNT(*)
                 FROM ingredient_taxon taxon
                 WHERE taxon.release_id = ?
+                  AND taxon.taxonomy_id LIKE 'en:%'
                   AND NOT EXISTS (
                     SELECT 1
                     FROM ingredient_label label

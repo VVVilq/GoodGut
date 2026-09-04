@@ -133,6 +133,21 @@ class OpenFoodFactsProductMapperTests {
                 .get("status").asText());
     }
 
+    @Test
+    void removesOpenFoodFactsAllergenMarkupFromIngredientDisplayNames() throws Exception {
+        ProductLookupResponse result = mapper.map("12345678", response(minimalProduct("""
+                "unknown_ingredients_n":0,
+                "ingredients":[
+                  {"id":"en:mustard-seed","text":"_gorczyca_"},
+                  {"id":"en:chicken-egg-yolk","text":"żółtka _jaj_ kurzych"}
+                ]
+                """)));
+
+        JsonNode ingredients = JSON.valueToTree(result).get("product").get("ingredients").get("items");
+        assertEquals(List.of("gorczyca", "żółtka jaj kurzych"),
+                ingredients.valueStream().map(item -> item.get("displayName").asText()).toList());
+    }
+
     private void assertBasis(String expected, String quantityUnit, String dataPer) throws Exception {
         ProductLookupResponse result = mapper.map("12345678", response(minimalProduct("""
                 "product_quantity_unit":"%s","nutrition_data_per":"%s",

@@ -1,0 +1,9 @@
+{
+  "en:fruit": {
+    "name": { "en": "fruit", "pl": "owoc" }
+  },
+  "fr:specialite-de-fruits": {
+    "name": { "fr": "spécialité de fruits" },
+    "parents": ["en:fruit"]
+  }
+}

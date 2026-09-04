@@ -111,6 +111,18 @@ class TaxonomyImportServiceTests {
     }
 
     @Test
+    void importsForeignNamespaceNodesWithoutEnglishTranslations() throws Exception {
+        TaxonomyImportReport report = service.importRelease(
+                request(fixture("ingredients-foreign-without-english-label.json"), "foreign-label", false));
+
+        assertThat(report.entryCount()).isEqualTo(2);
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM ingredient_taxon WHERE release_id = ?",
+                Integer.class,
+                report.releaseId())).isEqualTo(2);
+    }
+
+    @Test
     void importsVerifiedSnapshotWhenOriginalSourceChangesAndDeletesSnapshot() throws Exception {
         Path source = Files.createTempFile("goodgut-taxonomy-mutable-", ".json");
         source.toFile().deleteOnExit();
