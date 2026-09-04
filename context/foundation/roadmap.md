@@ -3,7 +3,7 @@ project: GoodGut
 version: 1
 status: draft
 created: 2026-08-18
-updated: 2026-09-03
+updated: 2026-09-04
 prd_version: 3
 main_goal: speed
 top_blocker: external
@@ -33,7 +33,7 @@ GoodGut reduces time spent reading food labels by applying one shopper's persona
 | S-01 | scan-complete-product-facts | scan a barcode and see complete available product facts or explicit unavailable states without personalization | F-01 | US-01, FR-004, FR-005, FR-009, FR-010 | done |
 | S-02 | avoided-ingredient-profile | configure and edit one on-device profile containing predefined and custom avoided ingredients | — | US-01, FR-001, FR-002 | done |
 | S-03 | ingredient-warning-scan | scan a product and see avoided ingredients highlighted with the total triggered-rule count | S-01, S-02 | US-01, FR-004, FR-005, FR-006, FR-008, FR-009, FR-010 | done |
-| S-04 | nutrition-threshold-profile | configure and edit above-or-below nutrition thresholds with an explicit per-100-g or per-100-ml basis | — | US-01, FR-001, FR-003 | in-progress |
+| S-04 | nutrition-threshold-profile | configure and edit above-or-below nutrition thresholds with an explicit per-100-g or per-100-ml basis | — | US-01, FR-001, FR-003 | done |
 | S-05 | nutrition-warning-scan | scan a product and see matching nutrition warnings combined with ingredient warnings and an accurate total | S-03, S-04 | US-01, FR-003, FR-004, FR-005, FR-007, FR-008, FR-009, FR-010 | proposed |
 
 ## Streams
@@ -126,7 +126,7 @@ Foundations below assume these are present and do not re-scaffold them.
 - **Unknowns:**
   - Which nutrition fields from the normalized product contract should be selectable in the initial threshold list? — Owner: user. Block: no.
 - **Risk:** Restricting choices to normalized fields with explicit units prevents the profile from creating rules that product data cannot evaluate reliably.
-- **Status:** in-progress
+- **Status:** done
 
 ### S-05: Combine nutrition and ingredient warnings
 
@@ -172,3 +172,4 @@ No roadmap-wide questions remain open. Non-blocking implementation questions are
 - **S-01: shopper can scan a barcode and see complete available ingredients, Nutri-Score, kcal, sugars, fats, and other available nutrition values, with explicit not-found, source-error, and unavailable states and no personalized highlights when no rules exist.** — Archived 2026-08-26 → `context/archive/2026-08-19-scan-complete-product-facts/`. Lesson: —.
 - **S-02: shopper can configure and edit one on-device profile by selecting predefined avoided ingredients and adding case-insensitive exact-name custom ingredients.** — Archived 2026-08-31 → `context/archive/2026-08-26-avoided-ingredient-profile/`. Lesson: —.
 - **S-03: shopper can scan a product, see every triggered avoided-ingredient rule first with matching ingredient text highlighted in red, see the total number of triggered rules, and still inspect complete product facts below.** — Archived 2026-09-03 → `context/archive/2026-08-31-ingredient-warning-scan/`. Lesson: —.
+- **S-04: shopper can configure and edit above-or-below thresholds for selected nutrition values, with each rule explicitly using a per-100-g or per-100-ml basis.** — Archived 2026-09-04 → `context/archive/2026-09-03-nutrition-threshold-profile/`. Lesson: —.
