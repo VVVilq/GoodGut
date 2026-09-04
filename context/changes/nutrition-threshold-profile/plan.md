@@ -381,31 +381,31 @@ Schema v2 is a valid migration source, not a reset condition. Decode it strictly
 
 #### Automated
 
-- [x] 3.1 Editor-state tests prove add/edit/remove, filtering, parsing, validation, dirty/reset, and submitted-snapshot behavior.
-- [x] 3.2 Async-save regression tests keep post-submit edits dirty after save success.
-- [x] 3.3 Presentation tests prove nutrient labels, units, directions, localized values, and bases.
-- [x] 3.4 Existing profile, warning, lookup, scanner, decoder, and presentation suites remain passing.
-- [x] 3.5 Mobile lint, type checking, and tests pass.
+- [x] 3.1 Editor-state tests prove add/edit/remove, filtering, parsing, validation, dirty/reset, and submitted-snapshot behavior. — 46da12a
+- [x] 3.2 Async-save regression tests keep post-submit edits dirty after save success. — 46da12a
+- [x] 3.3 Presentation tests prove nutrient labels, units, directions, localized values, and bases. — 46da12a
+- [x] 3.4 Existing profile, warning, lookup, scanner, decoder, and presentation suites remain passing. — 46da12a
+- [x] 3.5 Mobile lint, type checking, and tests pass. — 46da12a
 
 #### Manual
 
-- [x] 3.6 Android threshold CRUD works for all nutrients, directions, bases, and accepted decimal formats.
-- [x] 3.7 Save/reopen, dirty discard, restore, retry, keyboard, scrolling, and empty/full states are usable.
-- [x] 3.8 TalkBack semantics/order and light/dark contrast are acceptable.
+- [x] 3.6 Android threshold CRUD works for all nutrients, directions, bases, and accepted decimal formats. — 46da12a
+- [x] 3.7 Save/reopen, dirty discard, restore, retry, keyboard, scrolling, and empty/full states are usable. — 46da12a
+- [x] 3.8 TalkBack semantics/order and light/dark contrast are acceptable. — 46da12a
 
 ### Phase 4: Cross-Boundary Verification and S-05 Handoff
 
 #### Automated
 
-- [ ] 4.1 Persisted v2/v3 mixed profiles produce exact evaluator-compatible personal rules.
-- [ ] 4.2 Evaluator regressions prove strict comparison, equality, missing-data, and basis-mismatch behavior.
-- [ ] 4.3 Every new S-04 automated test-plan reference resolves to a passing test.
-- [ ] 4.4 Mobile lint, type checking, and all tests pass.
-- [ ] 4.5 API regression tests pass offline.
-- [ ] 4.6 Scope checks exclude server profile data, medical claims, contract expansion, conversion, and S-05 presentation.
+- [x] 4.1 Persisted v2/v3 mixed profiles produce exact evaluator-compatible personal rules.
+- [x] 4.2 Evaluator regressions prove strict comparison, equality, missing-data, and basis-mismatch behavior.
+- [x] 4.3 Every new S-04 automated test-plan reference resolves to a passing test.
+- [x] 4.4 Mobile lint, type checking, and all tests pass.
+- [x] 4.5 API regression tests pass offline.
+- [x] 4.6 Scope checks exclude server profile data, medical claims, contract expansion, conversion, and S-05 presentation.
 
 #### Manual
 
-- [ ] 4.7 Physical Android migration, mixed persistence, CRUD, restart, failure, recovery, and discard acceptance passes.
-- [ ] 4.8 TalkBack and light/dark acceptance passes for the editor and profile summary.
-- [ ] 4.9 Network/privacy and existing scan regression checks pass.
+- [x] 4.7 Physical Android migration, mixed persistence, CRUD, restart, failure, recovery, and discard acceptance passes.
+- [x] 4.8 TalkBack and light/dark acceptance passes for the editor and profile summary.
+- [x] 4.9 Network/privacy and existing scan regression checks pass.

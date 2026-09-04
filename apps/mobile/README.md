@@ -34,16 +34,24 @@ npx.cmd expo config --type public
 On Android, verify camera allow/deny recovery, a complete and incomplete product, not-found,
 source/client errors, retry, scan-another, duplicate suppression, and camera release on exit.
 
-The avoided-ingredient profile is stored locally in AsyncStorage under two rotating slots; it is
-not sent to the API, Open Food Facts, URLs, or logs, and is lost if app data is cleared or the app is
-uninstalled. Use the profile editor from Home to select a taxonomy node or its OFF descendant branch,
-or add an exact-name custom entry. Save is explicit;
-failed saves keep the previous active profile and the draft available for retry. Corrupt storage is
-reported or recovered from the other valid slot and is never silently overwritten.
+The personal profile is stored locally as schema v3 in AsyncStorage under two rotating slots. It
+contains avoided ingredients and nutrition thresholds, is not sent to the API, Open Food Facts,
+URLs, or logs, and is lost if app data is cleared or the app is uninstalled. Existing schema-v2
+ingredient profiles migrate in memory without deleting their legacy slots; the first explicit Save
+writes a verified schema-v3 slot.
+
+Use the ingredient editor from Home to select a taxonomy node or its OFF descendant branch, or add
+an exact-name custom entry. The nutrition editor supports one above-or-below threshold for each of
+the eight normalized nutrients. Every threshold explicitly selects `per 100 g` or `per 100 ml`;
+comma and point decimal separators are accepted, zero is valid, and equality does not trigger a
+rule. Save is explicit. Failed saves keep the previous active profile and the submitted draft
+available for retry. Corrupt storage is reported or recovered from the other valid slot and is never
+silently overwritten.
 
 Profile evidence: `src/data/__tests__/personal-profile-repository-test.ts`,
 `src/data/__tests__/personal-profile-integration-test.ts`, and
-`src/features/personal-profile/__tests__/profile-store-test.ts`.
+`src/features/personal-profile/__tests__/profile-store-test.ts`. Run `npm.cmd run lint`,
+`npm.cmd run typecheck`, and `npm.cmd test` after profile changes.
 
 Product facts are sourced from Open Food Facts contributors. Database content is available under
 ODbL and product images may be licensed under CC BY-SA; the result screen preserves attribution and

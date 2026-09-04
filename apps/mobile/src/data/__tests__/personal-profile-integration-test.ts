@@ -1,7 +1,12 @@
-import { TwoSlotPersonalProfileRepository, AsyncKeyValueStore } from '@/data/personal-profile-repository';
+import {
+  TwoSlotPersonalProfileRepository,
+  AsyncKeyValueStore,
+  PERSONAL_PROFILE_KEYS,
+} from '@/data/personal-profile-repository';
 import { profileToIngredientRules } from '@/domain/avoided-ingredients/profile';
-import { profileToPersonalRules } from '@/domain/personal-profile';
-import { evaluateIngredientRules } from '@/domain/personal-rules';
+import { PersonalProfile, profileToPersonalRules } from '@/domain/personal-profile';
+import { evaluateIngredientRules, evaluatePersonalRules, ProductFacts } from '@/domain/personal-rules';
+import { PersonalProfileStore } from '@/features/personal-profile/profile-store';
 
 class MemoryStorage implements AsyncKeyValueStore {
   values = new Map<string, string>();
@@ -74,5 +79,104 @@ describe('persisted profile evaluator handoff', () => {
     expect(profileToIngredientRules(third.profile).map(({ id }) => id)).toEqual([
       'taxonomy:en:milk', 'custom:one',
     ]);
+  });
+
+  it('hydrates all eight persisted nutrition rules through the store with exact evaluator fields', async () => {
+    const storage = new MemoryStorage();
+    const repository = new TwoSlotPersonalProfileRepository(storage);
+    const nutritionThresholds: PersonalProfile['nutritionThresholds'] = [
+      { id: 'nutrition:energy_kcal', nutrient: 'energy_kcal', direction: 'above', threshold: 0, basis: 'per_100g' },
+      { id: 'nutrition:carbohydrates', nutrient: 'carbohydrates', direction: 'below', threshold: 10.5, basis: 'per_100ml' },
+      { id: 'nutrition:sugars', nutrient: 'sugars', direction: 'above', threshold: 5.5, basis: 'per_100g' },
+      { id: 'nutrition:fat', nutrient: 'fat', direction: 'below', threshold: 20, basis: 'per_100ml' },
+      { id: 'nutrition:saturated_fat', nutrient: 'saturated_fat', direction: 'above', threshold: 3.2, basis: 'per_100g' },
+      { id: 'nutrition:fiber', nutrient: 'fiber', direction: 'below', threshold: 2, basis: 'per_100ml' },
+      { id: 'nutrition:protein', nutrient: 'protein', direction: 'above', threshold: 7, basis: 'per_100g' },
+      { id: 'nutrition:salt', nutrient: 'salt', direction: 'below', threshold: 1.1, basis: 'per_100ml' },
+    ];
+    const profile: PersonalProfile = {
+      selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }],
+      customIngredients: [{ id: 'one', name: 'Inulina' }],
+      nutritionThresholds,
+    };
+    await repository.save(profile);
+
+    const store = new PersonalProfileStore(repository);
+    await store.hydrate();
+    expect(store.getState()).toEqual({ status: 'ready', activeProfile: profile });
+    expect(profileToPersonalRules(profile)).toEqual([
+      { id: 'taxonomy:en:milk', kind: 'ingredient', name: 'Mleko', source: 'taxonomy', nodeId: 'en:milk', scope: 'subtree' },
+      { id: 'custom:one', kind: 'ingredient', name: 'Inulina', source: 'custom' },
+      ...nutritionThresholds.map((rule) => ({ ...rule, kind: 'nutrition' as const })),
+    ]);
+  });
+
+  it('evaluates persisted thresholds without treating equality, missing values, or basis mismatches as non-matches', async () => {
+    const storage = new MemoryStorage();
+    const repository = new TwoSlotPersonalProfileRepository(storage);
+    const profile: PersonalProfile = {
+      selections: [],
+      customIngredients: [],
+      nutritionThresholds: [
+        { id: 'nutrition:energy_kcal', nutrient: 'energy_kcal', direction: 'above', threshold: 100, basis: 'per_100g' },
+        { id: 'nutrition:sugars', nutrient: 'sugars', direction: 'above', threshold: 5.5, basis: 'per_100g' },
+        { id: 'nutrition:fiber', nutrient: 'fiber', direction: 'below', threshold: 2, basis: 'per_100ml' },
+        { id: 'nutrition:salt', nutrient: 'salt', direction: 'below', threshold: 1, basis: 'per_100ml' },
+      ],
+    };
+    await repository.save(profile);
+    const loaded = await repository.load();
+    if (loaded.kind !== 'loaded') throw new Error(`Unexpected load result: ${loaded.kind}`);
+    const unavailable = { status: 'unavailable' as const };
+    const product: ProductFacts = {
+      ingredients: { status: 'available', names: [] },
+      nutrition: {
+        energy_kcal: { status: 'available', value: 100, basis: 'per_100g' },
+        carbohydrates: unavailable,
+        sugars: { status: 'available', value: 6, basis: 'per_100g' },
+        fat: unavailable,
+        saturated_fat: unavailable,
+        fiber: unavailable,
+        protein: unavailable,
+        salt: { status: 'available', value: 0.5, basis: 'per_100g' },
+      },
+    };
+
+    expect(evaluatePersonalRules(profileToPersonalRules(loaded.profile), product)).toEqual({
+      triggeredRuleIds: ['nutrition:sugars'],
+      unavailableRuleIds: ['nutrition:fiber', 'nutrition:salt'],
+      triggerCount: 1,
+    });
+  });
+
+  it('migrates persisted v2 ingredients before saving and projecting a v3 mixed profile', async () => {
+    const storage = new MemoryStorage();
+    storage.values.set(PERSONAL_PROFILE_KEYS.v2Active, 'a');
+    storage.values.set(PERSONAL_PROFILE_KEYS.v2A, JSON.stringify({
+      schemaVersion: 2,
+      profile: {
+        selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }],
+        customIngredients: [{ id: 'one', name: 'Inulina' }],
+      },
+    }));
+    const repository = new TwoSlotPersonalProfileRepository(storage);
+    const migrated = await repository.load();
+    if (migrated.kind !== 'migrated') throw new Error(`Unexpected load result: ${migrated.kind}`);
+    const upgraded: PersonalProfile = {
+      ...migrated.profile,
+      nutritionThresholds: [
+        { id: 'nutrition:sugars', nutrient: 'sugars', direction: 'above', threshold: 0, basis: 'per_100g' },
+      ],
+    };
+    await repository.save(upgraded);
+    const loaded = await repository.load();
+    if (loaded.kind !== 'loaded') throw new Error(`Unexpected load result: ${loaded.kind}`);
+
+    expect(profileToPersonalRules(loaded.profile).map(({ id }) => id)).toEqual([
+      'taxonomy:en:milk',
+      'custom:one',
+      'nutrition:sugars',
+    ]);
+    expect(storage.values.get(PERSONAL_PROFILE_KEYS.v2A)).toBeDefined();
   });
 });
