@@ -397,15 +397,15 @@ Schema v2 is a valid migration source, not a reset condition. Decode it strictly
 
 #### Automated
 
-- [x] 4.1 Persisted v2/v3 mixed profiles produce exact evaluator-compatible personal rules.
-- [x] 4.2 Evaluator regressions prove strict comparison, equality, missing-data, and basis-mismatch behavior.
-- [x] 4.3 Every new S-04 automated test-plan reference resolves to a passing test.
-- [x] 4.4 Mobile lint, type checking, and all tests pass.
-- [x] 4.5 API regression tests pass offline.
-- [x] 4.6 Scope checks exclude server profile data, medical claims, contract expansion, conversion, and S-05 presentation.
+- [x] 4.1 Persisted v2/v3 mixed profiles produce exact evaluator-compatible personal rules. — 0fad0cb
+- [x] 4.2 Evaluator regressions prove strict comparison, equality, missing-data, and basis-mismatch behavior. — 0fad0cb
+- [x] 4.3 Every new S-04 automated test-plan reference resolves to a passing test. — 0fad0cb
+- [x] 4.4 Mobile lint, type checking, and all tests pass. — 0fad0cb
+- [x] 4.5 API regression tests pass offline. — 0fad0cb
+- [x] 4.6 Scope checks exclude server profile data, medical claims, contract expansion, conversion, and S-05 presentation. — 0fad0cb
 
 #### Manual
 
-- [x] 4.7 Physical Android migration, mixed persistence, CRUD, restart, failure, recovery, and discard acceptance passes.
-- [x] 4.8 TalkBack and light/dark acceptance passes for the editor and profile summary.
-- [x] 4.9 Network/privacy and existing scan regression checks pass.
+- [x] 4.7 Physical Android migration, mixed persistence, CRUD, restart, failure, recovery, and discard acceptance passes. — 0fad0cb
+- [x] 4.8 TalkBack and light/dark acceptance passes for the editor and profile summary. — 0fad0cb
+- [x] 4.9 Network/privacy and existing scan regression checks pass. — 0fad0cb
