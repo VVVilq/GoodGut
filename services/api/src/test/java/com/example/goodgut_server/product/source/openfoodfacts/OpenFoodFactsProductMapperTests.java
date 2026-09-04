@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OpenFoodFactsProductMapperTests {
 
@@ -31,7 +32,8 @@ class OpenFoodFactsProductMapperTests {
 
     private final OpenFoodFactsProductMapper mapper = new OpenFoodFactsProductMapper(
             Clock.fixed(FETCHED_AT, ZoneOffset.UTC), taxonomyIds -> new IngredientClassificationBatch(
-                    "fixture-2026-08-19", taxonomyIds.stream().distinct().map(taxonomyId ->
+                    "fixture-2026-08-19", taxonomyIds.stream().distinct()
+                            .filter(taxonomyId -> !"en:bacteria".equals(taxonomyId)).map(taxonomyId ->
                             new IngredientClassification("fixture-2026-08-19", taxonomyId,
                                     Set.of("en:skimmed-milk-powder", "en:whey-powder", "en:cream")
                                             .contains(taxonomyId) ? List.of("en:milk") : List.of()))
@@ -146,6 +148,30 @@ class OpenFoodFactsProductMapperTests {
         JsonNode ingredients = JSON.valueToTree(result).get("product").get("ingredients").get("items");
         assertEquals(List.of("gorczyca", "żółtka jaj kurzych"),
                 ingredients.valueStream().map(item -> item.get("displayName").asText()).toList());
+    }
+
+    @Test
+    void preservesTextOnlyAndDuplicateLeavesWhenCatalogueCannotResolveThem() throws Exception {
+        OpenFoodFactsProductMapper noCatalogueMapper = new OpenFoodFactsProductMapper(
+                Clock.fixed(FETCHED_AT, ZoneOffset.UTC),
+                taxonomyIds -> new IngredientClassificationBatch(null, java.util.Map.of()));
+        ProductLookupResponse result = noCatalogueMapper.map("12345678", response(minimalProduct("""
+                "ingredients":[
+                  {"id":"pl:mustard-seed","text":"_gorczyca_"},
+                  {"id":"pl:mustard-seed","text":"gorczyca"},
+                  {"text":"tajemniczy składnik"}
+                ]
+                """)));
+
+        JsonNode ingredients = JSON.valueToTree(result).get("product").get("ingredients");
+        assertEquals("partial", ingredients.get("completeness").asText());
+        assertEquals(List.of("gorczyca", "gorczyca", "tajemniczy składnik"),
+                ingredients.get("items").valueStream()
+                        .map(item -> item.get("displayName").asText()).toList());
+        assertEquals(List.of("unrecognized", "unrecognized", "unrecognized"),
+                ingredients.get("items").valueStream()
+                        .map(item -> item.get("recognition").asText()).toList());
+        assertTrue(ingredients.get("catalogueVersion").isNull());
     }
 
     private void assertBasis(String expected, String quantityUnit, String dataPer) throws Exception {

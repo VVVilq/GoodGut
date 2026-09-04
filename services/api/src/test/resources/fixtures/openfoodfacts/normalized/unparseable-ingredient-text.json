@@ -15,7 +15,7 @@
       "imageUrl": null
     },
     "nutriScore": { "status": "missing" },
-    "ingredients": { "status": "unparseable" },
+    "ingredients": { "status": "unparseable", "catalogueVersion": null },
     "nutrition": {
       "energy_kcal": { "status": "unavailable", "reason": "missing_source" },
       "carbohydrates": { "status": "unavailable", "reason": "missing_source" },

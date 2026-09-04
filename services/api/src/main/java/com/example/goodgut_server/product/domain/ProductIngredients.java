@@ -8,6 +8,7 @@ import java.util.List;
 public record ProductIngredients(
         String status,
         String completeness,
+        @JsonInclude(JsonInclude.Include.ALWAYS)
         String catalogueVersion,
         List<ProductIngredientItem> items) {
 

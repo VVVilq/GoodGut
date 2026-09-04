@@ -113,32 +113,36 @@ public final class OpenFoodFactsProductMapper {
         for (OpenFoodFactsIngredient ingredient : source.ingredients()) {
             collectTrustedLeaves(ingredient, candidates, partial);
         }
-        IngredientClassificationBatch batch = ingredientClassifier.classify(
-                candidates.stream().map(LeafCandidate::nodeId).toList());
+        List<String> taxonomyIds = candidates.stream()
+                .map(LeafCandidate::nodeId)
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+        IngredientClassificationBatch batch = ingredientClassifier.classify(taxonomyIds);
         List<ProductIngredientItem> items = new ArrayList<>();
         for (LeafCandidate candidate : candidates) {
-            IngredientClassification resolved = batch.classifications().get(candidate.nodeId());
+            IngredientClassification resolved = candidate.nodeId() == null
+                    ? null : batch.classifications().get(candidate.nodeId());
             if (resolved == null) {
                 partial[0] = true;
+                items.add(ProductIngredientItem.unrecognized(candidate.displayName()));
             } else {
-                items.add(new ProductIngredientItem(
+                items.add(ProductIngredientItem.recognized(
                         candidate.displayName(), resolved.nodeId(), resolved.ancestorNodeIds()));
             }
         }
-        List<ProductIngredientItem> uniqueItems = new ArrayList<>();
-        Set<String> seen = new LinkedHashSet<>();
-        for (ProductIngredientItem item : items) {
-            if (seen.add(item.nodeId())) uniqueItems.add(item);
+        if (items.isEmpty()) {
+            return ProductIngredients.unparseable();
         }
-        return uniqueItems.isEmpty() || batch.catalogueVersion() == null
-                ? ProductIngredients.unparseable()
-                : ProductIngredients.available(partial[0] ? "partial" : "complete",
-                        batch.catalogueVersion(), uniqueItems);
+        boolean allRecognized = items.stream().allMatch(item -> "recognized".equals(item.recognition()));
+        return partial[0] || !allRecognized || batch.catalogueVersion() == null
+                ? ProductIngredients.available("partial", batch.catalogueVersion(), items)
+                : ProductIngredients.available("complete", batch.catalogueVersion(), items);
     }
 
     private void collectTrustedLeaves(OpenFoodFactsIngredient ingredient,
             List<LeafCandidate> candidates, boolean[] partial) {
-        if (ingredient == null || Integer.valueOf(0).equals(ingredient.isInTaxonomy())) {
+        if (ingredient == null) {
             partial[0] = true;
             return;
         }
@@ -149,20 +153,33 @@ public final class OpenFoodFactsProductMapper {
             return;
         }
         String id = usable(ingredient.id());
-        if (id == null || !id.startsWith("en:")) {
+        if (Integer.valueOf(0).equals(ingredient.isInTaxonomy())) {
+            partial[0] = true;
+        }
+        String text = displayIngredientName(id, ingredient.text());
+        if (text == null) {
             partial[0] = true;
             return;
         }
-        candidates.add(new LeafCandidate(id, displayIngredientName(id.substring(3), ingredient.text())));
+        candidates.add(new LeafCandidate(isTaxonomyId(id) ? id : null, text));
     }
 
     private String displayIngredientName(String taxonomyId, String sourceText) {
         String text = usable(sourceText);
         if (text == null) {
-            return taxonomyId.replace('-', ' ');
+            return taxonomyId == null ? null : readableId(taxonomyId);
         }
         String displayText = usable(text.replace("_", ""));
-        return displayText == null ? taxonomyId.replace('-', ' ') : displayText;
+        return displayText == null ? (taxonomyId == null ? null : readableId(taxonomyId)) : displayText;
+    }
+
+    private boolean isTaxonomyId(String id) {
+        return id != null && id.matches("^[a-z]{2}:[^\\s:]+$");
+    }
+
+    private String readableId(String id) {
+        String value = id.replaceFirst("^[a-z]{2}:", "").replace('_', ' ').replace('-', ' ');
+        return usable(value.replaceAll("\\s+", " "));
     }
 
     private ProductNutrition mapNutrition(OpenFoodFactsProduct source) {

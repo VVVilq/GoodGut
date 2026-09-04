@@ -20,7 +20,8 @@
       "status": "missing"
     },
     "ingredients": {
-      "status": "missing"
+      "status": "missing",
+      "catalogueVersion": null
     },
     "nutrition": {
       "energy_kcal": {

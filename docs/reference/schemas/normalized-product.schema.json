@@ -73,7 +73,10 @@
           "type": "object",
           "additionalProperties": false,
           "required": ["status"],
-          "properties": { "status": { "enum": ["missing", "unparseable"] } }
+          "properties": {
+            "status": { "enum": ["missing", "unparseable"] },
+            "catalogueVersion": { "type": ["string", "null"] }
+          }
         }
       ]
     },

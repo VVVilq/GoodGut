@@ -277,8 +277,8 @@ This is a coordinated wire-contract 3.0 release. Mobile rejects 2.0 and other ve
 
 #### Automated
 
-- [x] 1.1 Canonical schemas validate recognized, unrecognized, mixed, duplicate, all-unrecognized, raw-only, and missing examples.
-- [x] 1.2 Contract fixture and boundary tests pass offline and reject malformed union members or unknown contract versions.
+- [x] 1.1 Canonical schemas validate recognized, unrecognized, mixed, duplicate, all-unrecognized, raw-only, and missing examples. — 2f73c7f
+- [x] 1.2 Contract fixture and boundary tests pass offline and reject malformed union members or unknown contract versions. — 2f73c7f
 
 #### Manual
 
@@ -288,12 +288,12 @@ This is a coordinated wire-contract 3.0 release. Mobile rejects 2.0 and other ve
 
 #### Automated
 
-- [ ] 2.1 API mapper, controller, fixture, and full Maven tests pass offline.
-- [ ] 2.2 Tests prove unresolved leaves never acquire fabricated taxonomy ancestry or node IDs.
+- [x] 2.1 API mapper, controller, fixture, and full Maven tests pass offline.
+- [x] 2.2 Tests prove unresolved leaves never acquire fabricated taxonomy ancestry or node IDs.
 
 #### Manual
 
-- [ ] 2.3 Representative serialized 3.0 responses preserve source order, duplicates, and understandable display fallback.
+- [x] 2.3 Representative serialized 3.0 responses preserve source order, duplicates, and understandable display fallback.
 
 ### Phase 3: Mobile Boundary and Rule Evaluation
 
