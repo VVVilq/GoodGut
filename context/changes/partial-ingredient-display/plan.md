@@ -311,22 +311,22 @@ This is a coordinated wire-contract 3.0 release. Mobile rejects 2.0 and other ve
 
 #### Automated
 
-- [x] 4.1 Presentation tests prove source order, duplicate retention, neutral recognized items, yellow unresolved items, red precedence, and partial summary text.
-- [x] 4.2 Existing product lookup, warning, decoder, and scan tests remain passing.
+- [x] 4.1 Presentation tests prove source order, duplicate retention, neutral recognized items, yellow unresolved items, red precedence, and partial summary text. — 59289c9
+- [x] 4.2 Existing product lookup, warning, decoder, and scan tests remain passing. — 59289c9
 
 #### Manual
 
-- [x] 4.3 Android mixed-product scan shows every item, yellow uncertainty, red custom match precedence, and clear explanation.
-- [x] 4.4 TalkBack and light/dark acceptance passes for all ingredient states.
+- [x] 4.3 Android mixed-product scan shows every item, yellow uncertainty, red custom match precedence, and clear explanation. — 59289c9
+- [x] 4.4 TalkBack and light/dark acceptance passes for all ingredient states. — 59289c9
 
 ### Phase 5: Cross-Boundary Acceptance and Documentation
 
 #### Automated
 
-- [ ] 5.1 All API and mobile automated gates pass offline.
-- [ ] 5.2 Every new test-plan reference resolves to a passing test.
-- [ ] 5.3 Scope checks exclude profile transmission, medical claims, fuzzy matching, raw-prose parsing, nutrition warnings, and combined-count changes.
+- [x] 5.1 All API and mobile automated gates pass offline.
+- [x] 5.2 Every new test-plan reference resolves to a passing test.
+- [x] 5.3 Scope checks exclude profile transmission, medical claims, fuzzy matching, raw-prose parsing, nutrition warnings, and combined-count changes.
 
 #### Manual
 
-- [ ] 5.4 Physical Android Majonez, mixed/all-unrecognized, custom-match, privacy, and existing-scan acceptance passes.
+- [x] 5.4 Physical Android Majonez, mixed/all-unrecognized, custom-match, privacy, and existing-scan acceptance passes.

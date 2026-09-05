@@ -1,6 +1,6 @@
 # GoodGut mobile
 
-Expo SDK 56 Android client for scanning a packaged-food barcode and displaying facts returned by
+Expo SDK 57 Android client for scanning a packaged-food barcode and displaying facts returned by
 the GoodGut API. The client never calls Open Food Facts directly.
 
 ## Local setup
@@ -19,8 +19,8 @@ the GoodGut API. The client never calls Open Food Facts directly.
    npm.cmd start -- --lan
    ```
 
-This project targets Expo SDK 56. Install the matching Android Expo Go build from
-<https://expo.dev/go?device=true&platform=android&sdkVersion=56> or use a development build.
+This project targets Expo SDK 57. Install the matching Android Expo Go build from
+<https://expo.dev/go?device=true&platform=android&sdkVersion=57> or use a development build.
 
 ## Verification
 
@@ -53,6 +53,11 @@ Profile evidence: `src/data/__tests__/personal-profile-repository-test.ts`,
 `src/data/__tests__/personal-profile-integration-test.ts`, and
 `src/features/personal-profile/__tests__/profile-store-test.ts`. Run `npm.cmd run lint`,
 `npm.cmd run typecheck`, and `npm.cmd test` after profile changes.
+
+The API contract is version 3.0. Structured ingredient leaves remain visible in source order,
+including duplicates. Recognized leaves carry taxonomy evidence; unresolved leaves are shown in
+yellow with an accessible status and may trigger only an exact custom rule. Taxonomy rules never
+use unresolved leaves as evidence.
 
 Product facts are sourced from Open Food Facts contributors. Database content is available under
 ODbL and product images may be licensed under CC BY-SA; the result screen preserves attribution and
