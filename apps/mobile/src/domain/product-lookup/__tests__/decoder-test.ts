@@ -64,7 +64,7 @@ describe('decodeProductLookup', () => {
   );
 
   it.each([
-    ['unknown contract version', { ...notFoundExample, contractVersion: '3.0' }],
+    ['unknown contract version', { ...notFoundExample, contractVersion: '2.0' }],
     ['extra branch field', { ...notFoundExample, extra: true }],
     ['missing branch field', { ...notFoundExample, reason: undefined }],
     ['invalid enum', { ...sourceErrorExample, errorCategory: 'mystery' }],
@@ -88,6 +88,7 @@ describe('decodeProductLookup', () => {
     expect(result.product.ingredients.completeness).toBe('partial');
     expect(result.product.ingredients.catalogueVersion).toBe('fixture-2026-08-19');
     expect(result.product.ingredients.items[0]).toEqual({
+      recognition: 'recognized',
       displayName: 'milk cream',
       nodeId: 'en:cream',
       ancestorNodeIds: ['en:milk'],

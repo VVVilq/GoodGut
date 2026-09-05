@@ -3,7 +3,7 @@ import { ProductLookup } from '@/domain/product-lookup/types';
 import { ProductLookupStateMachine } from '../lookup-state-machine';
 
 const notFound = (barcode: string): ProductLookup => ({
-  contractVersion: '2.0',
+  contractVersion: '3.0',
   outcome: 'not_found',
   barcode,
   source: { provider: 'open_food_facts' },
@@ -11,7 +11,7 @@ const notFound = (barcode: string): ProductLookup => ({
 });
 
 const sourceError = (barcode: string): ProductLookup => ({
-  contractVersion: '2.0',
+  contractVersion: '3.0',
   outcome: 'source_error',
   barcode,
   source: { provider: 'open_food_facts' },

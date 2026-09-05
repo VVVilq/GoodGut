@@ -62,8 +62,8 @@ describe('evaluatePersonalRules', () => {
       completeness: 'complete' as const,
       names: ['goat milk', 'egg yolk'],
       items: [
-        { displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
-        { displayName: 'egg yolk', nodeId: 'en:egg-yolk', ancestorNodeIds: ['en:egg'] },
+        { recognition: 'recognized' as const, displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
+        { recognition: 'recognized' as const, displayName: 'egg yolk', nodeId: 'en:egg-yolk', ancestorNodeIds: ['en:egg'] },
       ],
     };
     const rules: IngredientRule[] = [
@@ -92,10 +92,30 @@ describe('evaluatePersonalRules', () => {
       status: 'available',
       completeness: 'partial',
       names: ['goat milk'],
-      items: [{ displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] }],
+      items: [{ recognition: 'recognized' as const, displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] }],
     })).toEqual({
       matches: [{ ruleId: 'milk', matchedIngredientNames: ['goat milk'] }],
       unavailableRuleIds: ['egg'],
+      triggerCount: 1,
+      incomplete: true,
+    });
+  });
+
+  it('ignores unrecognized items for taxonomy rules but allows exact custom matches', () => {
+    const ingredients = {
+      status: 'available' as const,
+      completeness: 'partial' as const,
+      names: ['bacteria'],
+      items: [{ recognition: 'unrecognized' as const, displayName: 'bacteria' }],
+    };
+    expect(evaluateIngredientRules([
+      { id: 'taxonomy', kind: 'ingredient', name: 'Bacteria', source: 'taxonomy', nodeId: 'en:bacteria', scope: 'node' },
+    ], ingredients)).toMatchObject({ matches: [], unavailableRuleIds: ['taxonomy'], triggerCount: 0, incomplete: true });
+    expect(evaluateIngredientRules([
+      { id: 'custom', kind: 'ingredient', name: 'Bacteria', source: 'custom' },
+    ], ingredients)).toEqual({
+      matches: [{ ruleId: 'custom', matchedIngredientNames: ['bacteria'] }],
+      unavailableRuleIds: [],
       triggerCount: 1,
       incomplete: true,
     });
@@ -222,8 +242,8 @@ describe('evaluatePersonalRules', () => {
             status: 'available',
             names: ['goat milk', 'sheep milk'],
             items: [
-              { displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
-              { displayName: 'sheep milk', nodeId: 'en:sheep-milk', ancestorNodeIds: ['en:milk'] },
+              { recognition: 'recognized' as const, displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
+              { recognition: 'recognized' as const, displayName: 'sheep milk', nodeId: 'en:sheep-milk', ancestorNodeIds: ['en:milk'] },
             ],
           },
         }),

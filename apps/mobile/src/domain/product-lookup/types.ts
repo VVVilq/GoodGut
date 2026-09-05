@@ -32,18 +32,16 @@ export type Ingredients =
   | {
       status: 'available';
       completeness: 'complete' | 'partial';
-      catalogueVersion: string;
+      catalogueVersion: string | null;
       items: readonly ProductIngredientItem[];
       /** Transitional internal projection for Phase 1/2 consumers; not a wire-contract field. */
       names: readonly string[];
     }
   | { status: 'missing' | 'unparseable' };
 
-export type ProductIngredientItem = {
-  displayName: string;
-  nodeId: string;
-  ancestorNodeIds: readonly string[];
-};
+export type ProductIngredientItem =
+  | { recognition: 'recognized'; displayName: string; nodeId: string; ancestorNodeIds: readonly string[] }
+  | { recognition: 'unrecognized'; displayName: string };
 
 export type NormalizedProduct = {
   identity: ProductIdentity;
@@ -53,7 +51,7 @@ export type NormalizedProduct = {
 };
 
 export type FoundLookup = {
-  contractVersion: '2.0';
+  contractVersion: '3.0';
   outcome: 'found';
   barcode: string;
   source: {
@@ -65,7 +63,7 @@ export type FoundLookup = {
 };
 
 export type NotFoundLookup = {
-  contractVersion: '2.0';
+  contractVersion: '3.0';
   outcome: 'not_found';
   barcode: string;
   source: { provider: 'open_food_facts' };
@@ -73,7 +71,7 @@ export type NotFoundLookup = {
 };
 
 export type SourceErrorLookup = {
-  contractVersion: '2.0';
+  contractVersion: '3.0';
   outcome: 'source_error';
   barcode: string;
   source: { provider: 'open_food_facts' };

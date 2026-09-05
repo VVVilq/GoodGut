@@ -184,7 +184,7 @@ function found(overrides: Partial<NormalizedProduct> = {}): ProductLookupState {
     ...overrides,
   };
   const result: FoundLookup = {
-    contractVersion: '2.0',
+    contractVersion: '3.0',
     outcome: 'found',
     barcode: '12345678',
     source: {
@@ -207,6 +207,7 @@ function availableIngredients(names: readonly string[]): NormalizedProduct['ingr
     completeness: 'complete',
     catalogueVersion: 'fixture',
     items: names.map((displayName, index) => ({
+      recognition: 'recognized' as const,
       displayName,
       nodeId: `en:test-${index}`,
       ancestorNodeIds: [],
@@ -217,8 +218,8 @@ function availableIngredients(names: readonly string[]): NormalizedProduct['ingr
 
 function evidenceIngredients(completeness: 'complete' | 'partial'): NormalizedProduct['ingredients'] {
   const items = [
-    { displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
-    { displayName: 'egg yolk', nodeId: 'en:egg-yolk', ancestorNodeIds: ['en:egg'] },
+    { recognition: 'recognized' as const, displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
+    { recognition: 'recognized' as const, displayName: 'egg yolk', nodeId: 'en:egg-yolk', ancestorNodeIds: ['en:egg'] },
   ];
   return { status: 'available', completeness, catalogueVersion: 'fixture', items, names: items.map(({ displayName }) => displayName) };
 }

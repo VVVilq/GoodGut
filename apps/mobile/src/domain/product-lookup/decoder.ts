@@ -24,13 +24,13 @@ export class ProductLookupDecodeError extends Error {
 
 export function decodeProductLookup(value: unknown): ProductLookup {
   const root = object(value, 'response');
-  literal(root.contractVersion, '2.0', 'contractVersion');
+  literal(root.contractVersion, '3.0', 'contractVersion');
   const outcome = oneOf(root.outcome, ['found', 'not_found', 'source_error'] as const, 'outcome');
 
   if (outcome === 'found') {
     exactKeys(root, ['contractVersion', 'outcome', 'barcode', 'source', 'product'], 'response');
     return {
-      contractVersion: '2.0',
+      contractVersion: '3.0',
       outcome,
       barcode: barcode(root.barcode),
       source: foundSource(root.source),
@@ -41,7 +41,7 @@ export function decodeProductLookup(value: unknown): ProductLookup {
     exactKeys(root, ['contractVersion', 'outcome', 'barcode', 'source', 'reason'], 'response');
     literal(root.reason, 'not_in_source', 'reason');
     return {
-      contractVersion: '2.0',
+      contractVersion: '3.0',
       outcome,
       barcode: barcode(root.barcode),
       source: commonSource(root.source),
@@ -51,7 +51,7 @@ export function decodeProductLookup(value: unknown): ProductLookup {
 
   exactKeys(root, ['contractVersion', 'outcome', 'barcode', 'source', 'errorCategory'], 'response');
   return {
-    contractVersion: '2.0',
+    contractVersion: '3.0',
     outcome,
     barcode: barcode(root.barcode),
     source: commonSource(root.source),
@@ -114,11 +114,11 @@ function ingredients(value: unknown): Ingredients {
     'ingredients.status',
   );
   if (status !== 'available') {
-    exactKeys(result, ['status'], 'ingredients');
+    exactKeys(result, result.catalogueVersion === undefined ? ['status'] : ['status', 'catalogueVersion'], 'ingredients');
     return { status };
   }
   exactKeys(result, ['status', 'completeness', 'catalogueVersion', 'items'], 'ingredients');
-  const catalogueVersion = nonEmptyString(result.catalogueVersion, 'ingredients.catalogueVersion');
+  const catalogueVersion = nullableString(result.catalogueVersion, 'ingredients.catalogueVersion');
   const completeness = oneOf(
     result.completeness,
     ['complete', 'partial'] as const,
@@ -126,7 +126,12 @@ function ingredients(value: unknown): Ingredients {
   );
   const items = array(result.items, 'ingredients.items').map((value, index) => {
     const item = object(value, `ingredients.items[${index}]`);
-    exactKeys(item, ['displayName', 'nodeId', 'ancestorNodeIds'], `ingredients.items[${index}]`);
+    const recognition = oneOf(item.recognition, ['recognized', 'unrecognized'] as const, `ingredients.items[${index}].recognition`);
+    if (recognition === 'unrecognized') {
+      exactKeys(item, ['recognition', 'displayName'], `ingredients.items[${index}]`);
+      return { recognition, displayName: nonEmptyString(item.displayName, `ingredients.items[${index}].displayName`) };
+    }
+    exactKeys(item, ['recognition', 'displayName', 'nodeId', 'ancestorNodeIds'], `ingredients.items[${index}]`);
     const ancestorNodeIds = array(item.ancestorNodeIds, `ingredients.items[${index}].ancestorNodeIds`).map(
       (ancestor, ancestorIndex) => taxonomyId(
         ancestor,
@@ -137,14 +142,12 @@ function ingredients(value: unknown): Ingredients {
       fail(`ingredients.items[${index}].ancestorNodeIds must be unique`);
     }
     return {
+      recognition,
       displayName: nonEmptyString(item.displayName, `ingredients.items[${index}].displayName`),
       nodeId: taxonomyId(item.nodeId, `ingredients.items[${index}].nodeId`),
       ancestorNodeIds,
     };
   });
-  if (new Set(items.map((item) => item.nodeId)).size !== items.length) {
-    fail('ingredients.items nodeId values must be unique');
-  }
   return { status, completeness, catalogueVersion, items, names: items.map((item) => item.displayName) };
 }
 

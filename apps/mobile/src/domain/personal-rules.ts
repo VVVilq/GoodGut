@@ -35,10 +35,11 @@ export type IngredientFacts =
   | { status: 'missing' | 'unparseable' };
 
 export type IngredientEvidenceItem = {
+  recognition: 'recognized';
   displayName: string;
   nodeId: string;
   ancestorNodeIds: readonly string[];
-};
+} | { recognition: 'unrecognized'; displayName: string };
 
 export type NutritionFact =
   | { status: 'available'; value: number; basis: NutritionBasis }
@@ -103,6 +104,7 @@ function matchingIngredientNames(
   if (rule.source === 'taxonomy') {
     return [...new Set(
       (ingredients.items ?? [])
+        .filter((item): item is Extract<IngredientEvidenceItem, { recognition: 'recognized' }> => item.recognition === 'recognized')
         .filter((item) => rule.scope === 'node'
           ? item.nodeId === rule.nodeId
           : item.nodeId === rule.nodeId || item.ancestorNodeIds.includes(rule.nodeId))

@@ -42,7 +42,7 @@ describe('product lookup presentation', () => {
   it('keeps all eight nutrients in stable order and preserves zero and both bases', () => {
     const presentation = presentProductLookup(
       resolved({
-        contractVersion: '2.0',
+        contractVersion: '3.0',
         outcome: 'found',
         barcode: '12345678',
         source: { provider: 'open_food_facts', providerProductUrl: null, fetchedAt: '2026-08-19T00:00:00Z' },
@@ -82,8 +82,8 @@ describe('product lookup presentation', () => {
     ['source_unavailable', 'source_error', ['retry', 'scan_another']],
   ] as const)('maps contract state %s to stable copy and actions', (category, kind, actions) => {
     const result: ProductLookup = category === 'not_found'
-      ? { contractVersion: '2.0', outcome: 'not_found', barcode: '12345678', source: { provider: 'open_food_facts' }, reason: 'not_in_source' }
-      : { contractVersion: '2.0', outcome: 'source_error', barcode: '12345678', source: { provider: 'open_food_facts' }, errorCategory: category };
+      ? { contractVersion: '3.0', outcome: 'not_found', barcode: '12345678', source: { provider: 'open_food_facts' }, reason: 'not_in_source' }
+      : { contractVersion: '3.0', outcome: 'source_error', barcode: '12345678', source: { provider: 'open_food_facts' }, errorCategory: category };
     expect(presentProductLookup(resolved(result), ready())).toMatchObject({ kind, actions });
   });
 
@@ -181,7 +181,7 @@ function foundPresentation(
 ) {
   const presentation = presentProductLookup(
     resolved({
-      contractVersion: '2.0',
+      contractVersion: '3.0',
       outcome: 'found',
       barcode: '12345678',
       source: { provider: 'open_food_facts', providerProductUrl: null, fetchedAt: '2026-08-19T00:00:00Z' },
@@ -199,6 +199,7 @@ function availableIngredients(names: readonly string[]): NormalizedProduct['ingr
     completeness: 'complete',
     catalogueVersion: 'fixture',
     items: names.map((displayName, index) => ({
+      recognition: 'recognized' as const,
       displayName,
       nodeId: `en:test-${index}`,
       ancestorNodeIds: [],
@@ -212,7 +213,7 @@ function taxonomyIngredients(completeness: 'complete' | 'partial'): NormalizedPr
     status: 'available',
     completeness,
     catalogueVersion: 'fixture',
-    items: [{ displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] }],
+    items: [{ recognition: 'recognized' as const, displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] }],
     names: ['goat milk'],
   };
 }

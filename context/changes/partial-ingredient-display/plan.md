@@ -293,19 +293,19 @@ This is a coordinated wire-contract 3.0 release. Mobile rejects 2.0 and other ve
 
 #### Manual
 
-- [x] 2.3 Representative serialized 3.0 responses preserve source order, duplicates, and understandable display fallback.
+- [x] 2.3 Representative serialized 3.0 responses preserve source order, duplicates, and understandable display fallback. — 8a09bc4
 
 ### Phase 3: Mobile Boundary and Rule Evaluation
 
 #### Automated
 
-- [ ] 3.1 Decoder tests cover 3.0 strictness, union validation, order, duplicates, nullable catalogue version, and unknown-version rejection.
-- [ ] 3.2 Rule tests prove recognized taxonomy matches, unrecognized taxonomy non-matches, exact custom matches for both statuses, partial unavailable rules, and no fuzzy or substring matches.
-- [ ] 3.3 Mobile lint, typecheck, and all tests pass.
+- [x] 3.1 Decoder tests cover 3.0 strictness, union validation, order, duplicates, nullable catalogue version, and unknown-version rejection.
+- [x] 3.2 Rule tests prove recognized taxonomy matches, unrecognized taxonomy non-matches, exact custom matches for both statuses, partial unavailable rules, and no fuzzy or substring matches.
+- [x] 3.3 Mobile lint, typecheck, and all tests pass.
 
 #### Manual
 
-- [ ] 3.4 Review accessibility labels and debug output for recognition boundaries.
+- [x] 3.4 Review accessibility labels and debug output for recognition boundaries.
 
 ### Phase 4: Yellow/Red Presentation
 

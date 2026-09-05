@@ -19,8 +19,8 @@ const classifiedIngredients = {
   completeness: 'complete' as const,
   names: ['goat milk', 'inulina'],
   items: [
-    { displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
-    { displayName: 'inulina', nodeId: 'en:inulin', ancestorNodeIds: [] },
+    { recognition: 'recognized' as const, displayName: 'goat milk', nodeId: 'en:goat-milk', ancestorNodeIds: ['en:milk'] },
+    { recognition: 'recognized' as const, displayName: 'inulina', nodeId: 'en:inulin', ancestorNodeIds: [] },
   ],
 };
 
