@@ -1,10 +1,10 @@
 ---
 change_id: partial-ingredient-display
 title: Partial ingredient display
-status: impl_reviewed
+status: archived
 created: 2026-09-04
 updated: 2026-09-05
-archived_at: null
+archived_at: 2026-09-05T05:37:35Z
 ---
 
 ## Notes
