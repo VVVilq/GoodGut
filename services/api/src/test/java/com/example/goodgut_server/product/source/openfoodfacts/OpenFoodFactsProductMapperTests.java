@@ -159,16 +159,17 @@ class OpenFoodFactsProductMapperTests {
                 "ingredients":[
                   {"id":"pl:mustard-seed","text":"_gorczyca_"},
                   {"id":"pl:mustard-seed","text":"gorczyca"},
-                  {"text":"tajemniczy składnik"}
+                  {"text":"tajemniczy składnik"},
+                  {"id":"en:milk_powder"}
                 ]
                 """)));
 
         JsonNode ingredients = JSON.valueToTree(result).get("product").get("ingredients");
         assertEquals("partial", ingredients.get("completeness").asText());
-        assertEquals(List.of("gorczyca", "gorczyca", "tajemniczy składnik"),
+        assertEquals(List.of("gorczyca", "gorczyca", "tajemniczy składnik", "Milk Powder"),
                 ingredients.get("items").valueStream()
                         .map(item -> item.get("displayName").asText()).toList());
-        assertEquals(List.of("unrecognized", "unrecognized", "unrecognized"),
+        assertEquals(List.of("unrecognized", "unrecognized", "unrecognized", "unrecognized"),
                 ingredients.get("items").valueStream()
                         .map(item -> item.get("recognition").asText()).toList());
         assertTrue(ingredients.get("catalogueVersion").isNull());

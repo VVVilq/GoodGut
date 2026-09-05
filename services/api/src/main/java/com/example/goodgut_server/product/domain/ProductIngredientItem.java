@@ -18,6 +18,10 @@ public record ProductIngredientItem(
         if ("recognized".equals(recognition) && (nodeId == null || ancestorNodeIds == null)) {
             throw new IllegalArgumentException("Recognized ingredients require taxonomy evidence");
         }
+        if ("recognized".equals(recognition)
+                && (!isTaxonomyId(nodeId) || ancestorNodeIds.stream().anyMatch(id -> !isTaxonomyId(id)))) {
+            throw new IllegalArgumentException("Recognized ingredients require canonical taxonomy ids");
+        }
         if ("unrecognized".equals(recognition) && (nodeId != null || ancestorNodeIds != null)) {
             throw new IllegalArgumentException("Unrecognized ingredients cannot carry taxonomy evidence");
         }
@@ -31,5 +35,9 @@ public record ProductIngredientItem(
 
     public static ProductIngredientItem unrecognized(String displayName) {
         return new ProductIngredientItem("unrecognized", displayName, null, null);
+    }
+
+    private static boolean isTaxonomyId(String value) {
+        return value != null && value.matches("^[a-z]{2}:[^\\s:]+$");
     }
 }

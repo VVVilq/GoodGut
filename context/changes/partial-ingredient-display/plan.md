@@ -169,7 +169,7 @@ Files: presentation.ts and presentation tests.
 
 Intent: Replace the boolean-only item state with ordered visual semantics.
 
-Contract: Each displayed item has text plus a visual state where red matched warning takes precedence over yellow unrecognized uncertainty; normal recognized items remain neutral. Partial evidence produces a concise Polish summary above the list.
+Contract: Each displayed item has text plus a visual state where red matched warning takes precedence over yellow unrecognized uncertainty; normal recognized items remain neutral. Matching is by normalized display text, so duplicate occurrences with identical text intentionally share the warning state. Partial evidence produces a concise Polish summary above the list.
 
 #### 2. Product result and theme
 

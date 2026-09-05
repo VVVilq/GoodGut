@@ -67,6 +67,11 @@ describe('decodeProductLookup', () => {
     ['unknown contract version', { ...notFoundExample, contractVersion: '2.0' }],
     ['extra branch field', { ...notFoundExample, extra: true }],
     ['missing branch field', { ...notFoundExample, reason: undefined }],
+    ['empty ingredient list', (() => {
+      const value = structuredClone(partialFixture);
+      value.product.ingredients.items = [];
+      return value;
+    })()],
     ['invalid enum', { ...sourceErrorExample, errorCategory: 'mystery' }],
     [
       'negative nutrition',

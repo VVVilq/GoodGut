@@ -148,6 +148,7 @@ function ingredients(value: unknown): Ingredients {
       ancestorNodeIds,
     };
   });
+  if (items.length === 0) fail('ingredients.items must contain at least one item');
   return { status, completeness, catalogueVersion, items, names: items.map((item) => item.displayName) };
 }
 

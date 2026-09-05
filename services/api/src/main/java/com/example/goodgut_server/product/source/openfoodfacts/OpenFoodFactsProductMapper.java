@@ -169,7 +169,7 @@ public final class OpenFoodFactsProductMapper {
         if (text == null) {
             return taxonomyId == null ? null : readableId(taxonomyId);
         }
-        String displayText = usable(text.replace("_", ""));
+        String displayText = usable(text.replaceAll("_(?=\\S)", "").replaceAll("(?<=\\S)_", ""));
         return displayText == null ? (taxonomyId == null ? null : readableId(taxonomyId)) : displayText;
     }
 
@@ -179,7 +179,11 @@ public final class OpenFoodFactsProductMapper {
 
     private String readableId(String id) {
         String value = id.replaceFirst("^[a-z]{2}:", "").replace('_', ' ').replace('-', ' ');
-        return usable(value.replaceAll("\\s+", " "));
+        value = usable(value.replaceAll("\\s+", " "));
+        if (value == null) return null;
+        return java.util.Arrays.stream(value.split(" "))
+                .map(word -> word.isEmpty() ? word : Character.toUpperCase(word.charAt(0)) + word.substring(1))
+                .collect(java.util.stream.Collectors.joining(" "));
     }
 
     private ProductNutrition mapNutrition(OpenFoodFactsProduct source) {
