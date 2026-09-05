@@ -96,13 +96,22 @@ function FoundProduct({
       <FactSection title="Składniki">
         {ingredientItems ? (
           <View style={styles.ingredientList}>
+            {presentation.ingredients.available && presentation.ingredients.partialSummary && (
+              <ThemedText style={styles.partialSummary} themeColor="textSecondary">
+                {presentation.ingredients.partialSummary}
+              </ThemedText>
+            )}
             {ingredientItems.map((item, index) => (
               <ThemedText
                 key={`${index}:${item.text}`}
-                accessibilityLabel={item.warning ? `Ostrzeżenie: ${item.text}` : item.text}
-                style={item.warning && [styles.warningIngredient, { color: theme.warning }]}
+                accessibilityLabel={item.accessibilityLabel}
+                style={item.state === 'warning'
+                  ? [styles.warningIngredient, { color: theme.warning }]
+                  : item.state === 'unrecognized'
+                    ? [styles.unrecognizedIngredient, { color: theme.ingredientUnrecognized }]
+                    : undefined}
               >
-                {item.warning ? '⚠ ' : ''}{item.text}
+                {item.state === 'warning' ? '⚠ ' : ''}{item.text}
                 {index < ingredientItems.length - 1 ? ', ' : ''}
               </ThemedText>
             ))}
@@ -236,7 +245,9 @@ const styles = StyleSheet.create({
   warningRow: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#C86A62', paddingTop: 10, gap: 2 },
   card: { borderRadius: 20, padding: Spacing.three, gap: 12, shadowColor: '#17352D', shadowOpacity: 0.06, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 2 },
   ingredientList: { flexDirection: 'row', flexWrap: 'wrap' },
+  partialSummary: { width: '100%' },
   warningIngredient: { fontWeight: '800' },
+  unrecognizedIngredient: { fontWeight: '500' },
   nutrientRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.two, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#DCE6E0', paddingTop: 10 },
   nutrientLabel: { flex: 1 },
   nutriScore: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },

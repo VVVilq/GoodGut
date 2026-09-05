@@ -299,25 +299,25 @@ This is a coordinated wire-contract 3.0 release. Mobile rejects 2.0 and other ve
 
 #### Automated
 
-- [x] 3.1 Decoder tests cover 3.0 strictness, union validation, order, duplicates, nullable catalogue version, and unknown-version rejection.
-- [x] 3.2 Rule tests prove recognized taxonomy matches, unrecognized taxonomy non-matches, exact custom matches for both statuses, partial unavailable rules, and no fuzzy or substring matches.
-- [x] 3.3 Mobile lint, typecheck, and all tests pass.
+- [x] 3.1 Decoder tests cover 3.0 strictness, union validation, order, duplicates, nullable catalogue version, and unknown-version rejection. — a1ca56e
+- [x] 3.2 Rule tests prove recognized taxonomy matches, unrecognized taxonomy non-matches, exact custom matches for both statuses, partial unavailable rules, and no fuzzy or substring matches. — a1ca56e
+- [x] 3.3 Mobile lint, typecheck, and all tests pass. — a1ca56e
 
 #### Manual
 
-- [x] 3.4 Review accessibility labels and debug output for recognition boundaries.
+- [x] 3.4 Review accessibility labels and debug output for recognition boundaries. — a1ca56e
 
 ### Phase 4: Yellow/Red Presentation
 
 #### Automated
 
-- [ ] 4.1 Presentation tests prove source order, duplicate retention, neutral recognized items, yellow unresolved items, red precedence, and partial summary text.
-- [ ] 4.2 Existing product lookup, warning, decoder, and scan tests remain passing.
+- [x] 4.1 Presentation tests prove source order, duplicate retention, neutral recognized items, yellow unresolved items, red precedence, and partial summary text.
+- [x] 4.2 Existing product lookup, warning, decoder, and scan tests remain passing.
 
 #### Manual
 
-- [ ] 4.3 Android mixed-product scan shows every item, yellow uncertainty, red custom match precedence, and clear explanation.
-- [ ] 4.4 TalkBack and light/dark acceptance passes for all ingredient states.
+- [x] 4.3 Android mixed-product scan shows every item, yellow uncertainty, red custom match precedence, and clear explanation.
+- [x] 4.4 TalkBack and light/dark acceptance passes for all ingredient states.
 
 ### Phase 5: Cross-Boundary Acceptance and Documentation
 

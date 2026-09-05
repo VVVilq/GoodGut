@@ -118,10 +118,11 @@ describe('product lookup presentation', () => {
     });
     expect(presentation.ingredients).toEqual({
       available: true,
+      partialSummary: null,
       items: [
-        { text: 'water', warning: false },
-        { text: 'E 955', warning: false },
-        { text: 'sucralose', warning: true },
+        { text: 'water', state: 'normal', accessibilityLabel: 'water' },
+        { text: 'E 955', state: 'normal', accessibilityLabel: 'E 955' },
+        { text: 'sucralose', state: 'warning', accessibilityLabel: 'Ostrzeżenie: sucralose' },
       ],
     });
   });
@@ -171,6 +172,36 @@ describe('product lookup presentation', () => {
     });
     expect(foundPresentation(product({ ingredients: taxonomyIngredients('partial') }), exactOnly).ingredientWarnings).toMatchObject({
       kind: 'incomplete',
+    });
+  });
+
+  it('shows unresolved items in yellow semantics and lets a custom match turn red', () => {
+    const ingredients: NormalizedProduct['ingredients'] = {
+      status: 'available',
+      completeness: 'partial',
+      catalogueVersion: null,
+      items: [
+        { recognition: 'recognized', displayName: 'woda', nodeId: 'en:water', ancestorNodeIds: [] },
+        { recognition: 'unrecognized', displayName: 'gorczyca' },
+      ],
+      names: ['woda', 'gorczyca'],
+    };
+    const presentation = foundPresentation(product({ ingredients }), ready({
+      selections: [],
+      customIngredients: [{ id: 'mustard', name: 'Gorczyca' }],
+    }));
+    const yellow = foundPresentation(product({ ingredients }));
+    expect(yellow.ingredients.available && yellow.ingredients.items[1]).toMatchObject({
+      state: 'unrecognized',
+      accessibilityLabel: 'Nierozpoznany składnik: gorczyca',
+    });
+    expect(presentation.ingredients).toEqual({
+      available: true,
+      partialSummary: 'Nie wszystkie składniki zostały rozpoznane.',
+      items: [
+        { text: 'woda', state: 'normal', accessibilityLabel: 'woda' },
+        { text: 'gorczyca', state: 'warning', accessibilityLabel: 'Ostrzeżenie: gorczyca' },
+      ],
     });
   });
 });

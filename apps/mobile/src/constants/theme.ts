@@ -16,6 +16,7 @@ export const Colors = {
     textSecondary: '#60736C',
     warning: '#B42318',
     warningBackground: '#FDE7E5',
+    ingredientUnrecognized: '#9A6700',
   },
   dark: {
     text: '#F1F8F3',
@@ -25,6 +26,7 @@ export const Colors = {
     textSecondary: '#A8BDB4',
     warning: '#FF9B91',
     warningBackground: '#4A211D',
+    ingredientUnrecognized: '#FFD166',
   },
 } as const;
 

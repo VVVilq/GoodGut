@@ -18,7 +18,8 @@ export type NutrientRow = {
 
 export type IngredientItem = {
   text: string;
-  warning: boolean;
+  state: 'normal' | 'unrecognized' | 'warning';
+  accessibilityLabel: string;
 };
 
 export type IngredientWarningPresentation =
@@ -54,7 +55,7 @@ export type FoundProductPresentation = {
   nutriScore: string;
   ingredientWarnings: IngredientWarningPresentation;
   ingredients:
-    | { available: true; items: readonly IngredientItem[] }
+    | { available: true; items: readonly IngredientItem[]; partialSummary: string | null }
     | { available: false; text: string };
   nutrients: readonly NutrientRow[];
   actions: readonly ResultAction[];
@@ -161,10 +162,22 @@ function found(
       product.ingredients.status === 'available'
         ? {
             available: true,
-            items: product.ingredients.names.map((text) => ({
-              text,
-              warning: matchedNames.has(text),
-            })),
+            partialSummary: product.ingredients.completeness === 'partial'
+              ? 'Nie wszystkie składniki zostały rozpoznane.'
+              : null,
+            items: product.ingredients.items.map((item) => {
+              const warning = matchedNames.has(item.displayName);
+              const state = warning ? 'warning' : item.recognition === 'unrecognized' ? 'unrecognized' : 'normal';
+              return {
+                text: item.displayName,
+                state,
+                accessibilityLabel: state === 'warning'
+                  ? `Ostrzeżenie: ${item.displayName}`
+                  : state === 'unrecognized'
+                    ? `Nierozpoznany składnik: ${item.displayName}`
+                    : item.displayName,
+              };
+            }),
           }
         : {
             text:
