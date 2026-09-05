@@ -323,10 +323,10 @@ This is a coordinated wire-contract 3.0 release. Mobile rejects 2.0 and other ve
 
 #### Automated
 
-- [x] 5.1 All API and mobile automated gates pass offline.
-- [x] 5.2 Every new test-plan reference resolves to a passing test.
-- [x] 5.3 Scope checks exclude profile transmission, medical claims, fuzzy matching, raw-prose parsing, nutrition warnings, and combined-count changes.
+- [x] 5.1 All API and mobile automated gates pass offline. — 5e431d7
+- [x] 5.2 Every new test-plan reference resolves to a passing test. — 5e431d7
+- [x] 5.3 Scope checks exclude profile transmission, medical claims, fuzzy matching, raw-prose parsing, nutrition warnings, and combined-count changes. — 5e431d7
 
 #### Manual
 
-- [x] 5.4 Physical Android Majonez, mixed/all-unrecognized, custom-match, privacy, and existing-scan acceptance passes.
+- [x] 5.4 Physical Android Majonez, mixed/all-unrecognized, custom-match, privacy, and existing-scan acceptance passes. — 5e431d7
