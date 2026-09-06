@@ -1,10 +1,10 @@
 ---
 change_id: nutrition-warning-scan
 title: Nutrition warning scan
-status: impl_reviewed
+status: archived
 created: 2026-09-05
 updated: 2026-09-06
-archived_at: null
+archived_at: 2026-09-06T15:22:50Z
 ---
 
 ## Notes
