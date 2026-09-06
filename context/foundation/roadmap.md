@@ -3,7 +3,7 @@ project: GoodGut
 version: 1
 status: draft
 created: 2026-08-18
-updated: 2026-09-04
+updated: 2026-09-05
 prd_version: 3
 main_goal: speed
 top_blocker: external
@@ -34,7 +34,7 @@ GoodGut reduces time spent reading food labels by applying one shopper's persona
 | S-02 | avoided-ingredient-profile | configure and edit one on-device profile containing predefined and custom avoided ingredients | — | US-01, FR-001, FR-002 | done |
 | S-03 | ingredient-warning-scan | scan a product and see avoided ingredients highlighted with the total triggered-rule count | S-01, S-02 | US-01, FR-004, FR-005, FR-006, FR-008, FR-009, FR-010 | done |
 | S-04 | nutrition-threshold-profile | configure and edit above-or-below nutrition thresholds with an explicit per-100-g or per-100-ml basis | — | US-01, FR-001, FR-003 | done |
-| S-05 | nutrition-warning-scan | scan a product and see matching nutrition warnings combined with ingredient warnings and an accurate total | S-03, S-04 | US-01, FR-003, FR-004, FR-005, FR-007, FR-008, FR-009, FR-010 | proposed |
+| S-05 | nutrition-warning-scan | scan a product and see matching nutrition warnings combined with ingredient warnings and an accurate total | S-03, S-04 | US-01, FR-003, FR-004, FR-005, FR-007, FR-008, FR-009, FR-010 | in-progress |
 
 ## Streams
 
@@ -139,7 +139,7 @@ Foundations below assume these are present and do not re-scaffold them.
 - **Unknowns:**
   - Do the representative fixtures cover equality, both threshold directions, both bases, basis mismatch, and missing configured values? — Owner: team. Block: no.
 - **Risk:** Combining rule types can corrupt counts or turn unavailable data into reassurance; this slice extends the already-proven ingredient flow while preserving deterministic boundaries.
-- **Status:** proposed
+- **Status:** in-progress
 
 ## Backlog Handoff
 

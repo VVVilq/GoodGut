@@ -13,4 +13,4 @@ Automated results (2026-09-06):
 - `.\mvnw.cmd test -q` from `services/api/`: passed (exit code 0).
 - Fixture server startup logged on port 8787; `GET /products/5449000000996` returned the shared liquid found fixture; an unknown barcode returned the contract-v3 `not_found` response; Ctrl-C shut the server down cleanly.
 
-Manual results: accepted by the user on 2026-09-06. Device, barcode, and observed-value details were not supplied, so those live acceptance details remain unrecorded.
+Manual results: live scan recorded for Xiaomi 17T (Android 16), barcode `5449000000996`, through the running normal API. Observed Nutri-Score E; energy 42 kcal/100 ml; carbohydrates 10.6 g/100 ml; sugars 10.6 g/100 ml; fat 0, fiber 0, salt 0, protein 0. The configured sugars rule triggered. Fixture, disclosure/accessibility, persistence, and navigation checks remain pending.

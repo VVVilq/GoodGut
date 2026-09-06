@@ -276,7 +276,7 @@ No persisted or wire schema changes. Reverting the mobile change restores the pr
 
 #### Manual
 
-- [x] 3.5 Android fixture cases confirm mixed counts, equality, both bases, mismatch, missing nutrition, and partial/missing ingredient behavior against the documented expected results.
-- [x] 3.6 Android confirms nutrition threshold and summary reason disclosures, light/dark warning visibility, long-text wrapping, and TalkBack labels/expanded states.
-- [x] 3.7 Android confirms save/discard and relaunch behavior, updated warnings after returning from profile editing, no-rule facts, and retry/rescan navigation.
+- [ ] 3.5 Android fixture cases confirm mixed counts, equality, both bases, mismatch, missing nutrition, and partial/missing ingredient behavior against the documented expected results.
+- [ ] 3.6 Android confirms nutrition threshold and summary reason disclosures, light/dark warning visibility, long-text wrapping, and TalkBack labels/expanded states.
+- [ ] 3.7 Android confirms save/discard and relaunch behavior, updated warnings after returning from profile editing, no-rule facts, and retry/rescan navigation.
 - [x] 3.8 A live physical barcode scan through the normal API displays current product facts and correct configured-rule results; device, barcode, observed values, and outcome are recorded.
