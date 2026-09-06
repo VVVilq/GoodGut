@@ -22,29 +22,28 @@ describe('nutrition editor state', () => {
     expect(removeNutritionRuleDraft(withEnergy, 'salt').rules.map(({ nutrient }) => nutrient)).toEqual(['energy_kcal']);
   });
 
-  it('requires direction and basis while the slider supplies a bounded threshold', () => {
+  it('requires direction while the slider supplies a bounded threshold', () => {
     const added = addNutritionRuleDraft(createNutritionEditorState(emptyPersonalProfile()), 'sugars');
     const invalid = prepareNutritionProfile(added);
     expect(invalid.ok).toBe(false);
     if (invalid.ok) throw new Error('expected errors');
     expect(invalid.state.errors).toEqual({
       'sugars:direction': 'Wybierz kierunek porównania.',
-      'sugars:basis': 'Wybierz podstawę porównania.',
     });
 
     const valid = prepareNutritionProfile(updateNutritionRuleDraft(added, 'sugars', {
-      direction: 'above', basis: 'per_100g', threshold: 5.5,
+      direction: 'above', threshold: 5.5,
     }));
     expect(valid).toEqual({ ok: true, profile: {
       selections: [], customIngredients: [],
-      nutritionThresholds: [{ id: 'nutrition:sugars', nutrient: 'sugars', direction: 'above', threshold: 5.5, basis: 'per_100g' }],
+      nutritionThresholds: [{ id: 'nutrition:sugars', nutrient: 'sugars', direction: 'above', threshold: 5.5 }],
     } });
   });
 
   it('tracks dirty/reset state and preserves post-submit edits', () => {
     const initial = createNutritionEditorState(emptyPersonalProfile());
     let submittedState = addNutritionRuleDraft(initial, 'protein');
-    submittedState = updateNutritionRuleDraft(submittedState, 'protein', { direction: 'below', basis: 'per_100ml', threshold: 2 });
+    submittedState = updateNutritionRuleDraft(submittedState, 'protein', { direction: 'below', threshold: 2 });
     const prepared = prepareNutritionProfile(submittedState);
     if (!prepared.ok) throw new Error('expected valid submission');
     const changedDuringSave = updateNutritionRuleDraft(submittedState, 'protein', { threshold: 3 });

@@ -92,16 +92,16 @@ describe('composePersonalWarnings', () => {
       expect(evaluated(found(fact), ready(profile({ nutritionThresholds: [rule] })))).toMatchObject({
         ruleCount: 1, triggerCount: count, incomplete: false, unavailableRules: [],
         ingredientWarnings: [], ingredientSourceIncomplete: false,
-        nutritionWarnings: count ? [{ rule: { ...rule, kind: 'nutrition' }, fact }] : [],
+        nutritionWarnings: count ? [{ rule: { id: rule.id, kind: 'nutrition', nutrient: rule.nutrient, direction: rule.direction, threshold: rule.threshold }, fact }] : [],
       });
     });
   });
 
-  it.each<NutritionBasis>(['per_100g', 'per_100ml'])('explains mismatch for rule basis %s', (basis) => {
+  it.each<NutritionBasis>(['per_100g', 'per_100ml'])('evaluates across product basis for legacy rule basis %s', (basis) => {
     const productBasis = basis === 'per_100g' ? 'per_100ml' : 'per_100g';
     expect(evaluated(found(available(12, productBasis)), ready(profile({ nutritionThresholds: [threshold({ basis })] })))).toMatchObject({
-      triggerCount: 0, incomplete: true, nutritionWarnings: [],
-      unavailableRules: [{ kind: 'nutrition', rule: { basis }, reason: 'basis_mismatch', productBasis }],
+      triggerCount: 1, incomplete: false, nutritionWarnings: [{ rule: { kind: 'nutrition', threshold: 10 }, fact: { value: 12, basis: productBasis } }],
+      unavailableRules: [],
     });
   });
 

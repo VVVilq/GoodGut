@@ -18,7 +18,7 @@ import {
   unusedNutrients,
   updateNutritionRuleDraft,
 } from '@/features/personal-profile/nutrition-editor-state';
-import { basisLabel, directionLabel, nutrientLabel, nutrientUnit } from '@/features/personal-profile/nutrition-presentation';
+import { directionLabel, nutrientLabel, nutrientUnit } from '@/features/personal-profile/nutrition-presentation';
 import { useTheme } from '@/hooks/use-theme';
 
 type Props = {
@@ -44,7 +44,7 @@ export function NutritionProfileEditor({ activeProfile, saving, recovered, saveF
   const restore = () => { onRestore(); setEditor((current) => resetNutritionDraft(current)); };
 
   return <ThemedView style={styles.screen}><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-    <ThemedText themeColor="textSecondary">Ustaw próg jako wartość powyżej albo poniżej wybranej liczby. Każda reguła musi wskazywać podstawę na 100 g lub 100 ml.</ThemedText>
+    <ThemedText themeColor="textSecondary">Ustaw próg jako wartość powyżej albo poniżej wybranej liczby. Próg działa dla wartości na 100 g oraz na 100 ml, zależnie od danych produktu.</ThemedText>
     <ThemedText type="small" themeColor="textSecondary">Wartość równa progowi nie uruchamia ostrzeżenia.</ThemedText>
     {recovered && <Banner text="Odzyskano ostatni poprawny profil z kopii." />}
     {saveFailed && <Banner text="Nie udało się zapisać. Poprzedni profil pozostaje aktywny." />}
@@ -64,17 +64,15 @@ export function NutritionProfileEditor({ activeProfile, saving, recovered, saveF
 }
 
 type RuleDraft = ReturnType<typeof createNutritionEditorState>['rules'][number];
-function RuleCard({ rule, editor, onChange, onRemove }: { rule: RuleDraft; editor: ReturnType<typeof createNutritionEditorState>; onChange(changes: Partial<Pick<RuleDraft, 'direction' | 'basis' | 'threshold'>>): void; onRemove(): void }) {
+function RuleCard({ rule, editor, onChange, onRemove }: { rule: RuleDraft; editor: ReturnType<typeof createNutritionEditorState>; onChange(changes: Partial<Pick<RuleDraft, 'direction' | 'threshold'>>): void; onRemove(): void }) {
   const theme = useTheme();
   const directionError = nutritionFieldError(editor, rule.nutrient, 'direction');
-  const basisError = nutritionFieldError(editor, rule.nutrient, 'basis');
   const maximum = nutrientSliderMaximum(rule.nutrient);
   const displayValue = String(rule.threshold).replace('.', ',');
   return <View style={[styles.card, { borderColor: theme.textSecondary, backgroundColor: theme.backgroundElement }]}>
     <View style={styles.cardHeader}><View style={styles.flex}><ThemedText type="smallBold">{nutrientLabel(rule.nutrient)}</ThemedText><ThemedText type="small" themeColor="textSecondary">Jednostka: {nutrientUnit(rule.nutrient)}</ThemedText></View><Action label={`Usuń ${nutrientLabel(rule.nutrient)}`} visibleLabel="Usuń" onPress={onRemove} secondary /></View>
     <RadioGroup label="Kierunek" error={directionError}>{(['above', 'below'] as const).map((direction) => <Radio key={direction} label={directionLabel(direction)} selected={rule.direction === direction} onPress={() => onChange({ direction })} />)}</RadioGroup>
     <View style={styles.field}><View style={styles.valueRow}><ThemedText type="smallBold">Próg</ThemedText><ThemedText accessibilityLiveRegion="polite" type="smallBold">{displayValue} {nutrientUnit(rule.nutrient)}</ThemedText></View><Slider accessibilityLabel={`Próg dla ${nutrientLabel(rule.nutrient)}`} accessibilityHint={`Zakres od 0 do ${maximum} ${nutrientUnit(rule.nutrient)}`} accessibilityValue={{ min: 0, max: maximum, now: rule.threshold, text: `${displayValue} ${nutrientUnit(rule.nutrient)}` }} minimumValue={0} maximumValue={maximum} step={nutrientSliderStep(rule.nutrient)} value={rule.threshold} onValueChange={(threshold) => onChange({ threshold: normalizeSliderValue(threshold) })} minimumTrackTintColor={rule.direction === 'below' ? theme.warning : theme.textSecondary} maximumTrackTintColor={rule.direction === 'above' ? theme.warning : theme.textSecondary} thumbTintColor={theme.warning} /></View>
-    <RadioGroup label="Podstawa" error={basisError}>{(['per_100g', 'per_100ml'] as const).map((basis) => <Radio key={basis} label={basisLabel(basis)} selected={rule.basis === basis} onPress={() => onChange({ basis })} />)}</RadioGroup>
   </View>;
 }
 

@@ -1,4 +1,3 @@
-import { NutritionBasis } from '@/domain/nutrition';
 import { profileToPersonalRules } from '@/domain/personal-profile';
 import {
   evaluateIngredientRules,
@@ -24,10 +23,7 @@ export type UnavailablePersonalRule =
       ruleLabel: string;
       reason: 'missing' | 'unparseable' | 'partial';
     }
-  | ({ kind: 'nutrition'; rule: NutritionRule } & (
-      | { reason: NutritionUnavailableReason }
-      | { reason: 'basis_mismatch'; productBasis: NutritionBasis }
-    ));
+  | { kind: 'nutrition'; rule: NutritionRule; reason: NutritionUnavailableReason };
 
 export type PersonalWarningComposition =
   | { kind: 'not_applicable' }
@@ -95,9 +91,7 @@ export function composePersonalWarnings(
       nutritionWarnings.push({ rule, fact });
     }
     if (unavailableIds.has(rule.id)) {
-      unavailableRules.push(fact.status === 'unavailable'
-        ? { kind: 'nutrition', rule, reason: fact.reason }
-        : { kind: 'nutrition', rule, reason: 'basis_mismatch', productBasis: fact.basis });
+      if (fact.status === 'unavailable') unavailableRules.push({ kind: 'nutrition', rule, reason: fact.reason });
     }
   }
 

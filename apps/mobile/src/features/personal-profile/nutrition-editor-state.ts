@@ -1,14 +1,13 @@
 import { clonePersonalProfile, PersonalProfile } from '@/domain/personal-profile';
-import { nutrientIds, NutrientId, NutritionBasis, NutritionDirection } from '@/domain/nutrition';
+import { nutrientIds, NutrientId, NutritionDirection } from '@/domain/nutrition';
 
 export type NutritionRuleDraft = Readonly<{
   nutrient: NutrientId;
   direction?: NutritionDirection;
-  basis?: NutritionBasis;
   threshold: number;
 }>;
 
-export type NutritionField = 'direction' | 'basis';
+export type NutritionField = 'direction';
 export type NutritionEditorErrors = Readonly<Record<string, string>>;
 export type NutritionEditorState = Readonly<{
   active: PersonalProfile;
@@ -22,7 +21,6 @@ export function createNutritionEditorState(active: PersonalProfile): NutritionEd
     rules: active.nutritionThresholds.map((rule) => ({
       nutrient: rule.nutrient,
       direction: rule.direction,
-      basis: rule.basis,
       threshold: rule.threshold,
     })),
     errors: {},
@@ -42,7 +40,7 @@ export function addNutritionRuleDraft(state: NutritionEditorState, nutrient: Nut
 export function updateNutritionRuleDraft(
   state: NutritionEditorState,
   nutrient: NutrientId,
-  changes: Partial<Pick<NutritionRuleDraft, 'direction' | 'basis' | 'threshold'>>,
+  changes: Partial<Pick<NutritionRuleDraft, 'direction' | 'threshold'>>,
 ): NutritionEditorState {
   return {
     ...state,
@@ -65,14 +63,12 @@ export function prepareNutritionProfile(state: NutritionEditorState):
   const errors: Record<string, string> = {};
   const thresholds = state.rules.flatMap((rule) => {
     if (!rule.direction) errors[key(rule.nutrient, 'direction')] = 'Wybierz kierunek porównania.';
-    if (!rule.basis) errors[key(rule.nutrient, 'basis')] = 'Wybierz podstawę porównania.';
-    if (!rule.direction || !rule.basis) return [];
+    if (!rule.direction) return [];
     return [{
       id: `nutrition:${rule.nutrient}`,
       nutrient: rule.nutrient,
       direction: rule.direction,
       threshold: rule.threshold,
-      basis: rule.basis,
     }];
   });
   return Object.keys(errors).length

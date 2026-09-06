@@ -27,7 +27,7 @@ describe('PersonalProfileStore', () => {
     expect(activeIngredientRulesFromState(store.getState())).toEqual([{ id: 'custom:custom-1', kind: 'ingredient', source: 'custom', name: 'Inulina' }]);
     expect(activePersonalRulesFromState(store.getState())).toEqual([
       { id: 'custom:custom-1', kind: 'ingredient', source: 'custom', name: 'Inulina' },
-      { id: 'nutrition:sugars', kind: 'nutrition', nutrient: 'sugars', direction: 'above', threshold: 5, basis: 'per_100g' },
+      { id: 'nutrition:sugars', kind: 'nutrition', nutrient: 'sugars', direction: 'above', threshold: 5 },
     ]);
   });
 

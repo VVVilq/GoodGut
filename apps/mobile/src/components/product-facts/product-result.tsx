@@ -21,7 +21,7 @@ export function ProductResult({
       <SafeAreaView edges={['bottom']} style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content}>
           {presentation.kind === 'found' ? (
-            <FoundProduct key={`${presentation.barcode}:${presentation.ingredientWarnings.kind}:${presentation.ingredientWarnings.kind === 'evaluated' ? presentation.ingredientWarnings.title : ''}`} presentation={presentation} onAction={onAction} />
+            <FoundProduct key={evaluationIdentity(presentation)} presentation={presentation} onAction={onAction} />
           ) : (
             <ThemedView type="backgroundElement" style={styles.statusCard}>
               {presentation.kind === 'loading' ? (
@@ -46,6 +46,10 @@ export function ProductResult({
       </SafeAreaView>
     </ThemedView>
   );
+}
+
+function evaluationIdentity(presentation: Extract<ProductLookupPresentation, { kind: 'found' }>) {
+  return `${presentation.barcode}:${JSON.stringify({ ingredientWarnings: presentation.ingredientWarnings, nutrients: presentation.nutrients.map(({ id, warning, warningDetail }) => ({ id, warning, warningDetail })) })}`;
 }
 
 function FoundProduct({

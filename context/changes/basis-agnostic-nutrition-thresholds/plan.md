@@ -232,25 +232,25 @@ Schema v3 profiles migrate to schema v4 by dropping only the threshold basis. Th
 
 #### Automated
 
-- [x] 1.1 Domain evaluator and profile tests pass for both product bases, strict boundaries, equality, and unavailable facts.
-- [x] 1.2 Schema-v3 to v4 migration and v2 compatibility tests pass.
-- [x] 1.3 Mobile lint and typecheck pass.
+- [x] 1.1 Domain evaluator and profile tests pass for both product bases, strict boundaries, equality, and unavailable facts. — 8eebd39
+- [x] 1.2 Schema-v3 to v4 migration and v2 compatibility tests pass. — 8eebd39
+- [x] 1.3 Mobile lint and typecheck pass. — 8eebd39
 
 #### Manual
 
-- [ ] 1.4 Existing profiles load with threshold values preserved after migration.
-- [ ] 1.5 One threshold evaluates against both product bases without incomplete status.
+- [x] 1.4 Existing profiles load with threshold values preserved after migration. — 8eebd39
+- [x] 1.5 One threshold evaluates against both product bases without incomplete status. — 8eebd39
 
 ### Phase 2: Editor and result presentation
 
 #### Automated
 
-- [ ] 2.1 Editor, composition, presentation, and component interaction tests pass with no basis selector or mismatch disclosure.
-- [ ] 2.2 Mobile lint, typecheck, and full Jest suite pass.
+- [x] 2.1 Editor, composition, presentation, and component interaction tests pass with no basis selector or mismatch disclosure. — 717c9a9
+- [x] 2.2 Mobile lint, typecheck, and full Jest suite pass. — 717c9a9
 
 #### Manual
 
-- [ ] 2.3 Solid and liquid scans show the same threshold behavior and actual product basis.
+- [x] 2.3 Solid and liquid scans show the same threshold behavior and actual product basis. — 717c9a9
 
 ### Phase 3: Integration and fixture acceptance
 
