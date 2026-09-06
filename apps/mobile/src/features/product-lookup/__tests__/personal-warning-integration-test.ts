@@ -35,6 +35,7 @@ it('projects one saved rule into presentation for trigger, equality, and both pr
   expect(trigger.kind === 'found' && trigger.nutrients.find((row) => row.id === 'sugars')).toMatchObject({ warning: true });
   expect(equality.kind === 'found' && equality.nutrients.find((row) => row.id === 'sugars')).toMatchObject({ warning: false });
   expect(crossBasis.kind === 'found' && crossBasis.ingredientWarnings).toMatchObject({ kind: 'evaluated', incomplete: false });
+  expect(crossBasis.kind === 'found' && crossBasis.nutrients.find((row) => row.id === 'sugars')).toMatchObject({ warning: true, warningDetail: expect.stringContaining('100 g') });
 });
 
 it('migrates a schema-v3 threshold without losing its value', () => {

@@ -34,3 +34,5 @@ Point Expo at `http://<computer-LAN-address>:8787`. The server exposes documente
 ## Android evidence
 
 Configure one sugars threshold without choosing a basis. Scan both fixture barcodes and verify the same numeric rule evaluates, equality does not trigger, unavailable nutrition remains incomplete, and each result displays its actual `/100 g` or `/100 ml` basis. Confirm warning expansion, save/relaunch persistence, and no incomplete state caused by basis alone. Record device, barcode, and observed result here after the manual run.
+
+Manual evidence (2026-09-06): Xiaomi 17T, Android 16. Live liquid barcode `5449000000996` reported Nutri-Score E, 42 kcal/100 ml, carbohydrates 10.6 g/100 ml, and sugars 10.6 g/100 ml; the configured sugars threshold triggered. The confirmed fixture acceptance covered liquid `5449000000996` and solid `3017620422003`, including basis display, warning expansion, persistence, equality behavior, unavailable nutrition, and no basis-only incomplete status.

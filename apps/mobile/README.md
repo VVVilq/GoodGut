@@ -38,7 +38,7 @@ The personal profile is stored locally as schema v4 in AsyncStorage under two ro
 contains avoided ingredients and nutrition thresholds, is not sent to the API, Open Food Facts,
 URLs, or logs, and is lost if app data is cleared or the app is uninstalled. Existing schema-v2
 ingredient profiles migrate in memory without deleting their legacy slots; the first explicit Save
-writes a verified schema-v3 slot.
+writes a verified schema-v4 slot.
 
 Use the ingredient editor from Home to select a taxonomy node or its OFF descendant branch, or add
 an exact-name custom entry. The nutrition editor supports one above-or-below threshold for each of
@@ -69,4 +69,4 @@ ingredient whose returned ancestors contain that ID. Each saved selection contri
 warning. Custom entries use NFKC, trimmed, case-insensitive exact matching. Partial ingredient data
 may show certain warnings, but it never produces a reassuring zero-result message.
 
-Nutrition warning fixture verification is documented in `context/changes/nutrition-warning-scan/verification.md`; start the development server with `node scripts/nutrition-warning-fixture-server.mjs`.
+Nutrition warning fixture verification is documented in `context/changes/basis-agnostic-nutrition-thresholds/verification.md`; start the development server with `node scripts/nutrition-warning-fixture-server.mjs`.
