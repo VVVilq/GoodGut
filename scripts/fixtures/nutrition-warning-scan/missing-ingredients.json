@@ -1,0 +1,61 @@
+{
+  "contractVersion": "3.0",
+  "outcome": "found",
+  "barcode": "0000000001008",
+  "source": {
+    "provider": "open_food_facts",
+    "providerProductUrl": "https://world.openfoodfacts.org/product/00001008",
+    "fetchedAt": "2026-08-19T13:30:00Z"
+  },
+  "product": {
+    "identity": {
+      "displayName": "Mamma Mia  American BBQ",
+      "brands": [
+        "Gymqueen"
+      ],
+      "quantity": null,
+      "imageUrl": null
+    },
+    "nutriScore": {
+      "status": "missing"
+    },
+    "ingredients": {
+      "status": "missing",
+      "catalogueVersion": null
+    },
+    "nutrition": {
+      "energy_kcal": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "carbohydrates": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "sugars": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "fat": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "saturated_fat": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "fiber": {
+        "status": "unavailable",
+        "reason": "missing_source"
+      },
+      "protein": {
+        "status": "unavailable",
+        "reason": "unknown_basis"
+      },
+      "salt": {
+        "status": "unavailable",
+        "reason": "missing_source"
+      }
+    }
+  }
+}

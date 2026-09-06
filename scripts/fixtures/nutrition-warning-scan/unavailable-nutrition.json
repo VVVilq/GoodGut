@@ -1,0 +1,30 @@
+{
+  "contractVersion": "3.0",
+  "outcome": "found",
+  "barcode": "9900000000010",
+  "source": {
+    "provider": "open_food_facts",
+    "providerProductUrl": "https://world.openfoodfacts.org/product/9900000000010",
+    "fetchedAt": "2026-08-19T13:30:00Z"
+  },
+  "product": {
+    "identity": {
+      "displayName": "Unparseable ingredient example",
+      "brands": [],
+      "quantity": null,
+      "imageUrl": null
+    },
+    "nutriScore": { "status": "missing" },
+    "ingredients": { "status": "unparseable", "catalogueVersion": null },
+    "nutrition": {
+      "energy_kcal": { "status": "unavailable", "reason": "missing_source" },
+      "carbohydrates": { "status": "unavailable", "reason": "missing_source" },
+      "sugars": { "status": "unavailable", "reason": "missing_source" },
+      "fat": { "status": "unavailable", "reason": "missing_source" },
+      "saturated_fat": { "status": "unavailable", "reason": "missing_source" },
+      "fiber": { "status": "unavailable", "reason": "missing_source" },
+      "protein": { "status": "unavailable", "reason": "missing_source" },
+      "salt": { "status": "unavailable", "reason": "missing_source" }
+    }
+  }
+}

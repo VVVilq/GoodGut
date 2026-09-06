@@ -34,7 +34,7 @@ npx.cmd expo config --type public
 On Android, verify camera allow/deny recovery, a complete and incomplete product, not-found,
 source/client errors, retry, scan-another, duplicate suppression, and camera release on exit.
 
-The personal profile is stored locally as schema v3 in AsyncStorage under two rotating slots. It
+The personal profile is stored locally as schema v4 in AsyncStorage under two rotating slots. It
 contains avoided ingredients and nutrition thresholds, is not sent to the API, Open Food Facts,
 URLs, or logs, and is lost if app data is cleared or the app is uninstalled. Existing schema-v2
 ingredient profiles migrate in memory without deleting their legacy slots; the first explicit Save
@@ -42,7 +42,7 @@ writes a verified schema-v3 slot.
 
 Use the ingredient editor from Home to select a taxonomy node or its OFF descendant branch, or add
 an exact-name custom entry. The nutrition editor supports one above-or-below threshold for each of
-the eight normalized nutrients. Every threshold explicitly selects `per 100 g` or `per 100 ml`;
+the eight normalized nutrients. Each threshold applies to the product's reported `per 100 g` or `per 100 ml` value;
 energy uses a 0–1000 kcal slider with step 1, other nutrients use a 0–100 g slider with step 0.1,
 zero is valid, and equality does not trigger a
 rule. Save is explicit. Failed saves keep the previous active profile and the submitted draft

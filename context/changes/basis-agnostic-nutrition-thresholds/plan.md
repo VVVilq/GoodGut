@@ -256,10 +256,10 @@ Schema v3 profiles migrate to schema v4 by dropping only the threshold basis. Th
 
 #### Automated
 
-- [ ] 3.1 Integration and migration scenarios pass through decoder, saved profile, composition, and presentation.
-- [ ] 3.2 Mobile lint, typecheck, and full Jest suite pass.
-- [ ] 3.3 API regression gate passes.
-- [ ] 3.4 Fixture server returns documented cross-basis responses and not-found fallback with lifecycle evidence.
+- [x] 3.1 Integration and migration scenarios pass through decoder, saved profile, composition, and presentation.
+- [x] 3.2 Mobile lint, typecheck, and full Jest suite pass.
+- [x] 3.3 API regression gate passes.
+- [x] 3.4 Fixture server returns documented cross-basis responses and not-found fallback with lifecycle evidence.
 
 #### Manual
 
