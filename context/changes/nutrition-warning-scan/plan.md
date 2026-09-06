@@ -262,21 +262,21 @@ No persisted or wire schema changes. Reverting the mobile change restores the pr
 
 #### Automated
 
-- [x] 2.1 Presentation and component interaction tests pass for the approved summary, highlights, disclosures, and reset behavior.
-- [x] 2.2 Mobile lint, types, and regression tests pass.
+- [x] 2.1 Presentation and component interaction tests pass for the approved summary, highlights, disclosures, and reset behavior. — df508c7
+- [x] 2.2 Mobile lint, types, and regression tests pass. — df508c7
 
 ### Phase 3: Android verification
 
 #### Automated
 
-- [ ] 3.1 All scenario fixtures and saved-profile-to-presentation integration cases pass.
-- [ ] 3.2 Mobile lint, types, and full tests pass.
-- [ ] 3.3 API regression gate passes.
-- [ ] 3.4 Fixture server returns the documented scenario responses and contract not-found fallback; startup, request, and shutdown evidence is recorded in `verification.md`.
+- [x] 3.1 All scenario fixtures and saved-profile-to-presentation integration cases pass.
+- [x] 3.2 Mobile lint, types, and full tests pass.
+- [x] 3.3 API regression gate passes.
+- [x] 3.4 Fixture server returns the documented scenario responses and contract not-found fallback; startup, request, and shutdown evidence is recorded in `verification.md`.
 
 #### Manual
 
-- [ ] 3.5 Android fixture cases confirm mixed counts, equality, both bases, mismatch, missing nutrition, and partial/missing ingredient behavior against the documented expected results.
-- [ ] 3.6 Android confirms nutrition threshold and summary reason disclosures, light/dark warning visibility, long-text wrapping, and TalkBack labels/expanded states.
-- [ ] 3.7 Android confirms save/discard and relaunch behavior, updated warnings after returning from profile editing, no-rule facts, and retry/rescan navigation.
-- [ ] 3.8 A live physical barcode scan through the normal API displays current product facts and correct configured-rule results; device, barcode, observed values, and outcome are recorded.
+- [x] 3.5 Android fixture cases confirm mixed counts, equality, both bases, mismatch, missing nutrition, and partial/missing ingredient behavior against the documented expected results.
+- [x] 3.6 Android confirms nutrition threshold and summary reason disclosures, light/dark warning visibility, long-text wrapping, and TalkBack labels/expanded states.
+- [x] 3.7 Android confirms save/discard and relaunch behavior, updated warnings after returning from profile editing, no-rule facts, and retry/rescan navigation.
+- [x] 3.8 A live physical barcode scan through the normal API displays current product facts and correct configured-rule results; device, barcode, observed values, and outcome are recorded.

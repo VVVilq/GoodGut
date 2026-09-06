@@ -68,3 +68,5 @@ An exact-node selection matches only the returned node ID, while a branch select
 ingredient whose returned ancestors contain that ID. Each saved selection contributes at most one
 warning. Custom entries use NFKC, trimmed, case-insensitive exact matching. Partial ingredient data
 may show certain warnings, but it never produces a reassuring zero-result message.
+
+Nutrition warning fixture verification is documented in `context/changes/nutrition-warning-scan/verification.md`; start the development server with `node scripts/nutrition-warning-fixture-server.mjs`.
