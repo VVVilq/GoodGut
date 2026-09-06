@@ -7,7 +7,6 @@ import {
 } from './avoided-ingredients/profile';
 import {
   isNutrientId,
-  isNutritionBasis,
   isNutritionDirection,
   NutrientId,
   nutrientOrder,
@@ -21,7 +20,8 @@ export type NutritionThreshold = Readonly<{
   nutrient: NutrientId;
   direction: NutritionDirection;
   threshold: number;
-  basis: NutritionBasis;
+  /** Legacy schema-v3 field; ignored by evaluation and omitted from schema-v4 documents. */
+  basis?: NutritionBasis;
 }>;
 
 export type PersonalProfile = AvoidedIngredientProfile & {
@@ -32,7 +32,6 @@ export type NutritionThresholdValidationErrorCode =
   | 'duplicate_nutrient'
   | 'invalid_nutrient'
   | 'invalid_direction'
-  | 'invalid_basis'
   | 'invalid_threshold'
   | 'invalid_nutrition_id';
 
@@ -104,9 +103,6 @@ export function validateNutritionThresholds(
     if (!isNutritionDirection(rule.direction)) {
       return { code: 'invalid_direction', fieldId: rule.id };
     }
-    if (!isNutritionBasis(rule.basis)) {
-      return { code: 'invalid_basis', fieldId: rule.id };
-    }
     if (!Number.isFinite(rule.threshold) || rule.threshold < 0) {
       return { code: 'invalid_threshold', fieldId: rule.id };
     }
@@ -160,9 +156,12 @@ export function profileToPersonalRules(profile: PersonalProfile): PersonalRule[]
   const error = validatePersonalProfile(profile);
   if (error) throw new Error(`Invalid personal profile: ${error.section}:${error.error.code}`);
 
-  const nutritionRules: NutritionRule[] = ordered(profile.nutritionThresholds).map((rule) => ({
-    ...rule,
+  const nutritionRules: NutritionRule[] = ordered(profile.nutritionThresholds).map(({ id, nutrient, direction, threshold }) => ({
+    id,
     kind: 'nutrition',
+    nutrient,
+    direction,
+    threshold,
   }));
   return [...profileToIngredientRules(profile), ...nutritionRules];
 }

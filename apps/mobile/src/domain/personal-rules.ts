@@ -20,7 +20,8 @@ export type NutritionRule = {
   nutrient: NutrientId;
   direction: NutritionDirection;
   threshold: number;
-  basis: NutritionBasis;
+  /** Legacy basis retained only while schema-v3 profiles are migrated. */
+  basis?: NutritionBasis;
 };
 
 export type PersonalRule = IngredientRule | NutritionRule;
@@ -168,7 +169,7 @@ export function evaluatePersonalRules(
     }
 
     const fact = product.nutrition[rule.nutrient];
-    if (fact.status !== 'available' || fact.basis !== rule.basis) {
+    if (fact.status !== 'available') {
       unavailableRuleIds.push(rule.id);
       continue;
     }

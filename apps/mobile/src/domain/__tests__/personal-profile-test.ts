@@ -122,9 +122,6 @@ describe('personal profile nutrition thresholds', () => {
       { id: 'nutrition:sugars', ...sugars, direction: 'sideways' as 'above' },
     ])?.code).toBe('invalid_direction');
     expect(validateNutritionThresholds([
-      { id: 'nutrition:sugars', ...sugars, basis: 'per_serving' as 'per_100g' },
-    ])?.code).toBe('invalid_basis');
-    expect(validateNutritionThresholds([
       { id: 'nutrition:sugars', ...sugars, threshold: Number.NaN },
     ])?.code).toBe('invalid_threshold');
     expect(validateNutritionThresholds([
@@ -145,8 +142,8 @@ describe('personal profile nutrition thresholds', () => {
     expect(profileToPersonalRules(profile)).toEqual([
       { id: 'taxonomy:en:milk', kind: 'ingredient', name: 'Mleko', source: 'taxonomy', nodeId: 'en:milk', scope: 'subtree' },
       { id: 'custom:custom-1', kind: 'ingredient', name: 'Inulina', source: 'custom' },
-      { id: 'nutrition:sugars', kind: 'nutrition', ...sugars },
-      { id: 'nutrition:fiber', kind: 'nutrition', nutrient: 'fiber', direction: 'below', threshold: 2, basis: 'per_100ml' },
+      { id: 'nutrition:sugars', kind: 'nutrition', nutrient: 'sugars', direction: 'above', threshold: 5.5 },
+      { id: 'nutrition:fiber', kind: 'nutrition', nutrient: 'fiber', direction: 'below', threshold: 2 },
     ]);
 
     expect(() => profileToPersonalRules({

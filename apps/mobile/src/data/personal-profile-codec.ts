@@ -1,34 +1,37 @@
 import { NutritionThreshold, PersonalProfile, validatePersonalProfile } from '@/domain/personal-profile';
 
-export const PERSONAL_PROFILE_SCHEMA_VERSION = 3;
-export type PersonalProfileDocument = { schemaVersion: 3; profile: PersonalProfile };
+export const PERSONAL_PROFILE_SCHEMA_VERSION = 4;
+export type PersonalProfileDocument = { schemaVersion: 4; profile: PersonalProfile };
 export type ProfileDecodeResult =
-  | { ok: true; document: PersonalProfileDocument; migratedFrom?: 2 }
+  | { ok: true; document: PersonalProfileDocument; migratedFrom?: 2 | 3 }
   | { ok: false; reason: 'invalid_json' | 'invalid_document' | 'unsupported_version' };
 
 export function encodePersonalProfile(profile: PersonalProfile): string {
   const error = validatePersonalProfile(profile);
   if (error) throw new Error(`Cannot encode invalid personal profile: ${error.section}:${error.error.code}`);
-  return JSON.stringify({ schemaVersion: PERSONAL_PROFILE_SCHEMA_VERSION, profile });
+  const nutritionThresholds = profile.nutritionThresholds.map(({ id, nutrient, direction, threshold }) => ({ id, nutrient, direction, threshold }));
+  return JSON.stringify({ schemaVersion: PERSONAL_PROFILE_SCHEMA_VERSION, profile: { ...profile, nutritionThresholds } });
 }
 
 export function decodePersonalProfile(value: string): ProfileDecodeResult {
   let parsed: unknown;
   try { parsed = JSON.parse(value); } catch { return { ok: false, reason: 'invalid_json' }; }
   if (!record(parsed) || !keys(parsed, ['schemaVersion', 'profile'])) return { ok: false, reason: 'invalid_document' };
-  if (parsed.schemaVersion !== 2 && parsed.schemaVersion !== 3) return { ok: false, reason: 'unsupported_version' };
+  if (parsed.schemaVersion !== 2 && parsed.schemaVersion !== 3 && parsed.schemaVersion !== 4) return { ok: false, reason: 'unsupported_version' };
 
-  const ingredients = decodeIngredientFields(parsed.profile, parsed.schemaVersion === 3);
+  const ingredients = decodeIngredientFields(parsed.profile, parsed.schemaVersion !== 2);
   if (!ingredients) return { ok: false, reason: 'invalid_document' };
-  const nutritionThresholds = parsed.schemaVersion === 3
-    ? decodeNutritionThresholds((parsed.profile as Record<string, unknown>).nutritionThresholds)
-    : [];
+  const nutritionThresholds = parsed.schemaVersion === 2
+    ? []
+    : decodeNutritionThresholds((parsed.profile as Record<string, unknown>).nutritionThresholds, parsed.schemaVersion === 3);
   if (nutritionThresholds === null) return { ok: false, reason: 'invalid_document' };
   const profile: PersonalProfile = { ...ingredients, nutritionThresholds };
   if (validatePersonalProfile(profile)) return { ok: false, reason: 'invalid_document' };
   return parsed.schemaVersion === 2
-    ? { ok: true, document: { schemaVersion: 3, profile }, migratedFrom: 2 }
-    : { ok: true, document: { schemaVersion: 3, profile } };
+    ? { ok: true, document: { schemaVersion: 4, profile }, migratedFrom: 2 }
+    : parsed.schemaVersion === 3
+      ? { ok: true, document: { schemaVersion: 4, profile }, migratedFrom: 3 }
+      : { ok: true, document: { schemaVersion: 4, profile } };
 }
 
 export function isV1PersonalProfile(value: string): boolean {
@@ -55,12 +58,13 @@ function decodeIngredientFields(value: unknown, includeNutrition: boolean) {
   return { selections, customIngredients };
 }
 
-function decodeNutritionThresholds(value: unknown): NutritionThreshold[] | null {
+function decodeNutritionThresholds(value: unknown, legacyBasis: boolean): NutritionThreshold[] | null {
   if (!Array.isArray(value)) return null;
   const thresholds: NutritionThreshold[] = [];
   for (const item of value) {
-    if (!record(item) || !keys(item, ['id', 'nutrient', 'direction', 'threshold', 'basis']) || typeof item.id !== 'string' || typeof item.nutrient !== 'string' || typeof item.direction !== 'string' || typeof item.threshold !== 'number' || typeof item.basis !== 'string') return null;
-    thresholds.push(item as NutritionThreshold);
+    const expected = legacyBasis ? ['id', 'nutrient', 'direction', 'threshold', 'basis'] : ['id', 'nutrient', 'direction', 'threshold'];
+    if (!record(item) || !keys(item, expected) || typeof item.id !== 'string' || typeof item.nutrient !== 'string' || typeof item.direction !== 'string' || typeof item.threshold !== 'number' || (legacyBasis && typeof item.basis !== 'string')) return null;
+    thresholds.push({ id: item.id, nutrient: item.nutrient as NutritionThreshold['nutrient'], direction: item.direction as NutritionThreshold['direction'], threshold: item.threshold });
   }
   return thresholds;
 }

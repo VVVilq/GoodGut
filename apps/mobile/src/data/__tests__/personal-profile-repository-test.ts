@@ -5,7 +5,7 @@ import { emptyPersonalProfile, PersonalProfile } from '@/domain/personal-profile
 const PROFILE: PersonalProfile = {
   selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'subtree', ancestorNodeIds: [] }],
   customIngredients: [{ id: 'one', name: 'Inulina' }],
-  nutritionThresholds: [{ id: 'nutrition:sugars', nutrient: 'sugars', direction: 'above', threshold: 5.5, basis: 'per_100g' }],
+  nutritionThresholds: [{ id: 'nutrition:sugars', nutrient: 'sugars', direction: 'above', threshold: 5.5 }],
 };
 const V2_DOCUMENT = JSON.stringify({ schemaVersion: 2, profile: { selections: PROFILE.selections, customIngredients: PROFILE.customIngredients } });
 
@@ -15,18 +15,19 @@ class MemoryStore implements AsyncKeyValueStore {
   async setItem(key: string, value: string) { this.calls.push(`set:${key}`); if (key === this.failSetKey) throw new Error('injected failure'); this.values.set(key, value); }
 }
 
-describe('personal profile v3 persistence', () => {
-  it('strictly round-trips schema v3 and rejects malformed documents', () => {
-    expect(decodePersonalProfile(encodePersonalProfile(PROFILE))).toEqual({ ok: true, document: { schemaVersion: 3, profile: PROFILE } });
+describe('personal profile v4 persistence', () => {
+  it('strictly round-trips schema v4, migrates v3, and rejects malformed documents', () => {
+    expect(decodePersonalProfile(encodePersonalProfile(PROFILE))).toEqual({ ok: true, document: { schemaVersion: 4, profile: PROFILE } });
+    expect(decodePersonalProfile(JSON.stringify({ schemaVersion: 3, profile: { ...PROFILE, nutritionThresholds: [{ ...PROFILE.nutritionThresholds[0], basis: 'per_100g' }] } }))).toEqual({ ok: true, document: { schemaVersion: 4, profile: PROFILE }, migratedFrom: 3 });
     expect(decodePersonalProfile(JSON.stringify({ schemaVersion: 3, profile: { ...PROFILE, extra: true } }))).toEqual({ ok: false, reason: 'invalid_document' });
     expect(decodePersonalProfile(JSON.stringify({ schemaVersion: 3, profile: { ...PROFILE, nutritionThresholds: [{ ...PROFILE.nutritionThresholds[0], threshold: -1 }] } }))).toEqual({ ok: false, reason: 'invalid_document' });
-    expect(decodePersonalProfile(JSON.stringify({ schemaVersion: 4, profile: PROFILE }))).toEqual({ ok: false, reason: 'unsupported_version' });
+    expect(decodePersonalProfile(JSON.stringify({ schemaVersion: 5, profile: PROFILE }))).toEqual({ ok: false, reason: 'unsupported_version' });
   });
 
   it('migrates strict v2 data in memory without writing or losing ingredients', async () => {
     expect(decodePersonalProfile(V2_DOCUMENT)).toEqual({
       ok: true,
-      document: { schemaVersion: 3, profile: { selections: PROFILE.selections, customIngredients: PROFILE.customIngredients, nutritionThresholds: [] } },
+      document: { schemaVersion: 4, profile: { selections: PROFILE.selections, customIngredients: PROFILE.customIngredients, nutritionThresholds: [] } },
       migratedFrom: 2,
     });
     const storage = new MemoryStore(); storage.values.set(PERSONAL_PROFILE_KEYS.v2Active, 'a'); storage.values.set(PERSONAL_PROFILE_KEYS.v2A, V2_DOCUMENT);

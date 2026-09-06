@@ -103,11 +103,11 @@ describe('persisted profile evaluator handoff', () => {
 
     const store = new PersonalProfileStore(repository);
     await store.hydrate();
-    expect(store.getState()).toEqual({ status: 'ready', activeProfile: profile });
+    expect(store.getState()).toEqual({ status: 'ready', activeProfile: { ...profile, nutritionThresholds: profile.nutritionThresholds.map(({ id, nutrient, direction, threshold }) => ({ id, nutrient, direction, threshold })) } });
     expect(profileToPersonalRules(profile)).toEqual([
       { id: 'taxonomy:en:milk', kind: 'ingredient', name: 'Mleko', source: 'taxonomy', nodeId: 'en:milk', scope: 'subtree' },
       { id: 'custom:one', kind: 'ingredient', name: 'Inulina', source: 'custom' },
-      ...nutritionThresholds.map((rule) => ({ ...rule, kind: 'nutrition' as const })),
+      ...nutritionThresholds.map(({ id, nutrient, direction, threshold }) => ({ id, nutrient, direction, threshold, kind: 'nutrition' as const })),
     ]);
   });
 
@@ -143,9 +143,9 @@ describe('persisted profile evaluator handoff', () => {
     };
 
     expect(evaluatePersonalRules(profileToPersonalRules(loaded.profile), product)).toEqual({
-      triggeredRuleIds: ['nutrition:sugars'],
-      unavailableRuleIds: ['nutrition:fiber', 'nutrition:salt'],
-      triggerCount: 1,
+      triggeredRuleIds: ['nutrition:sugars', 'nutrition:salt'],
+      unavailableRuleIds: ['nutrition:fiber'],
+      triggerCount: 2,
     });
   });
 

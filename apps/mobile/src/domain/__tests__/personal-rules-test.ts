@@ -162,7 +162,7 @@ describe('evaluatePersonalRules', () => {
     ).toBe(expected);
   });
 
-  it('marks missing values and mismatched bases unavailable without triggering', () => {
+  it('marks missing values unavailable while evaluating available facts across bases', () => {
     const rules: PersonalRule[] = [
       {
         id: 'missing-sugars',
@@ -193,9 +193,9 @@ describe('evaluatePersonalRules', () => {
         }),
       ),
     ).toEqual({
-      triggeredRuleIds: [],
-      unavailableRuleIds: ['missing-sugars', 'wrong-basis'],
-      triggerCount: 0,
+      triggeredRuleIds: ['wrong-basis'],
+      unavailableRuleIds: ['missing-sugars'],
+      triggerCount: 1,
     });
   });
 
@@ -294,9 +294,9 @@ describe('evaluatePersonalRules', () => {
     ];
 
     expect(evaluatePersonalRules(rules, productFactsFromContract(normalized))).toEqual({
-      triggeredRuleIds: ['sugar', 'sugars-ml'],
-      unavailableRuleIds: ['sugars-g', 'fiber'],
-      triggerCount: 2,
+      triggeredRuleIds: ['sugar', 'sugars-ml', 'sugars-g'],
+      unavailableRuleIds: ['fiber'],
+      triggerCount: 3,
     });
   });
 

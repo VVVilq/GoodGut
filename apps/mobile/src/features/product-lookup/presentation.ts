@@ -53,7 +53,7 @@ function personalWarningPresentation(composition: PersonalWarningComposition): P
   }
 }
 
-function thresholdDetail(rule: { direction: 'above' | 'below'; threshold: number; basis: 'per_100g' | 'per_100ml' }): string { return `Twój próg: ${rule.direction === 'above' ? 'powyżej' : 'poniżej'} ${formatNumber(rule.threshold)} / ${rule.basis === 'per_100g' ? '100 g' : '100 ml'}`; }
+function thresholdDetail(rule: { direction: 'above' | 'below'; threshold: number; basis?: 'per_100g' | 'per_100ml' }): string { return `Twój próg: ${rule.direction === 'above' ? 'powyżej' : 'poniżej'} ${formatNumber(rule.threshold)} / ${rule.basis === 'per_100g' ? '100 g' : rule.basis === 'per_100ml' ? '100 ml' : '100 g lub 100 ml'}`; }
 function unavailableRuleDetail(item: UnavailablePersonalRule): string { if (item.kind === 'ingredient') return `${item.ruleLabel}: ${item.reason === 'partial' ? 'niepeĹ‚ne dane skĹ‚adnikĂłw' : 'brak danych o skĹ‚adnikach'}`; if (item.reason === 'basis_mismatch') return `${nutrientLabels[item.rule.nutrient]}: produkt ${item.productBasis === 'per_100g' ? '100 g' : '100 ml'}, prĂłg ${item.rule.basis === 'per_100g' ? '100 g' : '100 ml'}`; return `${nutrientLabels[item.rule.nutrient]}: ${{ missing_source: 'brak danych', unknown_basis: 'nieznana podstawa', invalid_value: 'nieprawidĹ‚owa wartoĹ›Ä‡', unsupported_unit: 'nieobsĹ‚ugiwana jednostka' }[item.reason]}`; }
 function warningCountLabel(count: number): string { return count === 1 ? 'ostrzeżenie' : count < 5 ? 'ostrzeżenia' : 'ostrzeżeń'; }
 function formatNumber(value: number): string { return Number.isInteger(value) ? value.toFixed(0) : String(value); }
