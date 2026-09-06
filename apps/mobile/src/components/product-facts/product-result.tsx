@@ -21,7 +21,7 @@ export function ProductResult({
       <SafeAreaView edges={['bottom']} style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.content}>
           {presentation.kind === 'found' ? (
-            <FoundProduct presentation={presentation} onAction={onAction} />
+            <FoundProduct key={`${presentation.barcode}:${presentation.ingredientWarnings.kind}:${presentation.ingredientWarnings.kind === 'evaluated' ? presentation.ingredientWarnings.title : ''}`} presentation={presentation} onAction={onAction} />
           ) : (
             <ThemedView type="backgroundElement" style={styles.statusCard}>
               {presentation.kind === 'loading' ? (
@@ -57,6 +57,8 @@ function FoundProduct({
 }) {
   const theme = useTheme();
   const [imageFailed, setImageFailed] = useState(false);
+  const [expandedNutrients, setExpandedNutrients] = useState<ReadonlySet<string>>(new Set());
+  const [detailsExpanded, setDetailsExpanded] = useState(false);
   const imageUrl = imageFailed ? null : presentation.identity.imageUrl;
   const ingredientItems = presentation.ingredients.available
     ? presentation.ingredients.items
@@ -69,6 +71,8 @@ function FoundProduct({
       <IngredientWarningSummary
         presentation={presentation.ingredientWarnings}
         onAction={onAction}
+        detailsExpanded={detailsExpanded}
+        onToggleDetails={() => setDetailsExpanded((value) => !value)}
       />
       <View style={styles.header}>
         {imageUrl ? (
@@ -123,8 +127,10 @@ function FoundProduct({
       <FactSection title="Wartości odżywcze">
         {presentation.nutrients.map((row) => (
           <View key={row.id} style={styles.nutrientRow}>
-            <ThemedText style={styles.nutrientLabel}>{row.label}</ThemedText>
-            <ThemedText themeColor={row.available ? 'text' : 'textSecondary'}>{row.displayValue}</ThemedText>
+            {row.warning ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: expandedNutrients.has(row.id) }} onPress={() => setExpandedNutrients((current) => { const next = new Set(current); if (next.has(row.id)) next.delete(row.id); else next.add(row.id); return next; })} style={styles.nutrientWarningRow}>
+              <ThemedText style={[styles.nutrientLabel, { color: theme.warning }]}>⚠ {row.label}</ThemedText><ThemedText style={{ color: theme.warning }}>{row.displayValue}</ThemedText>
+            </Pressable> : <><ThemedText style={styles.nutrientLabel}>{row.label}</ThemedText><ThemedText themeColor={row.available ? 'text' : 'textSecondary'}>{row.displayValue}</ThemedText></>}
+            {row.warning && expandedNutrients.has(row.id) && <ThemedText style={styles.thresholdDetail} themeColor="textSecondary">{row.warningDetail}</ThemedText>}
           </View>
         ))}
       </FactSection>
@@ -143,17 +149,17 @@ function FoundProduct({
 function IngredientWarningSummary({
   presentation,
   onAction,
+  detailsExpanded,
+  onToggleDetails,
 }: {
   presentation: Extract<ProductLookupPresentation, { kind: 'found' }>['ingredientWarnings'];
   onAction: (action: ResultAction) => void;
+  detailsExpanded: boolean;
+  onToggleDetails: () => void;
 }) {
   const theme = useTheme();
   if (presentation.kind === 'none') return null;
-
-  const warning = presentation.kind === 'triggered'
-    || presentation.kind === 'unavailable'
-    || presentation.kind === 'incomplete'
-    || presentation.kind === 'profile_error';
+  const warning = presentation.kind === 'profile_error' || (presentation.kind === 'evaluated' && presentation.incomplete);
 
   return (
     <View
@@ -177,16 +183,10 @@ function IngredientWarningSummary({
         </ThemedText>
       </View>
       <ThemedText type="small">{presentation.detail}</ThemedText>
-      {presentation.kind === 'triggered' && presentation.warnings.map((item) => (
-        <View key={item.ruleId} style={styles.warningRow}>
-          <ThemedText type="smallBold" style={{ color: theme.warning }}>
-            ⚠ {item.ruleLabel}
-          </ThemedText>
-          <ThemedText type="small">
-            Dopasowano: {item.matchedIngredientNames.join(', ')}
-          </ThemedText>
-        </View>
-      ))}
+      {presentation.kind === 'evaluated' && presentation.unavailableDetails.length > 0 && <Pressable accessibilityRole="button" accessibilityState={{ expanded: detailsExpanded }} onPress={onToggleDetails}>
+        <ThemedText type="smallBold" style={{ color: theme.warning }}>{detailsExpanded ? 'Ukryj szczegóły niedostępności' : 'Pokaż szczegóły niedostępności'}</ThemedText>
+      </Pressable>}
+      {presentation.kind === 'evaluated' && detailsExpanded && presentation.unavailableDetails.map((detail) => <ThemedText key={detail} type="small">{detail}</ThemedText>)}
       {presentation.actions.map((action) => (
         <Action key={action} action={action} onPress={() => onAction(action)} />
       ))}
@@ -249,6 +249,8 @@ const styles = StyleSheet.create({
   warningIngredient: { fontWeight: '800' },
   unrecognizedIngredient: { fontWeight: '500' },
   nutrientRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.two, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#DCE6E0', paddingTop: 10 },
+  nutrientWarningRow: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: Spacing.two },
+  thresholdDetail: { width: '100%', paddingTop: 6 },
   nutrientLabel: { flex: 1 },
   nutriScore: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   nutriScoreText: { color: '#FFFFFF', fontWeight: '800', fontSize: 22 },

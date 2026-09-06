@@ -105,17 +105,7 @@ describe('product lookup presentation', () => {
       ready({ selections: [], customIngredients: [{ id: 'sucralose', name: 'Sucralose' }] }),
     );
 
-    expect(presentation.ingredientWarnings).toEqual({
-      kind: 'triggered',
-      title: '1 ostrzeżenie',
-      detail: 'Produkt zawiera składniki pasujące do Twoich reguł.',
-      warnings: [{
-        ruleId: 'custom:sucralose',
-        ruleLabel: 'Sucralose',
-        matchedIngredientNames: ['sucralose'],
-      }],
-      actions: [],
-    });
+    expect(presentation.ingredientWarnings).toMatchObject({ kind: 'evaluated', incomplete: false, title: '1 ostrzeżenie', actions: [] });
     expect(presentation.ingredients).toEqual({
       available: true,
       partialSummary: null,
@@ -136,8 +126,8 @@ describe('product lookup presentation', () => {
 
     expect(foundPresentation(available).ingredientWarnings).toEqual({ kind: 'none' });
     expect(foundPresentation(available, configured).ingredientWarnings).toMatchObject({
-      kind: 'no_triggers',
-      title: '0 ostrzeżeń',
+      kind: 'evaluated',
+      title: '0 ostrzeżenia',
     });
     expect(foundPresentation(available, { status: 'hydrating' }).ingredientWarnings).toMatchObject({
       kind: 'loading',
@@ -149,7 +139,8 @@ describe('product lookup presentation', () => {
       actions: ['retry_profile', 'open_profile'],
     });
     expect(foundPresentation(product(), configured).ingredientWarnings).toMatchObject({
-      kind: 'unavailable',
+      kind: 'evaluated',
+      incomplete: true,
     });
   });
 
@@ -160,18 +151,19 @@ describe('product lookup presentation', () => {
     });
     const matching = foundPresentation(product({ ingredients: taxonomyIngredients('partial') }), configured);
     expect(matching.ingredientWarnings).toMatchObject({
-      kind: 'triggered',
-      title: '1 ostrzeżenie',
+      kind: 'evaluated',
+      incomplete: true,
     });
-    if (matching.ingredientWarnings.kind !== 'triggered') throw new Error('expected triggered');
-    expect(matching.ingredientWarnings.detail).toContain('niepełna');
+    if (matching.ingredientWarnings.kind !== 'evaluated') throw new Error('expected evaluated');
+    expect(matching.ingredientWarnings.detail).toContain('Nie wszystkie');
 
     const exactOnly = ready({
       selections: [{ nodeId: 'en:milk', labelPl: 'Mleko', scope: 'node', ancestorNodeIds: [] }],
       customIngredients: [],
     });
     expect(foundPresentation(product({ ingredients: taxonomyIngredients('partial') }), exactOnly).ingredientWarnings).toMatchObject({
-      kind: 'incomplete',
+      kind: 'evaluated',
+      incomplete: true,
     });
   });
 

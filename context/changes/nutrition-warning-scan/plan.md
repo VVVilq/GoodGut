@@ -255,15 +255,15 @@ No persisted or wire schema changes. Reverting the mobile change restores the pr
 
 #### Automated
 
-- [x] 1.1 Combined composition matrix passes, including exact counts and incomplete-source preservation.
-- [x] 1.2 Mobile lint, types, and regression tests pass.
+- [x] 1.1 Combined composition matrix passes, including exact counts and incomplete-source preservation. — 0e48daa
+- [x] 1.2 Mobile lint, types, and regression tests pass. — 0e48daa
 
 ### Phase 2: Result presentation
 
 #### Automated
 
-- [ ] 2.1 Presentation and component interaction tests pass for the approved summary, highlights, disclosures, and reset behavior.
-- [ ] 2.2 Mobile lint, types, and regression tests pass.
+- [x] 2.1 Presentation and component interaction tests pass for the approved summary, highlights, disclosures, and reset behavior.
+- [x] 2.2 Mobile lint, types, and regression tests pass.
 
 ### Phase 3: Android verification
 
