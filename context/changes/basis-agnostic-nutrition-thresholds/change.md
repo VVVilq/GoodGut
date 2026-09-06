@@ -1,7 +1,7 @@
 ﻿---
 change_id: basis-agnostic-nutrition-thresholds
 title: Apply one nutrition threshold across gram and millilitre bases
-status: implementing
+status: implemented
 created: 2026-09-06
 updated: 2026-09-06
 archived_at: null
