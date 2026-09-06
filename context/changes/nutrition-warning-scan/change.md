@@ -1,7 +1,7 @@
 ---
 change_id: nutrition-warning-scan
 title: Nutrition warning scan
-status: implementing
+status: implemented
 created: 2026-09-05
 updated: 2026-09-06
 archived_at: null

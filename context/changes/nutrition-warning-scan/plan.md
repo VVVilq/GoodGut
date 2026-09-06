@@ -269,10 +269,10 @@ No persisted or wire schema changes. Reverting the mobile change restores the pr
 
 #### Automated
 
-- [x] 3.1 All scenario fixtures and saved-profile-to-presentation integration cases pass.
-- [x] 3.2 Mobile lint, types, and full tests pass.
-- [x] 3.3 API regression gate passes.
-- [x] 3.4 Fixture server returns the documented scenario responses and contract not-found fallback; startup, request, and shutdown evidence is recorded in `verification.md`.
+- [x] 3.1 All scenario fixtures and saved-profile-to-presentation integration cases pass. — aeb4115
+- [x] 3.2 Mobile lint, types, and full tests pass. — aeb4115
+- [x] 3.3 API regression gate passes. — aeb4115
+- [x] 3.4 Fixture server returns the documented scenario responses and contract not-found fallback; startup, request, and shutdown evidence is recorded in `verification.md`. — aeb4115
 
 #### Manual
 
