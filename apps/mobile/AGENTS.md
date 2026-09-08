@@ -1,6 +1,6 @@
 # Expo HAS CHANGED
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing any code.
+Read the versioned Expo docs matching `expo` in `package.json` before writing any code: currently SDK 57 at https://docs.expo.dev/versions/v57.0.0/. Update this reference when upgrading Expo.
 
 ## Mobile Architecture
 

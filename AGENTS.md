@@ -1,45 +1,34 @@
 # Repository Guidelines
 
-This repository is a GoodGut monorepo with an Expo mobile client in `apps/mobile/` and a Spring Boot API service in `services/api/`. The API uses Java 21, Maven, Spring Web MVC, DevTools, and Spring Boot's MVC test starter as declared in `services/api/pom.xml`.
+## Critical Project Rules
 
-## Project Structure & Module Organization
+- The current product contract is [context/foundation/prd-v3.md](context/foundation/prd-v3.md). Earlier PRDs are historical; do not use them to reintroduce disease profiles, medical scores, or medical suitability judgments.
+- Do not commit secrets into API properties, mobile `.env` files, or app config. Document required environment variables without credential values.
+- Do not archive or rewrite foundation history unless a skill explicitly calls for it. Foundation document conventions are in [context/foundation/README.md](context/foundation/README.md).
+- Skills must not write to `context/archive/`. Archived changes are immutable; if a resolved target path starts with `context/archive/`, abort with: "This change is archived. Open a new change with `/10x-new` instead."
 
-- `services/api/src/main/java/com/example/goodgut_server/` contains API application code. Keep new Java packages under this root package; `services/api/HELP.md` notes that `com.example.goodgut-server` is invalid and was normalized to `com.example.goodgut_server`.
-- `services/api/src/main/resources/` contains API runtime configuration, currently `application.properties`.
-- `services/api/src/test/java/com/example/goodgut_server/` contains JUnit tests. Mirror production package paths when adding tests.
-- `services/api/.mvn/`, `services/api/mvnw`, and `services/api/mvnw.cmd` are the Maven wrapper files; prefer them over a system Maven install.
-- `apps/mobile/` contains the Expo React Native client. Run client commands from that directory.
-- `context/` contains planning and foundation docs. Do not archive or rewrite foundation history unless a skill explicitly calls for it.
+## Repository Map and Scoped Instructions
 
-## Build, Test, and Development Commands
+GoodGut is a monorepo. Git lives at the repository root so a vertical slice can include mobile, API, and documentation in one commit.
 
-- `cd services/api && ./mvnw test` runs the API test suite on Unix-like shells.
-- `cd services\api; .\mvnw.cmd test` runs the API test suite from PowerShell.
-- `cd services/api && ./mvnw spring-boot:run` starts the API locally with Spring Boot DevTools available at runtime.
-- `cd services/api && ./mvnw package` compiles, tests, and builds the API artifact.
-- `cd apps/mobile && npm.cmd start` starts Expo for the mobile client.
-- `cd apps/mobile && npm.cmd run lint` runs the mobile lint check.
+Before changing a module, read its local instructions alongside this file:
 
-## Coding Style & Naming Conventions
+- `apps/mobile/` — Expo client; [apps/mobile/AGENTS.md](apps/mobile/AGENTS.md) defines mobile architecture and verification.
+- `services/api/` — Spring Boot API; [services/api/AGENTS.md](services/api/AGENTS.md) defines backend structure, conventions, commands, and deployment.
+- [README.md](README.md) — local startup, including the root `scripts/dev.ps1` launcher, and Railway deployment. Railway's API service root is `services/api/`.
+- [.editorconfig](.editorconfig) — formatting settings; module manifests define dependency versions.
 
-Use Java 21 and the Spring Boot conventions already present in `GoodgutServerApplication.java`. Use four-space indentation in Java files, constructor injection for Spring collaborators, and package names under `com.example.goodgut_server`. Name classes in `PascalCase`, methods and fields in `camelCase`, and tests with names that describe behavior rather than implementation.
+## Planning and Verification
 
-## Testing Guidelines
+- Read [context/foundation/prd-v3.md](context/foundation/prd-v3.md) for current product behavior and [context/foundation/roadmap.md](context/foundation/roadmap.md) for slice sequencing.
+- For a planned change, use `context/changes/<change-id>/plan.md` as its implementation contract and `context/changes/<change-id>/reviews/` for review results.
+- Use [context/foundation/test-plan.md](context/foundation/test-plan.md) for risk coverage and quality gates. Run the affected module's checks from its local `AGENTS.md` before handoff; changes spanning both modules require both sets of checks.
+- Report verification results and any checks that could not run, including device acceptance still pending.
+- If `context/foundation/lessons.md` exists, read relevant recurring project rules before planning or implementing. The root `lessons/` directory contains local course materials, not the project's incident register.
 
-API tests use JUnit 5 with Spring Boot test support. Keep test classes in `services/api/src/test/java` with the same package as the code under test, and use `*Tests` for Spring context or integration-style tests, matching `GoodgutServerApplicationTests`. Add focused unit tests for new API logic and run `cd services/api && ./mvnw test` or `cd services\api; .\mvnw.cmd test` before handing off API changes.
+## Commits and Pull Requests
 
-## Commit & Pull Request Guidelines
-
-This checkout is not inside a Git repository, so no local commit convention could be inferred. Until one is documented, use short imperative commit subjects, for example `Add health endpoint`, and include a PR summary, test results, and any configuration changes.
-
-## Security & Configuration Tips
-
-Do not commit secrets into `application.properties`, mobile `.env` files, or app config. Put environment-specific values behind Spring properties, Expo environment variables, or profiles, and document required local values in project docs instead of hard-coding credentials.
-
-## Deployment Notes
-
-- Railway deploys the API service from `services/api/`, not from the repository root. Configure the Railway service root directory to `services/api` or set equivalent build/start commands that run Maven from that directory.
-- Keep Git at the repository root so vertical slices can include mobile, API, and docs changes in one commit.
+Use short imperative commit subjects, such as `Add health endpoint`. PR descriptions should state the resulting behavior, verification results, and configuration changes.
 
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
@@ -81,7 +70,5 @@ Review AI-generated code before merge with the **implementation review chain**:
 - `context/changes/<change-id>/plan.md` - expected implementation contract
 - `context/changes/<change-id>/reviews/` - review output
 - `context/foundation/lessons.md` - recurring lessons
-
-Skills must not write to `context/archive/`. Archived changes are immutable; if a resolved target path starts with `context/archive/`, abort with: "This change is archived. Open a new change with `/10x-new` instead."
 
 <!-- END @przeprogramowani/10x-cli -->
