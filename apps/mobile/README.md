@@ -5,15 +5,23 @@ the GoodGut API. The client never calls Open Food Facts directly.
 
 ## Local setup
 
-1. Copy `.env.example` to `.env.local`.
-2. Set `EXPO_PUBLIC_API_BASE_URL` to a GoodGut API URL reachable from the Android device:
+Run commands in this guide from `apps/mobile/`, unless stated otherwise. Install Node.js 22.13 or
+newer with npm. For the combined Windows launcher, see the [root setup guide](../../README.md).
+
+1. Run `npm.cmd ci`. Keep development dependencies and lifecycle scripts enabled: `postinstall`
+   applies the required [dependency compatibility patch](patches/README.md).
+2. Copy `.env.example` to `.env.local` if you do not already have local configuration.
+3. Set `EXPO_PUBLIC_API_BASE_URL` to a GoodGut API URL reachable from the Android device:
 
    ```env
    EXPO_PUBLIC_API_BASE_URL=http://192.168.1.100:8080
    ```
 
    A physical phone cannot use the development computer's `localhost`; use its LAN address.
-3. Start the API first, then run:
+   For the standard Android emulator, use `http://10.0.2.2:8080`. Keep the phone and computer on a
+   reachable network when using the LAN address. Restart Expo after changing the URL.
+4. Start the API using the [API guide](../../services/api/README.md), or configure a deployed API,
+   then run:
 
    ```powershell
    npm.cmd start -- --lan
@@ -28,8 +36,14 @@ This project targets Expo SDK 57. Install the matching Android Expo Go build fro
 npm.cmd run lint
 npm.cmd run typecheck
 npm.cmd test
+npm.cmd audit
+npx.cmd expo install --check
 npx.cmd expo config --type public
 ```
+
+`npm.cmd test` runs the Node dependency compatibility checks before Jest. To verify bundling after
+dependency changes, run `npx.cmd expo export --platform android --output-dir ../../.tmp/android-export`.
+This exports the JavaScript/Hermes bundle and assets; it does not build an APK or replace device testing.
 
 On Android, verify camera allow/deny recovery, a complete and incomplete product, not-found,
 source/client errors, retry, scan-another, duplicate suppression, and camera release on exit.
@@ -69,4 +83,14 @@ ingredient whose returned ancestors contain that ID. Each saved selection contri
 warning. Custom entries use NFKC, trimmed, case-insensitive exact matching. Partial ingredient data
 may show certain warnings, but it never produces a reassuring zero-result message.
 
-Nutrition warning fixture verification is documented in `context/changes/basis-agnostic-nutrition-thresholds/verification.md`; start the development server with `node scripts/nutrition-warning-fixture-server.mjs`.
+Nutrition warning scenarios are recorded in the
+[archived verification](../../context/archive/2026-09-06-basis-agnostic-nutrition-thresholds/verification.md).
+From the repository root, start the fixture server with:
+
+```powershell
+node scripts/nutrition-warning-fixture-server.mjs
+```
+
+Set the mobile API URL to `http://YOUR-COMPUTER-LAN-IP:8787` and restart Expo. This server supplies
+product lookup fixtures only; it does not implement ingredient catalogue discovery. Configure a
+profile against the real API before switching to fixture scenarios.
