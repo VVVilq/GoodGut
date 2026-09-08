@@ -1,6 +1,6 @@
 ---
 project: GoodGut
-checked_at: 2026-09-08T16:31:42+02:00
+checked_at: 2026-09-08
 health_status: needs-attention
 context_type: brownfield
 language_family: multi
@@ -8,108 +8,78 @@ stack_assessment_available: true
 checks_run: [lockfile, dependency_audit, test_runner, ci_cd, configuration]
 audit_findings:
   critical: 0
-  high: 5
-  moderate: 15
+  high: 0
+  moderate: 0
   low: 0
 test_runner_detected: true
 ci_provider: GitHub Actions
-recommended_fixes: 1
+recommended_fixes: 0
 ---
 
 ## Dependency Health
 
 ### Lockfile
 
-Status: `apps/mobile/package-lock.json` present; API Maven Wrapper present
-Package manager: npm; Maven Wrapper
+Status: `apps/mobile/package-lock.json` present; clean `npm.cmd ci` succeeded and applied the query-string compatibility patch. API Maven Wrapper present.
+Package manager: npm; Maven Wrapper.
 
 ### Security Audit
 
-Tool: `npm.cmd audit --json` for mobile; Java dependency scanner not configured
-Summary: 0 CRITICAL, 5 HIGH, 15 MODERATE, 0 LOW
-Direct vs transitive: findings are primarily transitive; Expo packages are direct dependency paths.
+Tool: `npm.cmd audit --json` for mobile; Java dependency scanner not configured.
+Summary on 2026-09-08: 0 CRITICAL, 0 HIGH, 0 MODERATE, 0 LOW; exit code 0.
+The previously reported 5 high and 15 moderate findings have been removed from the npm dependency tree. This does not constitute an audit of application logic or Java dependencies.
 
-Review the advisory paths and upgrade through a compatible Expo SDK release. Do not run `npm.cmd audit fix --force` without reviewing the major-version changes.
+Remediation: compatible Expo SDK 57 patch updates, Metro 0.84.5, updated browserslist and xmldom, UUID 11.1.1 scoped to xcode, and decode-uri-component 0.5.0. A one-line query-string import patch preserves compatibility with the decoder's ESM default export. See `apps/mobile/patches/README.md` for rationale and removal criteria. No audit suppression or forced SDK downgrade was used.
 
 ### Outdated Dependencies
 
-Outdated-package checks were not run in this verification. npm audit identifies advisory remediation suggestions, not a verified compatible upgrade path.
+`npx.cmd expo install --check` passes. A general npm/Java outdated-package review was not run.
 
 ## Test Suite
 
-Test runner: Jest (`jest-expo`) for mobile; Maven Surefire/JUnit 5 for API
-Tests found: 21 mobile suites / 218 tests; 11 API test classes / 42 tests
-Test execution: passing locally on 2026-09-08 (218 mobile tests; 42 API tests). Mobile lint and typecheck also passed. npm audit completed with exit code 1 and the findings above.
+- Mobile: 21 Jest suites / 218 tests pass, plus 3 Node dependency compatibility tests run by `pretest`.
+- Mobile lint and TypeScript checks pass.
+- Android production JavaScript/Hermes export with a cleared Metro cache succeeds, including asset processing. Output is local under `.tmp/security-android-export/`.
+- API: 42 tests passed earlier on 2026-09-08; no API changes were made in this dependency remediation, so the suite was not repeated.
+- Physical Android acceptance and a native APK build were not performed for these dependency updates.
 
-Configuration: `apps/mobile/package.json`; `services/api/pom.xml`
-Framework: Jest 29.7 with `jest-expo` 57.0.5; Spring Boot 4.0.6 with JUnit 5
-
-The mobile lint script now uses ESLint directly with `--no-cache`, avoiding the stale `.expo` cache permission failure. API dependencies resolved successfully and all tests pass.
+Configuration: `apps/mobile/package.json`; `services/api/pom.xml`.
 
 ## CI/CD
 
-Provider: GitHub Actions
-Configuration: `.github/workflows/quality.yml`
+Provider: GitHub Actions.
+Configuration: `.github/workflows/quality.yml`.
 
 | Stage | Configuration | Local verification on 2026-09-08 |
 |---|---|---|
-| Lint | Configured | Passed: `npm.cmd run lint` |
-| Test | Configured | Passed: 218 mobile tests and 42 API tests |
-| Build | Not configured | Not run |
-| Type check | Configured | Passed: `npm.cmd run typecheck` |
-| Security | Configured, blocking at high severity | Audit failed: 5 high and 15 moderate findings |
+| Lint | Configured | Passed |
+| Test | Configured | 218 Jest + 3 compatibility tests; earlier 42 API tests passed |
+| Build | Not configured | Android JS/Hermes export passed; native package not built |
+| Type check | Configured | Passed |
+| Security | Configured, blocking at high severity | npm audit passed with zero findings |
 
-The workflow is configured locally; execution on GitHub Actions has not been verified. With the current dependency findings, `npm audit --audit-level=high` is expected to fail the mobile job. Deployment remains outside this workflow. The API job invokes `bash ./mvnw test` because the wrapper is tracked without its executable bit.
+Remote workflow execution for these dependency changes is unverified. Deployment remains outside this workflow. The API job invokes `bash ./mvnw test` because the wrapper is tracked without its executable bit.
 
 ## Configuration
 
-### High severity
-
-No high-severity configuration gaps detected.
-
-### Medium severity
-
-- **Dependency advisories** — npm reports 5 high and 15 moderate transitive advisories. Fix: review paths and upgrade through a compatible Expo SDK release.
-
-### Low severity
-
-No low-severity configuration gaps remain from this audit; a root `.editorconfig` is now present.
+No newly detected configuration blocker. The root `.editorconfig` and scoped agent instructions are present. The query-string patch is applied by `postinstall`; installations must include development dependencies and permit lifecycle scripts for the documented build/test workflow.
 
 ## Stack Assessment Cross-Reference
 
-Stack assessment: `context/foundation/stack-assessment.md`
-Agent readiness (from stack-assess): ready-with-compensation
+Stack assessment: `context/foundation/stack-assessment.md` (historical baseline).
 
-| Quality Gate Gap | Health-Check Finding | Status |
+| Quality Gate Gap | Current evidence | Status |
 |---|---|---|
-| Mobile test runner previously missing | Jest and `jest-expo` now run 21 suites | Mitigated |
-| Mobile conventions were thin | Root and scoped `AGENTS.md` files document boundaries | Partially mitigated |
-| Delivery automation absent | `.github/workflows/quality.yml` configures quality checks; remote execution unverified | Partially mitigated |
+| Mobile automated testing absent | Jest and dependency compatibility tests pass | Mitigated |
+| Mobile conventions were thin | Scoped AGENTS.md documents boundaries and verification | Mitigated |
+| Delivery automation absent | Workflow configured; remote results for this change unverified | Partially mitigated |
 
 ## Recommended Fixes
 
-### Fix before agent work (Category A)
+No remaining npm audit remediation is identified by the current scan. Maintain the dependency overrides and patch until upstream packages incorporate compatible fixes; rerun audit and compatibility checks when removing them.
 
-### 1. Review and remediate npm advisories
-
-**Impact**: the mobile dependency tree contains 5 high and 15 moderate advisories.
-**Severity**: high
-**Effort**: significant (> 1 hour)
-**Fix**:
-
-Review `npm.cmd audit` dependency paths and upgrade through a compatible Expo SDK release. Avoid `npm.cmd audit fix --force` because it proposes incompatible major versions.
-
-### Addressed in upcoming lessons (Category B)
-
-### Build and deployment automation
-
-**Lesson**: infrastructure and deployment
-**What you'll do there**: add build/package and Railway deployment verification to the existing quality workflow.
+Delivery follow-up: verify CI for the updated lockfile and perform physical Android acceptance. Native build/deployment automation and Java dependency scanning remain outside the completed verification.
 
 ## Summary
 
-Health status: needs-attention
-
-GoodGut now has passing local quality gates (218 mobile tests and 42 API tests), a working lint command, a shared editor policy, and a CI workflow configured for lint, typecheck, tests, and npm audit (remote execution unverified). The remaining material issue is the mobile dependency tree, which reports 5 high and 15 moderate advisories requiring a reviewed Expo/Metro upgrade path.
-
-Next step: review the npm advisory paths and plan a compatible Expo upgrade; verify the new workflow on GitHub after pushing; the security gate remains blocked by the current findings.
+All reported npm vulnerabilities are resolved and local mobile checks pass. Overall readiness remains `needs-attention` because remote CI, native/device acceptance for this update, and Java vulnerability scanning are not verified. Do not interpret the clean npm report as proof that the entire product is vulnerability-free.
