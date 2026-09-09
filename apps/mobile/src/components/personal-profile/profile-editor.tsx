@@ -15,6 +15,22 @@ export function ProfileEditor({activeProfile,saving,recovered,resetNotice,saveFa
  return <ThemedView style={styles.screen}><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
   <ThemedText themeColor="textSecondary">Wybierz składnik lub całą gałąź katalogu OFF. Profil pozostaje wyłącznie na tym urządzeniu.</ThemedText>
   {resetNotice&&<Banner text="Poprzednia lista została zachowana, ale zresetowana po aktualizacji katalogu. Wybierz składniki ponownie."/>}{recovered&&<Banner text="Odzyskano ostatni poprawny profil z kopii."/>}{saveFailed&&<Banner text="Nie udało się zapisać. Poprzedni profil pozostaje aktywny."/>}
+  <ThemedText type="subtitle">Wybrane składniki ({editor.draft.selections.length + editor.draft.customIngredients.length})</ThemedText>
+  <ThemedText type="small" themeColor="textSecondary">Odznacz składnik, aby go usunąć. Zmiany zatwierdzisz przyciskiem „Zapisz profil”.</ThemedText>
+  {editor.draft.selections.length === 0 && editor.draft.customIngredients.length === 0 && <ThemedText themeColor="textSecondary">Nie wybrano jeszcze składników.</ThemedText>}
+  {editor.draft.selections.map((item) => (
+    <View key={item.nodeId} style={styles.catalogue}>
+      <Checkbox label={item.labelPl} checked onPress={() => setEditor((current) => removeSelection(current, item.nodeId))}/>
+      <ThemedText type="small" themeColor="textSecondary">{item.scope === 'subtree' ? 'Ten składnik i cała gałąź' : 'Tylko ten składnik'}</ThemedText>
+    </View>
+  ))}
+  {editor.draft.customIngredients.map((item) => (
+    <View key={item.id} style={styles.catalogue}>
+      <Checkbox label={item.name} checked onPress={() => setEditor((current) => removeCustom(current, item.id))}/>
+      <ThemedText type="small" themeColor="textSecondary">Własny składnik — dokładna nazwa</ThemedText>
+    </View>
+  ))}
+  <ThemedText type="subtitle">Dodaj z katalogu</ThemedText>
   <TextInput accessibilityLabel="Szukaj składnika" onChangeText={setQuery} placeholder="np. mleko kozie lub goat milk" style={styles.input} value={query}/>
   {catalogue.state.status==='loading'&&<ThemedText>Dane katalogu są ładowane…</ThemedText>}{catalogue.state.status==='stale'&&<Banner text="Pokazujemy zapisaną wersję katalogu. Wyniki mogą być nieaktualne."/>}{catalogue.state.status==='error'&&<View><Banner text="Katalog jest teraz niedostępny. Zapisane wybory pozostały bez zmian."/><Action label="Spróbuj ponownie" onPress={()=>void catalogue.retry()}/></View>}
   {catalogue.state.items.map((item)=><CatalogueTreeRow key={item.nodeId} item={item} depth={0} editor={editor} setEditor={setEditor} expanded={expanded} onExpand={async(nodeId)=>{if(expanded.has(nodeId)){setExpanded((current)=>{const next=new Set(current);next.delete(nodeId);return next;});return;}await catalogue.loadChildren(nodeId);setExpanded((current)=>new Set([...current,nodeId]));}} childrenByNode={catalogue.childrenByNode} loadingNodeId={catalogue.loadingNodeId}/>)}

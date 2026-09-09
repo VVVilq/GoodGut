@@ -16,6 +16,8 @@ export function ProductResult({
   presentation: ProductLookupPresentation;
   onAction: (action: ResultAction) => void;
 }) {
+  const theme = useTheme();
+  const isError = presentation.kind === 'source_error' || presentation.kind === 'client_error';
   return (
     <ThemedView style={styles.screen}>
       <SafeAreaView edges={['bottom']} style={styles.safeArea}>
@@ -23,18 +25,20 @@ export function ProductResult({
           {presentation.kind === 'found' ? (
             <FoundProduct key={evaluationIdentity(presentation)} presentation={presentation} onAction={onAction} />
           ) : (
-            <ThemedView type="backgroundElement" style={styles.statusCard}>
+            <ThemedView type="backgroundElement" accessibilityRole={isError ? 'alert' : undefined} style={[styles.statusCard, isError && { backgroundColor: theme.warningBackground }]}>
               {presentation.kind === 'loading' ? (
-                <ActivityIndicator size="large" color="#1F7A57" />
+                <View style={styles.loadingIndicator}>
+                  <ActivityIndicator accessibilityLabel="Wyszukiwanie produktu" accessibilityRole="progressbar" animating size="large" color={theme.text} style={styles.spinner} />
+                </View>
               ) : (
-                <View style={styles.statusIcon}>
-                  <ThemedText style={styles.statusIconText}>
+                <View style={[styles.statusIcon, isError && { backgroundColor: theme.warningBackground }]}>
+                  <ThemedText style={[styles.statusIconText, isError && { color: theme.warning }]}>
                     {presentation.kind === 'not_found' ? '?' : '!'}
                   </ThemedText>
                 </View>
               )}
-              <ThemedText type="subtitle">{presentation.title}</ThemedText>
-              <ThemedText style={styles.statusDetail} themeColor="textSecondary">{presentation.detail}</ThemedText>
+              <ThemedText type="subtitle" style={isError && { color: theme.warning }}>{presentation.title}</ThemedText>
+              <ThemedText style={[styles.statusDetail, isError && { color: theme.warning }]} themeColor="textSecondary">{presentation.detail}</ThemedText>
             </ThemedView>
           )}
           <View style={styles.actions}>
@@ -262,6 +266,8 @@ const styles = StyleSheet.create({
   statusIcon: { width: 58, height: 58, borderRadius: 20, backgroundColor: '#E3F2E8', alignItems: 'center', justifyContent: 'center' },
   statusIconText: { color: '#1F7A57', fontSize: 28, fontWeight: '800' },
   statusDetail: { textAlign: 'center', lineHeight: 24 },
+  loadingIndicator: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center' },
+  spinner: { width: 48, height: 48 },
   actions: { gap: Spacing.two },
   action: { backgroundColor: '#1F7A57', borderRadius: 15, padding: 15, alignItems: 'center' },
   actionText: { color: '#FFFFFF', fontWeight: '700' },

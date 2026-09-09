@@ -5,8 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function HomeScreen() {
+  const theme = useTheme();
   return (
     <ThemedView style={styles.screen}>
       <View style={styles.glowOne} />
@@ -52,13 +54,13 @@ export default function HomeScreen() {
 
         <Pressable
           accessibilityRole="button"
-          style={({ pressed }) => [styles.profileButton, pressed && styles.pressed]}
+          style={({ pressed }) => [styles.profileButton, { backgroundColor: theme.backgroundElement, borderColor: theme.textSecondary }, pressed && styles.pressed]}
           onPress={() => router.push('/profile' as Href)}>
           <View>
             <ThemedText type="smallBold">Unikane składniki</ThemedText>
             <ThemedText type="small" themeColor="textSecondary">Ustaw własną listę wyborów</ThemedText>
           </View>
-          <ThemedText style={styles.profileArrow}>→</ThemedText>
+          <ThemedText style={[styles.profileArrow, { color: theme.text }]}>→</ThemedText>
         </Pressable>
 
         <View style={styles.trustRow}>
@@ -92,8 +94,8 @@ const styles = StyleSheet.create({
   buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
   arrow: { color: '#FFFFFF', fontSize: 23 },
   pressed: { opacity: 0.78, transform: [{ scale: 0.99 }] },
-  profileButton: { borderColor: '#BFD4C7', borderWidth: 1, borderRadius: 18, padding: Spacing.three, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F6FAF7' },
-  profileArrow: { color: '#1F7A57', fontSize: 23 },
+  profileButton: { borderWidth: 1, borderRadius: 18, padding: Spacing.three, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  profileArrow: { fontSize: 23 },
   trustRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.two },
   dot: { width: 3, height: 3, borderRadius: 2, backgroundColor: '#8A9B94' },
 });
