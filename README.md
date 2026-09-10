@@ -47,12 +47,31 @@ $env:OPEN_FOOD_FACTS_USER_AGENT = "GoodGut/0.1 (your-real-contact)"
 Replace `your-real-contact` with your application contact identity. The launcher configures the
 local database connection and mobile API URL for this session. Keep the phone and computer on a
 network that allows them to communicate, and allow the API and Expo through the local firewall.
+Use a trusted private network: the local API uses unencrypted HTTP and is reachable on the LAN.
+PostgreSQL is bound to `127.0.0.1` only; its fixed development credentials are for disposable local
+data, never production or sensitive data. Do not forward these development ports from your router.
+
+The launcher pins the local database connection and port, rejects other inherited `SPRING_*` overrides,
+and removes its database variables before starting Expo. It restores the caller's environment on
+exit. API URLs must not contain credentials, query parameters, or fragments; public Expo variables
+are visible to app users. API logs stay in the Git-ignored `.local-tools/dev-logs/` directory;
+review them before sharing because dependency errors can contain configuration details.
 
 The script starts PostgreSQL through Docker Compose, starts the API, waits for `/health`, and ensures
 a small local ingredient catalogue is active. It then detects the computer's LAN address for a
 physical Android device and starts Expo. Press `Ctrl+C` to stop Expo and the local API; PostgreSQL
 remains available with its data in a Docker volume. The bundled catalogue is only a development
 fixture; production catalogue imports remain an explicit operator action.
+
+Verify API startup and catalogue availability without starting Expo or waiting for keyboard input:
+
+```powershell
+.\scripts\dev.ps1 -Check
+```
+
+This binds the API to localhost, stops it after verification, and retains PostgreSQL and its existing
+volume. `-NoExpo` also binds the API to localhost. An existing
+listener on port 8080 causes startup to fail instead of accidentally checking or seeding that service.
 
 To intentionally keep a new local database without the development catalogue, run:
 
@@ -66,9 +85,10 @@ Use a deployed API instead (replace the example address with your Railway servic
 .\scripts\dev.ps1 -UseRailway -ApiBaseUrl https://YOUR-SERVICE.up.railway.app
 ```
 
-`-UseRailway` skips local PostgreSQL and API startup; it does not select a URL itself. Without
-`-ApiBaseUrl`, Expo uses the existing environment configuration, which may still point to a local
-API. Java and Docker are not needed when using only a deployed API.
+`-UseRailway` skips local PostgreSQL and API startup and requires an HTTPS URL from `-ApiBaseUrl`
+or the shell's `EXPO_PUBLIC_API_BASE_URL`. It does not fall back to a mobile `.env` file.
+Java and Docker are not needed when using only a deployed API. Add `-Check` to check its health
+without starting Expo.
 
 For an emulator or a manually selected address, override the mobile API URL:
 
